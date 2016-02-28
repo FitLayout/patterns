@@ -7,8 +7,10 @@ package org.fit.layout.patterns;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.Tag;
 
 /**
  * 
@@ -20,6 +22,8 @@ public class PatternAnalyzer
     
     private List<Relation> analyzedRelations;
     private List<Area> areas;
+    private ConnectionList<AreaConnection> areaConnections;
+    private ConnectionList<TagConnection> tagConnections;
     
     public PatternAnalyzer(List<Area> areas)
     {
@@ -29,12 +33,15 @@ public class PatternAnalyzer
         analyzedRelations.add(new RelationSide());
     }
     
-    public ConnectionList<AreaConnection> findAreaConnections()
+    public ConnectionList<AreaConnection> getAreaConnections()
     {
-        ConnectionList<AreaConnection> ret = new ConnectionList<>();
-        for (Relation r : analyzedRelations)
-            addConnectionsForRelation(areas, r, ret);
-        return ret;
+        if (areaConnections == null)
+        {
+            areaConnections = new ConnectionList<>();
+            for (Relation r : analyzedRelations)
+                addConnectionsForRelation(areas, r, areaConnections);
+        }
+        return areaConnections;
     }
     
     private void addConnectionsForRelation(List<Area> areas, Relation relation, ConnectionList<AreaConnection> dest)
@@ -49,5 +56,27 @@ public class PatternAnalyzer
             }
         }
     }
+
+    public ConnectionList<TagConnection> getTagConnections()
+    {
+        if (tagConnections == null)
+        {
+            tagConnections = new ConnectionList<>();
+            for (AreaConnection ac : getAreaConnections())
+            {
+                Set<Tag> srcTags = ac.getA1().getTags().keySet();
+                Set<Tag> dstTags = ac.getA2().getTags().keySet();
+                if (!srcTags.isEmpty() && !dstTags.isEmpty())
+                {
+                    for (Tag src : srcTags)
+                        for (Tag dest : dstTags)
+                            tagConnections.add(new TagConnection(src, dest, ac.getRelation(), ac.getWeight()));
+                }
+            }
+        }
+        return tagConnections;
+    }
+    
+    
     
 }

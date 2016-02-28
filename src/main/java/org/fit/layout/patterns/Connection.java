@@ -49,6 +49,42 @@ public class Connection<T>
     {
         return a1.toString() + " " + relation.getName() + "(" + weight + ") " + a2.toString(); 
     }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((a1 == null) ? 0 : a1.hashCode());
+        result = prime * result + ((a2 == null) ? 0 : a2.hashCode());
+        result = prime * result + ((relation == null) ? 0 : relation.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        Connection<?> other = (Connection<?>) obj;
+        if (a1 == null)
+        {
+            if (other.a1 != null) return false;
+        }
+        else if (!a1.equals(other.a1)) return false;
+        if (a2 == null)
+        {
+            if (other.a2 != null) return false;
+        }
+        else if (!a2.equals(other.a2)) return false;
+        if (relation == null)
+        {
+            if (other.relation != null) return false;
+        }
+        else if (!relation.equals(other.relation)) return false;
+        return true;
+    }
     
     
 

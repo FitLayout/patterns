@@ -6,7 +6,6 @@
 package org.fit.layout.patterns;
 
 import org.fit.layout.model.Area;
-import org.fit.layout.model.Rectangular;
 
 /**
  * 
@@ -23,11 +22,13 @@ public class RelationSide extends Relation
     @Override
     public float isInRelationship(Area a1, Area a2)
     {
-        if (a1.getParentArea() != null && a1.getParentArea() == a2.getParentArea())
+        //here a1 is the right area, a2 is the left area
+        //we say that a1 is on side of a2
+        if (AreaUtils.isOnSameLineRoughly(a2, a1))
         {
-            final Area parent = a1.getParentArea();
-            Area cand = findClosestOnLeft(parent, a2);
-            if (cand == a1)
+            float dist = a1.getBounds().getX1() - a2.getBounds().getX2();
+            float em = Math.max(a2.getFontSize(), a1.getFontSize());
+            if (dist > -0.2*em && dist < 0.9*em)
                 return 1.0f;
             else
                 return 0.0f;
@@ -36,38 +37,5 @@ public class RelationSide extends Relation
             return 0.0f;
     }
 
-    protected Area findClosestOnLeft(Area parent, Area refArea)
-    {
-        final Rectangular gp = refArea.getTopology().getPosition();
-        final Rectangular leftArea = new Rectangular(0, gp.getY1(), gp.getX1() - 1, gp.getY2());
-        return findClosestInRegion(parent, refArea, leftArea);
-    }
-    
-    protected Area findClosestInRegion(Area parent, Area refArea, Rectangular r)
-    {
-        Area ret = null;
-        int minDist = Integer.MAX_VALUE;
-        
-        for (int i = 0; i < parent.getChildCount(); i++)
-        {
-            Area n = parent.getChildArea(i);
-            if (n.getTopology().getPosition().intersects(r))
-            {
-                int dist = distance(n, refArea);
-                if (dist < minDist)
-                {
-                    ret = n;
-                    minDist = dist;
-                }
-            }
-        }
-        return ret;
-    }
-
-    protected int distance(Area a1, Area a2)
-    {
-        //only the horizontal distance is interesting for this relationship
-        return a2.getBounds().getX1() - a1.getBounds().getX2();
-    }
     
 }
