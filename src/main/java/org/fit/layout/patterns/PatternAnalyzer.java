@@ -31,6 +31,7 @@ public class PatternAnalyzer
         
         analyzedRelations = new ArrayList<>();
         analyzedRelations.add(new RelationSide());
+        analyzedRelations.add(new RelationBelow());
     }
     
     public ConnectionList<AreaConnection> getAreaConnections()
@@ -50,9 +51,12 @@ public class PatternAnalyzer
         {
             for (Area a2 : areas)
             {
-                float w = relation.isInRelationship(a1, a2);
-                if (w >= MIN_WEIGHT)
-                    dest.add(new AreaConnection(a1, a2, relation, w));
+                if (a1 != a2)
+                {
+                    float w = relation.isInRelationship(a1, a2);
+                    if (w >= MIN_WEIGHT)
+                        dest.add(new AreaConnection(a1, a2, relation, w));
+                }
             }
         }
     }
