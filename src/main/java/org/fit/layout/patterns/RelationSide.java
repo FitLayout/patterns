@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTopology;
 
 /**
  * 
@@ -14,9 +15,9 @@ import org.fit.layout.model.Area;
 public class RelationSide extends Relation
 {
 
-    public RelationSide()
+    public RelationSide(AreaTopology topology)
     {
-        super("side");
+        super("side", topology);
     }
 
     @Override

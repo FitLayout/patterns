@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTopology;
 
 /**
  * 
@@ -14,10 +15,12 @@ import org.fit.layout.model.Area;
 public abstract class Relation
 {
     private String name;
+    private AreaTopology topology;
 
-    public Relation(String name)
+    public Relation(String name, AreaTopology topology)
     {
         this.name = name;
+        this.topology = topology;
     }
 
     public String getName()
@@ -25,6 +28,11 @@ public abstract class Relation
         return name;
     }
     
+    public AreaTopology getTopology()
+    {
+        return topology;
+    }
+
     /**
      * Decides whether the area a1 is in the given relationship with a2.
      * @param a1

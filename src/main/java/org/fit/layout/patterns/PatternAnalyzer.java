@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Tag;
 
 /**
@@ -29,9 +30,10 @@ public class PatternAnalyzer
     {
         this.areas = areas;
         
+        AreaTopology topology = new AreaListGridTopology(areas);
         analyzedRelations = new ArrayList<>();
-        analyzedRelations.add(new RelationSide());
-        analyzedRelations.add(new RelationBelow());
+        analyzedRelations.add(new RelationSide(topology));
+        analyzedRelations.add(new RelationBelow(topology));
     }
     
     public ConnectionList<AreaConnection> getAreaConnections()

@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 
@@ -66,10 +67,10 @@ public class AreaUtils
      * @param a2
      * @return
      */
-    public static boolean isInSameColumn(Area a1, Area a2)
+    public static boolean isInSameColumn(Area a1, Area a2, AreaTopology topology)
     {
-        final Rectangular gp1 = a1.getTopology().getPosition();
-        final Rectangular gp2 = a2.getTopology().getPosition();
+        final Rectangular gp1 = topology.getPosition(a1);
+        final Rectangular gp2 = topology.getPosition(a2);
         return (gp1.getX1() == gp2.getX1()); 
     }
     
@@ -79,10 +80,10 @@ public class AreaUtils
      * @param a2
      * @return
      */
-    public static boolean isAligned(Area a1, Area a2)
+    public static boolean isAligned(Area a1, Area a2, AreaTopology topology)
     {
-        final Rectangular gp1 = a1.getTopology().getPosition();
-        final Rectangular gp2 = a2.getTopology().getPosition();
+        final Rectangular gp1 = topology.getPosition(a1);
+        final Rectangular gp2 = topology.getPosition(a2);
         return ((gp1.getX1() == gp2.getX1()) //x-aligned
                 || (gp1.getY1() == gp2.getY1())); //y-aligned
     }

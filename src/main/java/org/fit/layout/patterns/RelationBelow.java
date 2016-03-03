@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
 
 /**
@@ -15,9 +16,9 @@ import org.fit.layout.model.Rectangular;
 public class RelationBelow extends Relation
 {
 
-    public RelationBelow()
+    public RelationBelow(AreaTopology topology)
     {
-        super("below");
+        super("below", topology);
     }
 
     @Override
@@ -27,8 +28,8 @@ public class RelationBelow extends Relation
         //we say that a1 is below a2
         if (a1.getParentArea() != null && a1.getParentArea() == a2.getParentArea())
         {
-            final Rectangular gp1 = a1.getTopology().getPosition();
-            final Rectangular gp2 = a2.getTopology().getPosition();
+            final Rectangular gp1 = getTopology().getPosition(a1);
+            final Rectangular gp2 = getTopology().getPosition(a2);
             if (gp1.getX1() == gp2.getX1())
             {
                 float dist = a1.getBounds().getY1() - a2.getBounds().getY2();
