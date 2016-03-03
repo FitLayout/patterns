@@ -23,6 +23,7 @@ public class PatternAnalyzer
     
     private List<Relation> analyzedRelations;
     private List<Area> areas;
+    private AreaTopology topology;
     private ConnectionList<AreaConnection> areaConnections;
     private ConnectionList<TagConnection> tagConnections;
     
@@ -30,12 +31,17 @@ public class PatternAnalyzer
     {
         this.areas = areas;
         
-        AreaTopology topology = new AreaListGridTopology(areas);
+        topology = new AreaListGridTopology(areas);
         analyzedRelations = new ArrayList<>();
         analyzedRelations.add(new RelationSide(topology));
         analyzedRelations.add(new RelationBelow(topology));
     }
     
+    public AreaTopology getTopology()
+    {
+        return topology;
+    }
+
     public ConnectionList<AreaConnection> getAreaConnections()
     {
         if (areaConnections == null)
