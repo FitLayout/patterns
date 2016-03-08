@@ -28,9 +28,10 @@ public class OneToManyMatcher
     
     private List<Area> areas;
     
-    private List<StyleCounter<NodeStyle>> styles;
+    private List<StyleCounter<NodeStyle>> styleStats; //style statistics
+    private List<List<NodeStyle>> styles;  //the most frequent styles for each tag
     private PatternAnalyzer pa;
-    PatternCounter<TagConnection> pc;
+    private PatternCounter<TagConnection> pc;
     
     
     public OneToManyMatcher(Tag srcTag1, Tag srcTag2, boolean fixedOrder)
@@ -48,25 +49,51 @@ public class OneToManyMatcher
         
         log.debug("Statistics:");
         for (int i = 0; i < srcTag.length; i++)
-            log.debug("Style {}: {}", srcTag[i], styles.get(i));
+        {
+            log.debug("Styles {}: {}", srcTag[i], styleStats.get(i));
+            log.debug("     used: {}", styles.get(i));
+        }
         log.debug("Relations: {}", pc);
         
     }
     
     //===========================================================================================
     
+    private boolean matchesAnyStyle(Area a, List<NodeStyle> styles)
+    {
+        final NodeStyle cstyle = new NodeStyle(a);
+        return styles.contains(cstyle);
+    }
+    
     private void gatherStatistics()
     {
         //count styles
-        styles = new ArrayList<>(srcTag.length);
+        styleStats = new ArrayList<>(srcTag.length);
         for (int i = 0; i < srcTag.length; i++)
-            styles.add(new StyleCounter<NodeStyle>());
+            styleStats.add(new StyleCounter<NodeStyle>());
         for (Area a : areas)
         {
             for (int i = 0; i < srcTag.length; i++)
             {
                 if (a.hasTag(srcTag[i]))
-                    styles.get(i).add(new NodeStyle(a));
+                    styleStats.get(i).add(new NodeStyle(a));
+            }
+        }
+        //choose the most frequent styles for each tag
+        styles = new ArrayList<List<NodeStyle>>();
+        for (int i = 0; i < srcTag.length; i++)
+            styles.add(new ArrayList<NodeStyle>(styleStats.get(i).getMostFrequentAll()));
+        //choose the areas that match the style
+        List<Area> selected = new ArrayList<>();
+        for (Area a : areas)
+        {
+            for (int i = 0; i < srcTag.length; i++)
+            {
+                if (a.hasTag(srcTag[i]) && matchesAnyStyle(a, styles.get(i)))
+                {
+                    selected.add(a);
+                    break;
+                }
             }
         }
         //create pattern analyzer
