@@ -69,6 +69,27 @@ public class PatternAnalyzer
         }
     }
 
+    /**
+     * Obtains all the area that are in the given relation with the given area.
+     * I.e. where the destination is {@code a}. 
+     * E.g. all areas below {@code a}. 
+     * @param a the area to compare
+     * @param r the relation to use.
+     * @return the list of corresponding areas
+     */
+    public List<Area> getAreasInRelation(Area a, Relation r)
+    {
+        List<Area> ret = new ArrayList<Area>();
+        for (AreaConnection con : areaConnections)
+        {
+            if (con.getA2().equals(a) && con.getRelation().equals(r))
+            {
+                ret.add(con.getA1());
+            }
+        }
+        return ret;
+    }
+
     public ConnectionList<TagConnection> getTagConnections()
     {
         if (tagConnections == null)

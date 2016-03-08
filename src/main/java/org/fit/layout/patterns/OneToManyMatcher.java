@@ -6,7 +6,9 @@
 package org.fit.layout.patterns;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.classify.NodeStyle;
 import org.fit.layout.classify.StyleCounter;
@@ -55,6 +57,81 @@ public class OneToManyMatcher
         }
         log.debug("Relations: {}", pc);
         
+        for (TagConnection rel : pc.getAll().keySet())
+        {
+            if (rel.getA1().equals(srcTag[1]) && rel.getA2().equals(srcTag[0]))
+            {
+                log.debug("Relation {} : {} matches", rel, checkCovering(rel.getA1(), rel.getRelation(), rel.getA2()));
+                log.debug("  by style {} {} {} : {}", styles.get(1).get(0), rel.getRelation(), styles.get(0).get(0),
+                        checkCovering(styles.get(1).get(0), rel.getRelation(), styles.get(0).get(0)));
+            }
+        }
+        
+     }
+    
+    //===========================================================================================
+    
+    private int checkCovering(Tag tag1, Relation relation, Tag tag2)
+    {
+        Set<Area> areas1 = new HashSet<Area>();
+        Set<Area> areas2 = new HashSet<Area>();
+        
+        //start with all areas
+        for (Area a : areas)
+        {
+            if (a.hasTag(tag1))
+                areas1.add(a);
+            if (a.hasTag(tag2))
+                areas2.add(a);
+        }
+        
+        return checkCovering(areas1, relation, areas2);
+    }
+    
+    private int checkCovering(NodeStyle style1, Relation relation, NodeStyle style2)
+    {
+        Set<Area> areas1 = new HashSet<Area>();
+        Set<Area> areas2 = new HashSet<Area>();
+        
+        //start with all areas
+        for (Area a : areas)
+        {
+            NodeStyle astyle = new NodeStyle(a);
+            if (astyle.equals(style1))
+                areas1.add(a);
+            if (astyle.equals(style2))
+                areas2.add(a);
+        }
+        
+        return checkCovering(areas1, relation, areas2);
+    }
+    
+    private int checkCovering(Set<Area> areas1, Relation relation, Set<Area> areas2)
+    {
+        int remainCnt1 = areas1.size();
+        int remainCnt2 = areas2.size();
+        int covered = 0;
+        //remove matching pairs
+        for (Area a : areas2)
+        {
+            List<Area> inrel = pa.getAreasInRelation(a, relation);
+            for (Area b : inrel)
+            {
+                boolean matched = false;
+                if (areas1.remove(b))
+                {
+                    remainCnt1--;
+                    covered++;
+                    matched = true;
+                }
+                if (matched)
+                    remainCnt2--;
+            }
+        }
+        
+        //log.debug("  Remain {} {}", remainCnt1, remainCnt2);
+        
+        return covered;
     }
     
     //===========================================================================================
