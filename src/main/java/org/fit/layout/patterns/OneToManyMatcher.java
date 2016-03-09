@@ -67,6 +67,23 @@ public class OneToManyMatcher
             }
         }
         
+        log.debug("Combinations:");
+        log.debug("------------:");
+        for (NodeStyle style1 : styles.get(1))
+        {
+            for (NodeStyle style0 : styles.get(0))
+            {
+                for (TagConnection rel : pc.getAll().keySet())
+                {
+                    if (rel.getA1().equals(srcTag[1]) && rel.getA2().equals(srcTag[0]))
+                    {
+                        log.debug("{} with {} and {}", rel, style1, style0);
+                        log.debug("  {}", checkCovering(rel.getA1(), style1, rel.getRelation(), rel.getA2(), style0));
+                    }
+                }
+            }
+        }
+        
      }
     
     //===========================================================================================
@@ -100,6 +117,24 @@ public class OneToManyMatcher
             if (astyle.equals(style1))
                 areas1.add(a);
             if (astyle.equals(style2))
+                areas2.add(a);
+        }
+        
+        return checkCovering(areas1, relation, areas2);
+    }
+    
+    private int checkCovering(Tag tag1, NodeStyle style1, Relation relation, Tag tag2, NodeStyle style2)
+    {
+        Set<Area> areas1 = new HashSet<Area>();
+        Set<Area> areas2 = new HashSet<Area>();
+        
+        //start with all areas
+        for (Area a : areas)
+        {
+            NodeStyle astyle = new NodeStyle(a);
+            if (astyle.equals(style1) && a.hasTag(tag1))
+                areas1.add(a);
+            if (astyle.equals(style2) && a.hasTag(tag2))
                 areas2.add(a);
         }
         
