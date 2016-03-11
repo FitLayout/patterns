@@ -19,6 +19,9 @@ import org.fit.layout.model.Tag;
  */
 public class ConsistentAreaAnalyzer
 {
+    /** Maximal number of subsequent areas with no interesting tags within a sequence */
+    public static final int BADSEQ_LIMIT = 3;
+    
     private RelationAnalyzer ra;
     private Set<Tag> consideredTags;
     
@@ -49,7 +52,7 @@ public class ConsistentAreaAnalyzer
     
     private AreaChain findAreaChainFor(Area a, Relation rel)
     {
-        if (a.getId() == 582)
+        if (a.getId() == 653)
             System.out.println("jo!");
         AreaChain ret = new AreaChain(rel);
         ret.add(a);
@@ -57,21 +60,35 @@ public class ConsistentAreaAnalyzer
         Set<Tag> curTags = new HashSet<Tag>(a.getTags().keySet());
         curTags.retainAll(consideredTags); //focus on the considered tags only
         
+        Area cur = a; //current area
+        int lastgood = 0; //index of the last area with some of the considered tags
+        int badseq = 0; //number of subsequent areas that don't have any of the tags
         List<Area> inrel;
-        Area cur = a;
         do
         {
             inrel = ra.getAreasInRelation(cur, rel);
             if (!inrel.isEmpty())
             {
                 Area next = inrel.get(0);
-                if (!hasConsideredTag(next))
+                if (hasConsideredTag(next))
+                {
                     curTags.retainAll(next.getTags().keySet());
+                    lastgood = ret.size();
+                    badseq = 0;
+                }
+                else
+                {
+                    badseq++;
+                    if (badseq > BADSEQ_LIMIT)
+                        break;
+                }
                 ret.add(next);
                 cur = next;
             }
         } while (!inrel.isEmpty());
         
+        if (lastgood + 1 < ret.size())
+            ret.subList(lastgood + 1, ret.size()).clear();
         ret.setTags(curTags);
         return ret;
     }

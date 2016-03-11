@@ -84,13 +84,16 @@ public class OneToManyMatcher
             }
         }
         
-        log.debug("Chains:");
+        log.debug("Chains below:");
         log.debug("-------");
         Set<Tag> consideredTags = new HashSet<Tag>(srcTag.length);
         for (Tag tag : srcTag)
             consideredTags.add(tag);
         ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, consideredTags);
         ca.findConsistentChains(new RelationBelow(null));
+        log.debug("Chains side:");
+        log.debug("-------");
+        ca.findConsistentChains(new RelationSide(null));
         
      }
     
