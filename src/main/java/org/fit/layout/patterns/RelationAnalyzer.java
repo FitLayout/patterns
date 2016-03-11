@@ -37,6 +37,11 @@ public class RelationAnalyzer
         analyzedRelations.add(new RelationBelow(topology));
     }
     
+    public List<Area> getAreas()
+    {
+        return areas;
+    }
+    
     public AreaTopology getTopology()
     {
         return topology;
@@ -63,7 +68,10 @@ public class RelationAnalyzer
                 {
                     float w = relation.isInRelationship(a1, a2);
                     if (w >= MIN_WEIGHT)
+                    {
                         dest.add(new AreaConnection(a1, a2, relation, w));
+                        System.out.println(new AreaConnection(a1, a2, relation, w));
+                    }
                 }
             }
         }
