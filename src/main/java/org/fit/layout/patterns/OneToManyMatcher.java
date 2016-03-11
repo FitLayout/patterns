@@ -90,10 +90,10 @@ public class OneToManyMatcher
         for (Tag tag : srcTag)
             consideredTags.add(tag);
         ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, consideredTags);
-        ca.findConsistentChains(new RelationBelow(null));
+        ca.findConsistentChains(new RelationBelow());
         log.debug("Chains side:");
         log.debug("-------");
-        ca.findConsistentChains(new RelationSide(null));
+        ca.findConsistentChains(new RelationSide());
         
      }
     

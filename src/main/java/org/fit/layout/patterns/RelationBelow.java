@@ -5,7 +5,6 @@
  */
 package org.fit.layout.patterns;
 
-import org.apache.xpath.SourceTree;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
@@ -17,20 +16,20 @@ import org.fit.layout.model.Rectangular;
 public class RelationBelow extends Relation
 {
 
-    public RelationBelow(AreaTopology topology)
+    public RelationBelow()
     {
-        super("below", topology);
+        super("below");
     }
 
     @Override
-    public float isInRelationship(Area a1, Area a2)
+    public float isInRelationship(Area a1, Area a2, AreaTopology topology)
     {
         if (a1.getId() == 116 && a2.getId() == 583)
             System.out.println("jo!");
         //here a1 is the bottom area, a2 is the top area
         //we say that a1 is below a2
-        final Rectangular gp1 = getTopology().getPosition(a1);
-        final Rectangular gp2 = getTopology().getPosition(a2);
+        final Rectangular gp1 = topology.getPosition(a1);
+        final Rectangular gp2 = topology.getPosition(a2);
         Rectangular inter = gp1.intersection(new Rectangular(gp2.getX1(), gp1.getY1(), gp2.getX2(), gp1.getY2()));
         if (inter.getWidth() > Math.min(gp1.getWidth(), gp2.getWidth()) / 2) //at least 1/2 of the smaller area overlaps
         {

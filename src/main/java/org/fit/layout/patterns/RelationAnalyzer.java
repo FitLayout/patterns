@@ -33,8 +33,8 @@ public class RelationAnalyzer
         
         topology = new AreaListGridTopology(areas);
         analyzedRelations = new ArrayList<>();
-        analyzedRelations.add(new RelationSide(topology));
-        analyzedRelations.add(new RelationBelow(topology));
+        analyzedRelations.add(new RelationSide());
+        analyzedRelations.add(new RelationBelow());
     }
     
     public List<Area> getAreas()
@@ -66,7 +66,7 @@ public class RelationAnalyzer
             {
                 if (a1 != a2)
                 {
-                    float w = relation.isInRelationship(a1, a2);
+                    float w = relation.isInRelationship(a1, a2, topology);
                     if (w >= MIN_WEIGHT)
                     {
                         dest.add(new AreaConnection(a1, a2, relation, w));

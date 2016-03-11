@@ -15,13 +15,13 @@ import org.fit.layout.model.AreaTopology;
 public class RelationSide extends Relation
 {
 
-    public RelationSide(AreaTopology topology)
+    public RelationSide()
     {
-        super("side", topology);
+        super("side");
     }
 
     @Override
-    public float isInRelationship(Area a1, Area a2)
+    public float isInRelationship(Area a1, Area a2, AreaTopology topology)
     {
         //here a1 is the right area, a2 is the left area
         //we say that a1 is on side of a2

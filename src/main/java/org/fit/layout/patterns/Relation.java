@@ -15,12 +15,10 @@ import org.fit.layout.model.AreaTopology;
 public abstract class Relation
 {
     private String name;
-    private AreaTopology topology;
 
-    public Relation(String name, AreaTopology topology)
+    public Relation(String name)
     {
         this.name = name;
-        this.topology = topology;
     }
 
     public String getName()
@@ -28,18 +26,13 @@ public abstract class Relation
         return name;
     }
     
-    public AreaTopology getTopology()
-    {
-        return topology;
-    }
-
     /**
      * Decides whether the area a1 is in the given relationship with a2.
      * @param a1
      * @param a2
      * @return A positive value when a1 is in relationship with a2. Otherwise zero is returned.
      */
-    public abstract float isInRelationship(Area a1, Area a2);
+    public abstract float isInRelationship(Area a1, Area a2, AreaTopology topology);
 
     @Override
     public int hashCode()
