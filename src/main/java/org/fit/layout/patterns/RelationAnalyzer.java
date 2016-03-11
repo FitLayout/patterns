@@ -17,7 +17,7 @@ import org.fit.layout.model.Tag;
  * 
  * @author burgetr
  */
-public class PatternAnalyzer
+public class RelationAnalyzer
 {
     private static final float MIN_WEIGHT = 0.1f;
     
@@ -27,7 +27,7 @@ public class PatternAnalyzer
     private ConnectionList<AreaConnection> areaConnections;
     private ConnectionList<TagConnection> tagConnections;
     
-    public PatternAnalyzer(List<Area> areas)
+    public RelationAnalyzer(List<Area> areas)
     {
         this.areas = areas;
         

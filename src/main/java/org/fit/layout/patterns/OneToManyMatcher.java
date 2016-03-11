@@ -32,7 +32,7 @@ public class OneToManyMatcher
     
     private List<StyleCounter<NodeStyle>> styleStats; //style statistics
     private List<List<NodeStyle>> styles;  //the most frequent styles for each tag
-    private PatternAnalyzer pa;
+    private RelationAnalyzer pa;
     private PatternCounter<TagConnection> pc;
     
     
@@ -209,7 +209,7 @@ public class OneToManyMatcher
             }
         }
         //create pattern analyzer
-        pa = new PatternAnalyzer(areas);
+        pa = new RelationAnalyzer(areas);
         pc = new PatternCounter<>();
         for (TagConnection con : pa.getTagConnections())
         {
