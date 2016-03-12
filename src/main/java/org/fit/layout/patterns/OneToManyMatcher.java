@@ -27,6 +27,7 @@ public class OneToManyMatcher
 
     private Tag[] srcTag;
     private boolean fixedOrder;
+    private float minSupport;
     
     private List<Area> areas;
     
@@ -36,11 +37,12 @@ public class OneToManyMatcher
     private PatternCounter<TagConnection> pc;
     
     
-    public OneToManyMatcher(Tag srcTag1, Tag srcTag2, boolean fixedOrder)
+    public OneToManyMatcher(Tag srcTag1, Tag srcTag2, float minSupport, boolean fixedOrder)
     {
         srcTag = new Tag[2];
         srcTag[0] = srcTag1;
         srcTag[1] = srcTag2;
+        this.minSupport = minSupport;
         this.fixedOrder = fixedOrder;
     }
     
@@ -89,7 +91,7 @@ public class OneToManyMatcher
         Set<Tag> consideredTags = new HashSet<Tag>(srcTag.length);
         for (Tag tag : srcTag)
             consideredTags.add(tag);
-        ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, consideredTags);
+        ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, consideredTags, minSupport);
         ca.findConsistentChains(new RelationBelow());
         log.debug("Chains side:");
         log.debug("-------");

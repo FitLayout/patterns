@@ -24,18 +24,20 @@ public class ConsistentAreaAnalyzer
     
     private RelationAnalyzer ra;
     private Set<Tag> consideredTags;
+    private float minSupport;
     
-    public ConsistentAreaAnalyzer(RelationAnalyzer ra, Set<Tag> consideredTags)
+    public ConsistentAreaAnalyzer(RelationAnalyzer ra, Set<Tag> consideredTags, float minSupport)
     {
         this.ra = ra;
         this.consideredTags = consideredTags;
+        this.minSupport = minSupport;
     }
     
-    public List<AreaChain> findConsistentChains(Relation rel)
+    public ChainList findConsistentChains(Relation rel)
     {
         List<Area> areas = ra.getAreas();
         List<Area> remain = new ArrayList<Area>(areas);
-        List<AreaChain> ret = new ArrayList<AreaChain>();
+        ChainList ret = new ChainList();
         
         while (!remain.isEmpty())
         {
@@ -57,7 +59,7 @@ public class ConsistentAreaAnalyzer
         AreaChain ret = new AreaChain(rel);
         ret.add(a);
         
-        Set<Tag> curTags = new HashSet<Tag>(a.getTags().keySet());
+        Set<Tag> curTags = new HashSet<Tag>(a.getSupportedTags(minSupport));
         curTags.retainAll(consideredTags); //focus on the considered tags only
         
         Area cur = a; //current area
@@ -72,7 +74,7 @@ public class ConsistentAreaAnalyzer
                 Area next = inrel.get(0);
                 if (hasConsideredTag(next))
                 {
-                    curTags.retainAll(next.getTags().keySet());
+                    curTags.retainAll(next.getSupportedTags(minSupport));
                     lastgood = ret.size();
                     badseq = 0;
                 }
@@ -99,10 +101,39 @@ public class ConsistentAreaAnalyzer
     {
         for (Tag t : consideredTags)
         {
-            if (a.hasTag(t))
+            if (a.hasTag(t, minSupport))
                 return true;
         }
         return false;
+    }
+    
+    //===================================================================================
+    
+    public class ChainList extends ArrayList<AreaChain>
+    {
+        private static final long serialVersionUID = 1L;
+        
+        public List<AreaChain> findChainsForArea(Area a)
+        {
+            List<AreaChain> ret = new ArrayList<AreaChain>();
+            for (AreaChain chain : this)
+            {
+                if (chain.contains(a))
+                    ret.add(chain);
+            }
+            return ret;
+        }
+        
+        public Set<Tag> findChainTagsForArea(Area a)
+        {
+            Set<Tag> ret = new HashSet<Tag>(a.getSupportedTags(minSupport));
+            for (AreaChain chain : this)
+            {
+                if (chain.contains(a))
+                    ret.retainAll(chain.getTags());
+            }
+            return ret;
+        }
     }
     
     //===================================================================================
