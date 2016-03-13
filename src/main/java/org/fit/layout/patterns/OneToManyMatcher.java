@@ -8,8 +8,11 @@ package org.fit.layout.patterns;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.classify.NodeStyle;
@@ -17,6 +20,7 @@ import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +39,8 @@ public class OneToManyMatcher
     private List<Area> areas;
     
     private List<StyleCounter<NodeStyle>> styleStats; //style statistics
-    private List<List<NodeStyle>> styles;  //the most frequent styles for each tag
     private RelationAnalyzer pa;
-    private PatternCounter<TagConnection> pc;
+    private ChainList chains;
     
     
     public OneToManyMatcher(Tag srcTag1, Tag srcTag2, float minSupport, boolean fixedOrder)
@@ -54,56 +57,74 @@ public class OneToManyMatcher
         this.areas = areas;
         gatherStatistics();
         
-        log.debug("Statistics:");
+        log.debug("Styles:");
         for (int i = 0; i < srcTag.length; i++)
         {
             log.debug("Styles {}: {}", srcTag[i], styleStats.get(i));
-            log.debug("     used: {}", styles.get(i));
         }
-        log.debug("Relations: {}", pc);
         dumpRelations(pa.getAreaConnections(), "/tmp/areas.arff");
         
-        for (TagConnection rel : pc.getAll().keySet())
-        {
-            if (rel.getA1().equals(srcTag[1]) && rel.getA2().equals(srcTag[0]))
-            {
-                log.debug("Relation {} : {} matches", rel, checkCovering(rel.getA1(), rel.getRelation(), rel.getA2()));
-                log.debug("  by style {} {} {} : {}", styles.get(1).get(0), rel.getRelation(), styles.get(0).get(0),
-                        checkCovering(styles.get(1).get(0), rel.getRelation(), styles.get(0).get(0)));
-            }
-        }
-        
-        log.debug("Combinations:");
-        log.debug("------------:");
-        for (NodeStyle style1 : styles.get(1))
-        {
-            for (NodeStyle style0 : styles.get(0))
-            {
-                for (TagConnection rel : pc.getAll().keySet())
-                {
-                    if (rel.getA1().equals(srcTag[1]) && rel.getA2().equals(srcTag[0]))
-                    {
-                        log.debug("{} with {} and {}", rel, style1, style0);
-                        log.debug("  {}", checkCovering(rel.getA1(), style1, rel.getRelation(), rel.getA2(), style0));
-                    }
-                }
-            }
-        }
-        
-        log.debug("Chains below:");
-        log.debug("-------");
-        Set<Tag> consideredTags = new HashSet<Tag>(srcTag.length);
-        for (Tag tag : srcTag)
-            consideredTags.add(tag);
-        ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, consideredTags, minSupport);
-        ca.findConsistentChains(new RelationBelow());
-        log.debug("Chains side:");
-        log.debug("-------");
-        ca.findConsistentChains(new RelationSide());
-        
+        scanDisambiguations();
      }
     
     //===========================================================================================
+    
+    private void scanDisambiguations()
+    {
+        //lists of used styles for the individual tags
+        NodeStyle styles[][] = new NodeStyle[srcTag.length][];
+        for (int i = 0; i < srcTag.length; i++)
+            styles[i] = styleStats.get(i).getDistinctStyles().toArray(new NodeStyle[0]);
+        //generate style combinations
+        int indices[] = new int[srcTag.length];
+        Arrays.fill(indices, 0);
+        while (indices[indices.length - 1] < styles[indices.length - 1].length)
+        {
+            //create the style map for this iteration
+            Map<Tag, NodeStyle> curStyles = new HashMap<Tag, NodeStyle>(srcTag.length);
+            for (int i = 0; i < srcTag.length; i++)
+            {
+                //System.out.println("Use " + srcTag[i] + " style " + styles[i][indices[i]]); 
+                curStyles.put(srcTag[i], styles[i][indices[i]]);
+            }
+            System.out.println("Style map: " + curStyles);
+            //if (curStyles.toString().equals("{minute=[fs:11.0 w:0.0 s:0.0 c:#000000 i:0], hour=[fs:15.0 w:0.0 s:0.0 c:#000000 i:0]}"))
+            //{
+            
+            //build statistics for the selected disambiguations
+            Disambiguator dis = new Disambiguator(curStyles, chains, minSupport);
+            ConnectionList<TagConnection> cons = pa.getTagConnections(dis);
+            PatternCounter<TagConnection> pc = new PatternCounter<>();
+            for (TagConnection con : cons)
+            {
+                //System.out.println(con);
+                pc.add(con, con.getWeight());
+            }
+            System.out.println("Relations: " + pc);
+            
+            //scan coverings
+            for (TagConnection rel : pc.getAll().keySet())
+            {
+                if (rel.getA1().equals(srcTag[1]) && rel.getA2().equals(srcTag[0]))
+                {
+                    log.debug("Relation {} : {} matches", rel, checkCovering(rel.getA1(), rel.getRelation(), rel.getA2()));
+                }
+            }
+            //}
+            //increment the indices
+            indices[0]++;
+            for (int i = 0; i < indices.length - 1; i++)
+            {
+                if (indices[i] >= styles[i].length)
+                {
+                    indices[i] = 0;
+                    indices[i+1]++;
+                }
+                else
+                    break;
+            }
+        }
+    }
     
     private int checkCovering(Tag tag1, Relation relation, Tag tag2)
     {
@@ -208,31 +229,18 @@ public class OneToManyMatcher
                     styleStats.get(i).add(new NodeStyle(a));
             }
         }
-        //choose the most frequent styles for each tag
-        styles = new ArrayList<List<NodeStyle>>();
-        for (int i = 0; i < srcTag.length; i++)
-            styles.add(new ArrayList<NodeStyle>(styleStats.get(i).getMostFrequentAll()));
-        //choose the areas that match the style
-        List<Area> selected = new ArrayList<>();
-        for (Area a : areas)
-        {
-            for (int i = 0; i < srcTag.length; i++)
-            {
-                if (a.hasTag(srcTag[i]) && matchesAnyStyle(a, styles.get(i)))
-                {
-                    selected.add(a);
-                    break;
-                }
-            }
-        }
         //create pattern analyzer
         pa = new RelationAnalyzer(areas);
-        pc = new PatternCounter<>();
+        /*pc = new PatternCounter<>();
         for (TagConnection con : pa.getTagConnections())
         {
             //System.out.println(con);
             pc.add(con, con.getWeight());
-        }
+        }*/
+        //discover tag chains used for disambiguation
+        ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, srcTag, minSupport);
+        chains = ca.findConsistentChains(new RelationBelow());
+        chains.addAll(ca.findConsistentChains(new RelationSide()));
     }
 
     private void dumpRelations(List<AreaConnection> connections, String outfile)

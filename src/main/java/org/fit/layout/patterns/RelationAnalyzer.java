@@ -19,7 +19,7 @@ import org.fit.layout.model.Tag;
  */
 public class RelationAnalyzer
 {
-    private static final float MIN_WEIGHT = 0.1f;
+    private static final float MIN_RELATION_WEIGHT = 0.1f;
     
     private List<Relation> analyzedRelations;
     private List<Area> areas;
@@ -67,10 +67,10 @@ public class RelationAnalyzer
                 if (a1 != a2)
                 {
                     float w = relation.isInRelationship(a1, a2, topology);
-                    if (w >= MIN_WEIGHT)
+                    if (w >= MIN_RELATION_WEIGHT)
                     {
                         dest.add(new AreaConnection(a1, a2, relation, w));
-                        System.out.println(new AreaConnection(a1, a2, relation, w));
+                        //System.out.println(new AreaConnection(a1, a2, relation, w));
                     }
                 }
             }
@@ -88,7 +88,7 @@ public class RelationAnalyzer
     public List<Area> getAreasInRelation(Area a, Relation r)
     {
         List<Area> ret = new ArrayList<Area>();
-        for (AreaConnection con : areaConnections)
+        for (AreaConnection con : getAreaConnections())
         {
             if (con.getA2().equals(a) && con.getRelation().equals(r))
             {
@@ -118,6 +118,17 @@ public class RelationAnalyzer
         return tagConnections;
     }
     
-    
+    public ConnectionList<TagConnection> getTagConnections(Disambiguator dis)
+    {
+        ConnectionList<TagConnection> ret = new ConnectionList<>();
+        for (AreaConnection ac : getAreaConnections())
+        {
+            Tag src = dis.getAreaTag(ac.getA1());
+            Tag dest = dis.getAreaTag(ac.getA2());
+            if (src != null && dest != null)
+                ret.add(new TagConnection(src, dest, ac.getRelation(), ac.getWeight()));
+        }
+        return ret;
+    }
     
 }

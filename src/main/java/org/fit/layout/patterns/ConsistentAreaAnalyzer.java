@@ -33,6 +33,15 @@ public class ConsistentAreaAnalyzer
         this.minSupport = minSupport;
     }
     
+    public ConsistentAreaAnalyzer(RelationAnalyzer ra, Tag[] consideredTags, float minSupport)
+    {
+        this.ra = ra;
+        this.consideredTags = new HashSet<Tag>(consideredTags.length);
+        for (Tag tag : consideredTags)
+            this.consideredTags.add(tag);
+        this.minSupport = minSupport;
+    }
+    
     public ChainList findConsistentChains(Relation rel)
     {
         List<Area> areas = ra.getAreas();
@@ -45,7 +54,7 @@ public class ConsistentAreaAnalyzer
             remain.removeAll(newchain);
             if (newchain.size() > 2 && !newchain.getTags().isEmpty())
             {
-                System.out.println("Found: " + newchain);
+                //System.out.println("Found: " + newchain);
                 ret.add(newchain);
             }
         }
