@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Set;
 import org.fit.layout.classify.NodeStyle;
 import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
+import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +61,7 @@ public class OneToManyMatcher
             log.debug("     used: {}", styles.get(i));
         }
         log.debug("Relations: {}", pc);
+        dumpRelations(pa.getAreaConnections(), "/tmp/areas.arff");
         
         for (TagConnection rel : pc.getAll().keySet())
         {
@@ -231,4 +235,31 @@ public class OneToManyMatcher
         }
     }
 
+    private void dumpRelations(List<AreaConnection> connections, String outfile)
+    {
+        try
+        {
+            PrintWriter w = new PrintWriter(outfile);
+            w.println("@RELATION areas");
+            w.println("@ATTRIBUTE x NUMERIC");
+            w.println("@ATTRIBUTE y NUMERIC");
+            w.println("@data");
+            for (AreaConnection con : connections)
+            {
+                if (con.getA1().hasTag(srcTag[1]) && con.getA2().hasTag(srcTag[0]))
+                {
+                    Rectangular bounds = new Rectangular(con.getA1().getBounds());
+                    bounds.expandToEnclose(con.getA2().getBounds());
+                    w.println("% " + con.toString());
+                    w.println(bounds.getX1() + "," + bounds.getY1());
+                    w.println(bounds.getX2() + "," + bounds.getY2());
+                }
+            }
+            w.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        
+    }
+    
 }
