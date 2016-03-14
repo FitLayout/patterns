@@ -37,6 +37,8 @@ public class Disambiguator
     {
         /*if (a.getId() == 242)
             System.out.println("jo!");*/
+        //tags originally assigned
+        Set<Tag> orig = a.getSupportedTags(minSupport);
         //tags assigned by style
         Set<Tag> byStyle = new HashSet<>();
         NodeStyle astyle = new NodeStyle(a);
@@ -45,6 +47,8 @@ public class Disambiguator
             if (entry.getValue().equals(astyle))
                 byStyle.add(entry.getKey());
         }
+        //do not assign new tags by style now, only consider those already assigned
+        byStyle.retainAll(orig);
         //any chains
         //Set<Tag> byChains = chains.findChainTagsForArea(a);
         Set<Tag> byChains = new HashSet<Tag>();

@@ -87,7 +87,7 @@ public class OneToManyMatcher
                 //System.out.println("Use " + srcTag[i] + " style " + styles[i][indices[i]]); 
                 curStyles.put(srcTag[i], styles[i][indices[i]]);
             }
-            System.out.println("Style map: " + curStyles);
+            log.debug("Style map: {}", curStyles);
             //if (curStyles.toString().equals("{minute=[fs:11.0 w:0.0 s:0.0 c:#000000 i:0], hour=[fs:15.0 w:0.0 s:0.0 c:#000000 i:0]}"))
             //{
             
@@ -100,7 +100,7 @@ public class OneToManyMatcher
                 //System.out.println(con);
                 pc.add(con, con.getWeight());
             }
-            System.out.println("Relations: " + pc);
+            log.debug("Relations: {}", pc);
             
             //scan coverings
             for (TagConnection rel : pc.getAll().keySet())
@@ -134,9 +134,9 @@ public class OneToManyMatcher
         //start with all areas
         for (Area a : areas)
         {
-            if (a.hasTag(tag1))
+            if (a.hasTag(tag1, minSupport))
                 areas1.add(a);
-            if (a.hasTag(tag2))
+            if (a.hasTag(tag2, minSupport))
                 areas2.add(a);
         }
         
@@ -170,9 +170,9 @@ public class OneToManyMatcher
         for (Area a : areas)
         {
             NodeStyle astyle = new NodeStyle(a);
-            if (astyle.equals(style1) && a.hasTag(tag1))
+            if (astyle.equals(style1) && a.hasTag(tag1, minSupport))
                 areas1.add(a);
-            if (astyle.equals(style2) && a.hasTag(tag2))
+            if (astyle.equals(style2) && a.hasTag(tag2, minSupport))
                 areas2.add(a);
         }
         
@@ -181,30 +181,29 @@ public class OneToManyMatcher
     
     private int checkCovering(Set<Area> areas1, Relation relation, Set<Area> areas2)
     {
-        int remainCnt1 = areas1.size();
-        int remainCnt2 = areas2.size();
-        int covered = 0;
+        Set<Area> matchedAreas = new HashSet<Area>();
         //remove matching pairs
         for (Area a : areas2)
         {
             List<Area> inrel = pa.getAreasInRelation(a, relation);
+            boolean matched = false;
             for (Area b : inrel)
             {
-                boolean matched = false;
                 if (areas1.remove(b))
                 {
-                    remainCnt1--;
-                    covered++;
+                    matchedAreas.add(b);
                     matched = true;
                 }
-                if (matched)
-                    remainCnt2--;
             }
+            if (matched)
+                matchedAreas.add(a);
         }
         
-        //log.debug("  Remain {} {}", remainCnt1, remainCnt2);
+        //log.debug("  Matched total {}", matchedAreas.size());
+        //log.debug("Remain A1: {}", areas1);
+        //log.debug("Remain A2: {}", areas2);
         
-        return covered;
+        return matchedAreas.size();
     }
     
     //===========================================================================================
