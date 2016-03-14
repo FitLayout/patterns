@@ -50,8 +50,9 @@ public class Disambiguator
         //do not assign new tags by style now, only consider those already assigned
         byStyle.retainAll(orig);
         //any chains
-        //Set<Tag> byChains = chains.findChainTagsForArea(a);
-        Set<Tag> byChains = new HashSet<Tag>();
+        Set<Tag> byChains = new HashSet<Tag>(chains.findChainTagsForArea(a));
+        byChains.retainAll(orig);
+        //Set<Tag> byChains = new HashSet<Tag>();
         //intersection
         Set<Tag> ret;
         if (byStyle.isEmpty())
