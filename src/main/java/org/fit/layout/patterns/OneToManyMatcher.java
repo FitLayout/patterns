@@ -107,7 +107,7 @@ public class OneToManyMatcher
             {
                 if (rel.getA1().equals(srcTag[1]) && rel.getA2().equals(srcTag[0]))
                 {
-                    log.debug("Relation {} : {} matches", rel, checkCovering(rel.getA1(), rel.getRelation(), rel.getA2()));
+                    log.debug("Relation {} : {} matches", rel, checkCovering(rel.getA1(), rel.getRelation(), rel.getA2(), dis));
                 }
             }
             //}
@@ -126,7 +126,7 @@ public class OneToManyMatcher
         }
     }
     
-    private int checkCovering(Tag tag1, Relation relation, Tag tag2)
+    private int checkCovering(Tag tag1, Relation relation, Tag tag2, Disambiguator dis)
     {
         Set<Area> areas1 = new HashSet<Area>();
         Set<Area> areas2 = new HashSet<Area>();
@@ -140,63 +140,33 @@ public class OneToManyMatcher
                 areas2.add(a);
         }
         
-        return checkCovering(areas1, relation, areas2);
+        return checkCovering(tag1, areas1, relation, tag2, areas2, dis);
     }
     
-    private int checkCovering(NodeStyle style1, Relation relation, NodeStyle style2)
-    {
-        Set<Area> areas1 = new HashSet<Area>();
-        Set<Area> areas2 = new HashSet<Area>();
-        
-        //start with all areas
-        for (Area a : areas)
-        {
-            NodeStyle astyle = new NodeStyle(a);
-            if (astyle.equals(style1))
-                areas1.add(a);
-            if (astyle.equals(style2))
-                areas2.add(a);
-        }
-        
-        return checkCovering(areas1, relation, areas2);
-    }
-    
-    private int checkCovering(Tag tag1, NodeStyle style1, Relation relation, Tag tag2, NodeStyle style2)
-    {
-        Set<Area> areas1 = new HashSet<Area>();
-        Set<Area> areas2 = new HashSet<Area>();
-        
-        //start with all areas
-        for (Area a : areas)
-        {
-            NodeStyle astyle = new NodeStyle(a);
-            if (astyle.equals(style1) && a.hasTag(tag1, minSupport))
-                areas1.add(a);
-            if (astyle.equals(style2) && a.hasTag(tag2, minSupport))
-                areas2.add(a);
-        }
-        
-        return checkCovering(areas1, relation, areas2);
-    }
-    
-    private int checkCovering(Set<Area> areas1, Relation relation, Set<Area> areas2)
+    private int checkCovering(Tag tag1, Set<Area> areas1, Relation relation, Tag tag2, Set<Area> areas2, Disambiguator dis)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         //remove matching pairs
         for (Area a : areas2)
         {
-            List<Area> inrel = pa.getAreasInRelation(a, relation);
-            boolean matched = false;
-            for (Area b : inrel)
+            if (tag2.equals(dis.getAreaTag(a)))
             {
-                if (areas1.remove(b))
+                List<Area> inrel = pa.getAreasInRelation(a, relation);
+                boolean matched = false;
+                for (Area b : inrel)
                 {
-                    matchedAreas.add(b);
-                    matched = true;
+                    if (tag1.equals(dis.getAreaTag(b)))
+                    {
+                        if (areas1.remove(b))
+                        {
+                            matchedAreas.add(b);
+                            matched = true;
+                        }
+                    }
                 }
+                if (matched)
+                    matchedAreas.add(a);
             }
-            if (matched)
-                matchedAreas.add(a);
         }
         
         //log.debug("  Matched total {}", matchedAreas.size());
