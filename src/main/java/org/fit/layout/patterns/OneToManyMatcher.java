@@ -151,7 +151,7 @@ public class OneToManyMatcher
         {
             if (tag2.equals(dis.getAreaTag(a)))
             {
-                List<Area> inrel = pa.getAreasInRelation(a, relation);
+                List<Area> inrel = pa.getAreasInBestRelation(a, relation);
                 boolean matched = false;
                 for (Area b : inrel)
                 {

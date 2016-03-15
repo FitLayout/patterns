@@ -79,21 +79,24 @@ public class RelationAnalyzer
     }
 
     /**
-     * Obtains all the area that are the source area of the given relation with the given area.
-     * I.e. where the source is {@code a}. 
-     * E.g. all areas where {@code a} below {@code result}. 
-     * @param r the relation to use.
-     * @param a the target area to compare
-     * @return the list of corresponding areas
+     * Obtains the area connection based on the given criteria.
+     * @param dest the source area or {@code null} for any
+     * @param r the relation or {@code null} for any
+     * @param src the destination area or {@code null} for any
+     * @param minWeight the minimal weight of the connection or a negative value for any
+     * @return
      */
-    public List<Area> getSourceAreasInRelation(Relation r, Area a)
+    public List<AreaConnection> getConnections(Area dest, Relation r, Area src, float minWeight)
     {
-        List<Area> ret = new ArrayList<Area>();
+        List<AreaConnection> ret = new ArrayList<AreaConnection>();
         for (AreaConnection con : getAreaConnections())
         {
-            if (con.getA1().equals(a) && con.getRelation().equals(r))
+            if (con.getWeight() > minWeight
+                    && (dest == null || con.getA1().equals(dest))
+                    && (r == null || con.getRelation().equals(r))
+                    && (src == null || con.getA2().equals(src)))
             {
-                ret.add(con.getA2());
+                ret.add(con);
             }
         }
         return ret;
@@ -120,10 +123,26 @@ public class RelationAnalyzer
         return ret;
     }
 
+    /**
+     * Obtains all the area that are in the given relation with the given area and there exists
+     * no better source area for this with the same destination area and a higher weight.
+     * E.g. all areas below {@code a}. 
+     * @param a the area to compare
+     * @param r the relation to use.
+     * @return the list of corresponding areas
+     */
     public List<Area> getAreasInBestRelation(Area a, Relation r)
     {
-        //TODO
-        return null;
+        List<AreaConnection> dest = getConnections(null, r, a, -1.0f);
+        List<Area> ret = new ArrayList<Area>(dest.size());
+        for (AreaConnection cand : dest)
+        {
+            //find the source nodes that are closer
+            List<AreaConnection> better = getConnections(cand.getA1(), r, null, cand.getWeight());
+            if (better.isEmpty())
+                ret.add(cand.getA1()); //a1 has no "better" source area, use it
+        }
+        return ret;
     }
     
     public ConnectionList<TagConnection> getTagConnections()
