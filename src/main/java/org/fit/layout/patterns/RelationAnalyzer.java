@@ -35,6 +35,7 @@ public class RelationAnalyzer
         analyzedRelations = new ArrayList<>();
         analyzedRelations.add(new RelationSide());
         analyzedRelations.add(new RelationBelow());
+        analyzedRelations.add(new RelationAfter());
     }
     
     public List<Area> getAreas()
@@ -78,6 +79,27 @@ public class RelationAnalyzer
     }
 
     /**
+     * Obtains all the area that are the source area of the given relation with the given area.
+     * I.e. where the source is {@code a}. 
+     * E.g. all areas where {@code a} below {@code result}. 
+     * @param r the relation to use.
+     * @param a the target area to compare
+     * @return the list of corresponding areas
+     */
+    public List<Area> getSourceAreasInRelation(Relation r, Area a)
+    {
+        List<Area> ret = new ArrayList<Area>();
+        for (AreaConnection con : getAreaConnections())
+        {
+            if (con.getA1().equals(a) && con.getRelation().equals(r))
+            {
+                ret.add(con.getA2());
+            }
+        }
+        return ret;
+    }
+    
+    /**
      * Obtains all the area that are in the given relation with the given area.
      * I.e. where the destination is {@code a}. 
      * E.g. all areas below {@code a}. 
@@ -98,6 +120,12 @@ public class RelationAnalyzer
         return ret;
     }
 
+    public List<Area> getAreasInBestRelation(Area a, Relation r)
+    {
+        //TODO
+        return null;
+    }
+    
     public ConnectionList<TagConnection> getTagConnections()
     {
         if (tagConnections == null)
