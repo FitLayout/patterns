@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.fit.layout.classify.NodeStyle;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
@@ -21,12 +20,12 @@ import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
  */
 public class Disambiguator
 {
-    private Map<Tag, NodeStyle> styles;
+    private Map<Tag, AreaStyle> styles;
     private ChainList chains;
     private float minSupport;
 
     
-    public Disambiguator(Map<Tag, NodeStyle> styles, ChainList chains, float minSupport)
+    public Disambiguator(Map<Tag, AreaStyle> styles, ChainList chains, float minSupport)
     {
         this.styles = styles;
         this.chains = chains;
@@ -35,14 +34,14 @@ public class Disambiguator
 
     public Tag getAreaTag(Area a)
     {
-        /*if (a.getId() == 242)
-            System.out.println("jo!");*/
+        //if (a.getId() == 119)
+        //    System.out.println("jo!");
         //tags originally assigned
         Set<Tag> orig = a.getSupportedTags(minSupport);
         //tags assigned by style
         Set<Tag> byStyle = new HashSet<>();
-        NodeStyle astyle = new NodeStyle(a);
-        for (Map.Entry<Tag, NodeStyle> entry : styles.entrySet())
+        AreaStyle astyle = new AreaStyle(a);
+        for (Map.Entry<Tag, AreaStyle> entry : styles.entrySet())
         {
             if (entry.getValue().equals(astyle))
                 byStyle.add(entry.getKey());
@@ -50,9 +49,14 @@ public class Disambiguator
         //do not assign new tags by style now, only consider those already assigned
         byStyle.retainAll(orig);
         //any chains
-        Set<Tag> byChains = new HashSet<Tag>(chains.findChainTagsForArea(a));
-        byChains.retainAll(orig);
-        //Set<Tag> byChains = new HashSet<Tag>();
+        Set<Tag> byChains;
+        if (chains != null)
+        {
+            byChains = new HashSet<Tag>(chains.findChainTagsForArea(a));
+            byChains.retainAll(orig);
+        }
+        else
+            byChains = new HashSet<Tag>();
         //intersection
         Set<Tag> ret;
         if (byStyle.isEmpty())
