@@ -24,8 +24,8 @@ public class RelationBelow extends Relation
     @Override
     public float isInRelationship(Area a1, Area a2, AreaTopology topology)
     {
-        if (a1.getId() == 116 && a2.getId() == 583)
-            System.out.println("jo!");
+        /*if (a1.getId() == 385 && a2.getId() == 382)
+            System.out.println("jo!");*/
         //here a1 is the bottom area, a2 is the top area
         //we say that a1 is below a2
         final Rectangular gp1 = topology.getPosition(a1);
@@ -35,7 +35,7 @@ public class RelationBelow extends Relation
         {
             float dist = a1.getBounds().getY1() - a2.getBounds().getY2();
             float em = Math.max(a2.getFontSize(), a1.getFontSize());
-            if (dist >= 0.0f && dist < 0.8*em)
+            if (dist >= -0.5f*em && dist < 0.8f*em)
                 return 1.0f;
             else
                 return 0.0f;
