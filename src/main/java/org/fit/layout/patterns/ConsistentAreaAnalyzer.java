@@ -63,8 +63,8 @@ public class ConsistentAreaAnalyzer
     
     private AreaChain findAreaChainFor(Area a, Relation rel)
     {
-        if (a.getId() == 653)
-            System.out.println("jo!");
+        /*if (a.getId() == 382)
+            System.out.println("jo!");*/
         AreaChain ret = new AreaChain(rel);
         ret.add(a);
         

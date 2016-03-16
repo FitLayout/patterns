@@ -48,35 +48,24 @@ public class Disambiguator
         }
         //do not assign new tags by style now, only consider those already assigned
         byStyle.retainAll(orig);
-        //any chains
-        Set<Tag> byChains;
-        if (chains != null)
+        //any chains: if necessary, try to disambiguate the information obtained by style
+        if (byStyle.size() > 1 && chains != null)
         {
-            byChains = new HashSet<Tag>(chains.findChainTagsForArea(a));
-            byChains.retainAll(orig);
+            Set<Tag> byChains = new HashSet<Tag>(chains.findChainTagsForArea(a));
+            if (!byChains.isEmpty())
+                byStyle.retainAll(byChains);
         }
-        else
-            byChains = new HashSet<Tag>();
-        //intersection
-        Set<Tag> ret;
-        if (byStyle.isEmpty())
-            ret = byChains;
-        else if (byChains.isEmpty())
-            ret = byStyle;
-        else
-        {
-            ret = byStyle;
-            ret.retainAll(byChains);
-        }
-        //validate the result
+        //the remaining tags are the result
+        Set<Tag> ret = byStyle;
+        //validate the result: we need only one tag
         Iterator<Tag> it = ret.iterator();
         if (ret.size() == 0)
-            return null;
+            return null; //no tags decided
         else if (ret.size() == 1)
-            return it.next();
+            return it.next(); //a single tag, return it
         else
         {
-            float max = 0;
+            float max = 0; //otherwise, choose the most supported tag
             Tag result = null;
             while (it.hasNext())
             {

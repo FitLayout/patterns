@@ -145,7 +145,7 @@ public class OneToManyMatcher
                         int cover = checkCovering(rel.getA1(), rel.getRelation(), rel.getA2(), dis);
                         Configuration conf = new Configuration(curStyles, useChains, rel.getRelation(), cover);
                         all.add(conf);
-                        log.debug("Try:{}", conf);
+                        //log.debug("Try:{}", conf);
                         if (cover > bestCoverage)
                             bestCoverage = cover;
                     }
@@ -211,7 +211,7 @@ public class OneToManyMatcher
                     if (areas1.remove(b))
                     {
                         //log.debug("Cover: " + a + " " + relation + " " + b);
-                        b.addTag(new VisualTag("minute"), 1.0f);
+                        //b.addTag(new VisualTag("minute"), 1.0f);
                         matchedAreas.add(b);
                         matched = true;
                     }
@@ -219,7 +219,7 @@ public class OneToManyMatcher
                 if (matched)
                 {
                     matchedAreas.add(a);
-                    a.addTag(new VisualTag("hour"), 1.0f);
+                    //a.addTag(new VisualTag("hour"), 1.0f);
                 }
             }
         }
