@@ -25,6 +25,7 @@ public class LogicalAreaGroup extends DefaultArea
         super(computeTotalBounds(src));
         srcArea = src;
         addTag(srcArea.getMainTag(), 1.0f);
+        computeAverages();
     }
     
     @Override
@@ -41,6 +42,27 @@ public class LogicalAreaGroup extends DefaultArea
 
     //=====================================================================================
 
+    private void computeAverages()
+    {
+        float fsize = 0;
+        float fweight = 0;
+        float fstyle = 0;
+        
+        for (Area a : srcArea.getAreas())
+        {
+            fsize += a.getFontSize();
+            fweight += a.getFontWeight();
+            fstyle += a.getFontStyle();
+        }
+        int cnt = srcArea.getAreas().size();
+        if (cnt > 0)
+        {
+            setFontSize(fsize / cnt);
+            setFontWeight(fweight / cnt);
+            setFontStyle(fstyle / cnt);
+        }
+    }
+    
     private static Rectangular computeTotalBounds(LogicalArea srcArea)
     {
         Rectangular ret = null;
