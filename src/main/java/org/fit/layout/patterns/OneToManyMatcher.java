@@ -278,7 +278,10 @@ public class OneToManyMatcher
             }
         }
         //create pattern analyzer
-        pa = new RelationAnalyzer(areas);
+        if (fixedOrder)
+            pa = new RelationAnalyzer(areas);
+        else
+            pa = new RelationAnalyzerSymmetric(areas);
         //discover tag chains used for disambiguation
         ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, srcTag, minSupport);
         chains = ca.findConsistentChains(new RelationBelow());

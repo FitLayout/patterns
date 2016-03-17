@@ -33,9 +33,23 @@ public class RelationAnalyzer
         
         topology = new AreaListGridTopology(areas);
         analyzedRelations = new ArrayList<>();
-        analyzedRelations.add(new RelationSide());
-        analyzedRelations.add(new RelationBelow());
-        analyzedRelations.add(new RelationAfter());
+        initRelations();
+    }
+
+    protected void initRelations()
+    {
+        addRelation(new RelationSide(false));
+        addRelation(new RelationBelow());
+        addRelation(new RelationAfter(false));
+    }
+    
+    /**
+     * Adds a new relation to the analyzed relations.
+     * @param rel the relation to be added
+     */
+    public void addRelation(Relation rel)
+    {
+        analyzedRelations.add(rel);
     }
     
     public List<Area> getAreas()

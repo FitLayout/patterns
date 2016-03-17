@@ -7,18 +7,24 @@ package org.fit.layout.patterns;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
-import org.fit.layout.model.Rectangular;
 
 /**
  * 
  * @author burgetr
  */
-public class RelationAfter extends Relation
+public class RelationAfter extends LineRelation
 {
+    private boolean inverse;
 
     public RelationAfter()
     {
-        super("after");
+        this(false);
+    }
+    
+    public RelationAfter(boolean inverse)
+    {
+        super(inverse ? "before" : "after");
+        this.inverse = inverse;
     }
 
     @Override
@@ -28,7 +34,9 @@ public class RelationAfter extends Relation
         //we say that a1 is after a2
         if (isOnSameLine(a2, a1))
         {
-            float dist = a1.getBounds().getX1() - a2.getBounds().getX2();
+            float dist = inverse ?
+                            a2.getBounds().getX1() - a1.getBounds().getX2()
+                            : a1.getBounds().getX1() - a2.getBounds().getX2();
             if (dist >= 0)
             {
                 float w = 1.0f - dist / topology.getTopologyWidth();
@@ -43,11 +51,4 @@ public class RelationAfter extends Relation
             return 0.0f;
     }
 
-    private boolean isOnSameLine(Area a1, Area a2)
-    {
-        Rectangular r1 = a1.getBounds();
-        Rectangular r2 = a2.getBounds();
-        return (r2.getY1() < r1.midY() && r2.getY2() > r1.midY());
-    }
-    
 }

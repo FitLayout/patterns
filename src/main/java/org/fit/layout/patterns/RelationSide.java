@@ -12,12 +12,19 @@ import org.fit.layout.model.AreaTopology;
  * 
  * @author burgetr
  */
-public class RelationSide extends Relation
+public class RelationSide extends LineRelation
 {
+    private boolean inverse;
 
     public RelationSide()
     {
-        super("side");
+        this(false);
+    }
+
+    public RelationSide(boolean inverse)
+    {
+        super(inverse ? "onRight" : "onLeft");
+        this.inverse = inverse;
     }
 
     @Override
@@ -25,9 +32,11 @@ public class RelationSide extends Relation
     {
         //here a1 is the right area, a2 is the left area
         //we say that a1 is on side of a2
-        if (AreaUtils.isOnSameLineRoughly(a2, a1))
+        if (isOnSameLine(a2, a1))
         {
-            float dist = a1.getBounds().getX1() - a2.getBounds().getX2();
+            float dist = inverse ?
+                            a2.getBounds().getX1() - a1.getBounds().getX2()
+                            : a1.getBounds().getX1() - a2.getBounds().getX2();
             float em = Math.max(a2.getFontSize(), a1.getFontSize());
             if (dist > -0.2*em && dist < 0.9*em)
                 return 1.0f;
