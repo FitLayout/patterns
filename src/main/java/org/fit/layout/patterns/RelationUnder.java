@@ -13,12 +13,12 @@ import org.fit.layout.model.Rectangular;
  * 
  * @author burgetr
  */
-public class RelationBelow extends Relation
+public class RelationUnder extends Relation
 {
 
-    public RelationBelow()
+    public RelationUnder()
     {
-        super("below");
+        super("under");
     }
 
     @Override

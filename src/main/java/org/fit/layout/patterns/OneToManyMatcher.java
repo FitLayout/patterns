@@ -284,7 +284,7 @@ public class OneToManyMatcher
             pa = new RelationAnalyzerSymmetric(areas);
         //discover tag chains used for disambiguation
         ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, srcTag, minSupport);
-        chains = ca.findConsistentChains(new RelationBelow());
+        chains = ca.findConsistentChains(new RelationUnder());
         chains.addAll(ca.findConsistentChains(new RelationSide()));
     }
 

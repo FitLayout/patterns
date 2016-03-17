@@ -39,7 +39,7 @@ public class RelationAnalyzer
     protected void initRelations()
     {
         addRelation(new RelationSide(false));
-        addRelation(new RelationBelow());
+        addRelation(new RelationUnder());
         addRelation(new RelationAfter(false));
     }
     
