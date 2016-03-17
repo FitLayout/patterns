@@ -5,8 +5,6 @@
  */
 package org.fit.layout.patterns;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,9 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.classify.StyleCounter;
-import org.fit.layout.classify.VisualTag;
 import org.fit.layout.model.Area;
-import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
 import org.slf4j.Logger;
@@ -43,11 +39,11 @@ public class OneToManyMatcher
     private ChainList chains;
     
     
-    public OneToManyMatcher(Tag srcTag1, Tag srcTag2, float minSupport, boolean fixedOrder)
+    public OneToManyMatcher(Tag oneTag, Tag manyTag, float minSupport, boolean fixedOrder)
     {
         srcTag = new Tag[2];
-        srcTag[0] = srcTag1;
-        srcTag[1] = srcTag2;
+        srcTag[0] = oneTag;
+        srcTag[1] = manyTag;
         this.minSupport = minSupport;
         this.fixedOrder = fixedOrder;
     }
@@ -62,7 +58,6 @@ public class OneToManyMatcher
         {
             log.debug("Styles {}: {}", srcTag[i], styleStats.get(i));
         }
-        dumpRelations(pa.getAreaConnections(), "/tmp/areas.arff");
         
         List<Configuration> best = scanDisambiguations();
         for (Configuration conf : best)
@@ -284,19 +279,13 @@ public class OneToManyMatcher
         }
         //create pattern analyzer
         pa = new RelationAnalyzer(areas);
-        /*pc = new PatternCounter<>();
-        for (TagConnection con : pa.getTagConnections())
-        {
-            //System.out.println(con);
-            pc.add(con, con.getWeight());
-        }*/
         //discover tag chains used for disambiguation
         ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, srcTag, minSupport);
         chains = ca.findConsistentChains(new RelationBelow());
         chains.addAll(ca.findConsistentChains(new RelationSide()));
     }
 
-    private void dumpRelations(List<AreaConnection> connections, String outfile)
+    /*private void dumpRelations(List<AreaConnection> connections, String outfile)
     {
         try
         {
@@ -321,7 +310,7 @@ public class OneToManyMatcher
             e.printStackTrace();
         }
         
-    }
+    }*/
     
     //===========================================================================================
     
