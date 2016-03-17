@@ -41,6 +41,7 @@ public class RelationAnalyzer
         addRelation(new RelationSide(false));
         addRelation(new RelationUnder());
         addRelation(new RelationAfter(false));
+        addRelation(new RelationBelow());
     }
     
     /**
