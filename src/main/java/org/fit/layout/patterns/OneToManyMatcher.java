@@ -79,6 +79,8 @@ public class OneToManyMatcher
         List<List<Area>> ret = new ArrayList<List<Area>>();
         for (Area a1 : areas)
         {
+            if (a1.getId() == 44)
+                System.out.println("jo!");
             if (srcTag[0].equals(dis.getAreaTag(a1)))
             {
                 List<Area> inrel = getAreasInBestRelation(a1, conf.relation, srcTag[0], srcTag[1], dis);

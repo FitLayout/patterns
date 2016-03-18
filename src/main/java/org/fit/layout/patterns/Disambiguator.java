@@ -43,7 +43,7 @@ public class Disambiguator
         AreaStyle astyle = new AreaStyle(a);
         for (Map.Entry<Tag, AreaStyle> entry : styles.entrySet())
         {
-            if (entry.getValue().equals(astyle))
+            if (entry.getValue().isComparableTo((astyle)))
                 byStyle.add(entry.getKey());
         }
         //do not assign new tags by style now, only consider those already assigned
