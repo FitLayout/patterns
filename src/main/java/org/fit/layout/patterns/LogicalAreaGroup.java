@@ -25,7 +25,13 @@ public class LogicalAreaGroup extends DefaultArea
         super(computeTotalBounds(src));
         srcArea = src;
         addTag(srcArea.getMainTag(), 1.0f);
+        setName(srcArea.getText());
         computeAverages();
+    }
+    
+    public LogicalArea getLogicalArea()
+    {
+        return srcArea;
     }
     
     @Override
