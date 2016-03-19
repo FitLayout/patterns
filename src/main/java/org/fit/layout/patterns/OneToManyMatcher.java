@@ -75,7 +75,8 @@ public class OneToManyMatcher
 
     private List<List<Area>> getMatches(Configuration conf)
     {
-        Disambiguator dis = new Disambiguator(conf.getStyleMap(), conf.useChains ? chains : null, minSupport);
+        StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
+        Disambiguator dis = new Disambiguator(sa, conf.useChains ? chains : null, minSupport);
         List<List<Area>> ret = new ArrayList<List<Area>>();
         for (Area a1 : areas)
         {
@@ -124,7 +125,8 @@ public class OneToManyMatcher
             for (boolean useChains : new boolean[]{false, true})
             {
                 //build statistics for the selected disambiguations
-                Disambiguator dis = new Disambiguator(curStyles, useChains ? chains : null, minSupport);
+                StyleAnalyzer sa = new StyleAnalyzerFixed(curStyles);
+                Disambiguator dis = new Disambiguator(sa, useChains ? chains : null, minSupport);
                 ConnectionList<TagConnection> cons = pa.getTagConnections(dis);
                 PatternCounter<TagConnection> pc = new PatternCounter<>();
                 for (TagConnection con : cons)

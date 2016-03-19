@@ -7,7 +7,6 @@ package org.fit.layout.patterns;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
@@ -20,12 +19,12 @@ import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
  */
 public class Disambiguator
 {
-    private Map<Tag, AreaStyle> styles;
+    private StyleAnalyzer styles;
     private ChainList chains;
     private float minSupport;
 
     
-    public Disambiguator(Map<Tag, AreaStyle> styles, ChainList chains, float minSupport)
+    public Disambiguator(StyleAnalyzer styles, ChainList chains, float minSupport)
     {
         this.styles = styles;
         this.chains = chains;
@@ -39,13 +38,7 @@ public class Disambiguator
         //tags originally assigned
         Set<Tag> orig = a.getSupportedTags(minSupport);
         //tags assigned by style
-        Set<Tag> byStyle = new HashSet<>();
-        AreaStyle astyle = new AreaStyle(a);
-        for (Map.Entry<Tag, AreaStyle> entry : styles.entrySet())
-        {
-            if (entry.getValue().isComparableTo((astyle)))
-                byStyle.add(entry.getKey());
-        }
+        Set<Tag> byStyle = styles.inferTags(a);
         //do not assign new tags by style now, only consider those already assigned
         byStyle.retainAll(orig);
         //any chains: if necessary, try to disambiguate the information obtained by style
