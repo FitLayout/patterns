@@ -23,8 +23,8 @@ public class AreaStyle
     private Color color;
     
     private Color bgColor;
-    private int width;
-    private int height;
+    private float width;
+    private float height;
     
     
     /**
@@ -43,8 +43,8 @@ public class AreaStyle
         else
             color = Color.BLACK;
         bgColor = area.getBackgroundColor();
-        width = area.getWidth();
-        height = area.getHeight();
+        width = area.getWidth() / (float) area.getPage().getWidth();
+        height = area.getHeight() / (float) area.getPage().getHeight();
     }
     
     /**
@@ -83,6 +83,21 @@ public class AreaStyle
     public Color getColor()
     {
         return color;
+    }
+
+    public Color getBgColor()
+    {
+        return bgColor;
+    }
+
+    public float getWidth()
+    {
+        return width;
+    }
+
+    public float getHeight()
+    {
+        return height;
     }
 
     @Override

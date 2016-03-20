@@ -97,7 +97,7 @@ public class OneToManyMatcher
         
         return ret;
     }
-    
+
     private List<Configuration> scanDisambiguations()
     {
         List<Configuration> all = new ArrayList<>();
