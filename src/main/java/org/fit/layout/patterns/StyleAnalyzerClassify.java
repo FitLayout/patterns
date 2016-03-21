@@ -104,7 +104,7 @@ public class StyleAnalyzerClassify implements StyleAnalyzer
     
     private Instance createStyleInstance(AreaStyle style, Tag tag)
     {
-        Instance inst = new DenseInstance(7);
+        Instance inst = new DenseInstance(13);
         String cls = (tag == null) ? "none" : tag.getValue();
         inst.setValue(attributes.get(0), cls);
         inst.setValue(attributes.get(1), style.getFontSize());
@@ -116,8 +116,9 @@ public class StyleAnalyzerClassify implements StyleAnalyzer
         inst.setValue(attributes.get(7), style.getBgColor().getRed() / 255.0);
         inst.setValue(attributes.get(8), style.getBgColor().getGreen() / 255.0);
         inst.setValue(attributes.get(9), style.getBgColor().getBlue() / 255.0);
-        inst.setValue(attributes.get(10), style.getWidth());
-        inst.setValue(attributes.get(11), style.getHeight());
+        inst.setValue(attributes.get(10), style.isBackgroundSeparated() ? 1.0 : 0.0);
+        inst.setValue(attributes.get(11), style.getWidth());
+        inst.setValue(attributes.get(12), style.getHeight());
         return inst;
     }
 
@@ -126,8 +127,9 @@ public class StyleAnalyzerClassify implements StyleAnalyzer
         List<String> tagnames = new ArrayList<String>(tags.size());
         for (Tag tag : tags)
             tagnames.add(tag.getValue());
+        tagnames.add("none");
         
-        attributes = new ArrayList<Attribute>(7);
+        attributes = new ArrayList<Attribute>(13);
         attributes.add(new Attribute("class", tagnames));
         attributes.add(new Attribute("fsize"));
         attributes.add(new Attribute("weight"));
@@ -138,6 +140,7 @@ public class StyleAnalyzerClassify implements StyleAnalyzer
         attributes.add(new Attribute("bgr"));
         attributes.add(new Attribute("bgg"));
         attributes.add(new Attribute("bgb"));
+        attributes.add(new Attribute("bgsep"));
         attributes.add(new Attribute("width"));
         attributes.add(new Attribute("height"));
         trainset = new Instances("tags", attributes, 100);

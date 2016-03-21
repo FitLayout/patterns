@@ -23,6 +23,7 @@ public class AreaStyle
     private Color color;
     
     private Color bgColor;
+    private boolean backgroundSeparated;
     private float width;
     private float height;
     
@@ -42,7 +43,8 @@ public class AreaStyle
             color = boxes.firstElement().getColor();
         else
             color = Color.BLACK;
-        bgColor = area.getBackgroundColor();
+        bgColor = area.getEffectiveBackgroundColor();
+        backgroundSeparated = area.isBackgroundSeparated();
         width = area.getWidth() / (float) area.getPage().getWidth();
         height = area.getHeight() / (float) area.getPage().getHeight();
     }
@@ -88,6 +90,11 @@ public class AreaStyle
     public Color getBgColor()
     {
         return bgColor;
+    }
+
+    public boolean isBackgroundSeparated()
+    {
+        return backgroundSeparated;
     }
 
     public float getWidth()

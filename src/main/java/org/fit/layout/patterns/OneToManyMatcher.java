@@ -65,6 +65,10 @@ public class OneToManyMatcher
         if (!best.isEmpty())
         {
             log.debug("Using:{}", best.get(0));
+            
+            StyleAnalyzerClassify cls = createClassifyingAnalyzer(best.get(0));
+            cls.dumpToFile("/tmp/matches-" + srcTag[0].getValue() + "-" + srcTag[1].getValue() + ".arff");
+            
             return getMatches(best.get(0));
         }
         else
@@ -98,6 +102,41 @@ public class OneToManyMatcher
         return ret;
     }
 
+    private StyleAnalyzerClassify createClassifyingAnalyzer(Configuration conf)
+    {
+        //bootstrap with a fixed style analyzer
+        StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
+        Disambiguator dis = new Disambiguator(sa, conf.useChains ? chains : null, minSupport);
+        //select the areas that seem to be tagged with the appropriate tags
+        Set<Area> selected0 = new HashSet<Area>();
+        Set<Area> selected1 = new HashSet<Area>();
+        for (Area a1 : areas)
+        {
+            if (srcTag[0].equals(dis.getAreaTag(a1)))
+            {
+                List<Area> inrel = getAreasInBestRelation(a1, conf.relation, srcTag[0], srcTag[1], dis);
+                for (Area a2 : inrel)
+                {
+                    selected0.add(a1);
+                    selected1.add(a2);
+                }
+            }
+        }
+        //train the classifier
+        List<Tag> tagList = new ArrayList<Tag>(conf.getStyleMap().keySet());
+        StyleAnalyzerClassify ret = new StyleAnalyzerClassify(tagList);
+        for (Area a : areas)
+        {
+            if (selected0.contains(a))
+                ret.addTrainingExample(a, srcTag[0]);
+            else if (selected1.contains(a))
+                ret.addTrainingExample(a, srcTag[1]);
+            else
+                ret.addTrainingExample(a, null);
+        }
+        return ret;
+    }
+    
     private List<Configuration> scanDisambiguations()
     {
         List<Configuration> all = new ArrayList<>();
