@@ -39,10 +39,34 @@ public class StyleAnalyzerFixed implements StyleAnalyzer
         AreaStyle astyle = new AreaStyle(a);
         for (Map.Entry<Tag, AreaStyle> entry : styles.entrySet())
         {
-            if (entry.getValue().isComparableTo((astyle)))
+            if (isComparableStyle(entry.getValue(), (astyle)))
                 ret.add(entry.getKey());
         }
         return ret;
     }
 
+    /**
+     * Decides whether the two styles do basically "look the same".
+     * @param s1
+     * @param s2
+     * @return
+     */
+    private boolean isComparableStyle(AreaStyle s1, AreaStyle s2)
+    {
+        if (s1.equals(s2))
+            return true; //basically "same" text style
+        else //not the same style
+        {
+            //the same color background and similar size
+            if (s1.getBgColor() != null && s2.getBgColor() != null && s1.getBgColor().equals(s2.getBgColor()))
+            {
+                float dw = Math.abs(s1.getWidth() - s2.getWidth()) / (float) s1.getWidth();
+                float dh = Math.abs(s1.getHeight() - s2.getHeight()) / (float) s1.getHeight();
+                if ((dw < 0.1f && dh < 0.5f) || (dh < 0.1f && dw < 0.5f))
+                        return true;
+            }
+        }
+        return false;
+    }
+    
 }

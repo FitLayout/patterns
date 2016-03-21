@@ -156,22 +156,4 @@ public class AreaStyle
                 + (color.getRed() / 255.0) + "," + (color.getGreen() / 255.0) + "," + (color.getBlue() / 255.0);
     }
     
-    public boolean isComparableTo(AreaStyle other)
-    {
-        if (this.equals(other))
-            return true; //basically "same" text style
-        else //not the same style
-        {
-            //the same color background and similar size
-            if (bgColor != null && other.bgColor != null && bgColor.equals(other.bgColor))
-            {
-                float dw = Math.abs(width - other.width) / (float) width;
-                float dh = Math.abs(height - other.height) / (float) height;
-                if ((dw < 0.1f && dh < 0.5f) || (dh < 0.1f && dw < 0.5f))
-                        return true;
-            }
-        }
-        return false;
-    }
-    
 }
