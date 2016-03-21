@@ -152,15 +152,9 @@ public class AreaStyle
     {
         String ret = "[fs:" + fontSize + " w:" + weight + " s:" + style;
         ret += " c:" + String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-        ret += " bg:" + (bgColor == null ? "transparent" : String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue()));
+        ret += " bg:" + (bgColor == null ? "transparent" : String.format("#%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()));
         ret += "]";
         return ret;
-    }
-    
-    public String toARFFString()
-    {
-        return fontSize + "," + weight + "," + style + "," 
-                + (color.getRed() / 255.0) + "," + (color.getGreen() / 255.0) + "," + (color.getBlue() / 255.0);
     }
     
 }

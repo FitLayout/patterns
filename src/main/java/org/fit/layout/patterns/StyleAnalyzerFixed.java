@@ -53,7 +53,7 @@ public class StyleAnalyzerFixed implements StyleAnalyzer
      */
     private boolean isComparableStyle(AreaStyle s1, AreaStyle s2)
     {
-        if (s1.equals(s2))
+        /*if (s1.equals(s2))
             return true; //basically "same" text style
         else //not the same style
         {
@@ -66,7 +66,11 @@ public class StyleAnalyzerFixed implements StyleAnalyzer
                         return true;
             }
         }
-        return false;
+        return false;*/
+        return s1.getFontSize() == s2.getFontSize()
+                && s1.getWeight() == s2.getWeight()
+                && s1.getStyle() == s2.getStyle()
+                && s1.getColor().equals(s2.getColor());
     }
     
 }
