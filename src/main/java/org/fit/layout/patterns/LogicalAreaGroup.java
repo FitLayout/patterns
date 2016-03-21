@@ -26,6 +26,8 @@ public class LogicalAreaGroup extends DefaultArea
         srcArea = src;
         addTag(srcArea.getMainTag(), 1.0f);
         setName(srcArea.getText());
+        if (srcArea.getFirstArea() != null)
+            setPage(srcArea.getFirstArea().getPage());
         computeAverages();
     }
     
