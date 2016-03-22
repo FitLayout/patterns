@@ -144,7 +144,10 @@ public class OneToManyMatcher
         //lists of used styles for the individual tags
         AreaStyle styles[][] = new AreaStyle[srcTag.length][];
         for (int i = 0; i < srcTag.length; i++)
-            styles[i] = styleStats.get(i).getDistinctStyles().toArray(new AreaStyle[0]);
+        {
+            List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(0.33f));
+            styles[i] = variants.toArray(new AreaStyle[0]);
+        }
         //generate style combinations
         int indices[] = new int[srcTag.length];
         Arrays.fill(indices, 0);
