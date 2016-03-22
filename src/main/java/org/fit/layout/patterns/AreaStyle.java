@@ -64,6 +64,7 @@ public class AreaStyle
             this.bgColor = new Color(src.bgColor.getRed(), src.bgColor.getGreen(), src.bgColor.getGreen(), src.bgColor.getAlpha());
         this.width = src.width;
         this.height = src.height;
+        this.backgroundSeparated = src.backgroundSeparated;
     }
     
     public float getFontSize()
@@ -146,6 +147,28 @@ public class AreaStyle
         return true;
     }
 
+    public int getEditingDistance(AreaStyle other)
+    {
+        int dif = 0;
+        if (fontSize != other.fontSize) dif++;
+        if (weight != other.weight) dif++;
+        if (style != other.style) dif++;
+        if (!color.equals(other.color)) dif++;
+        if (!bgColor.equals(other.bgColor)) dif++;
+        //if (backgroundSeparated != null || !backgroundSeparated.equals(other.backgroundSeparated)) dif++;
+        return dif;
+    }
+
+    public void generalizeToFit(AreaStyle other)
+    {
+        if (fontSize != other.fontSize) fontSize = -1; 
+        if (weight != other.weight) weight = -1;
+        if (style != other.style) style = -1;
+        if (!color.equals(other.color)) color = null;
+        if (!bgColor.equals(other.bgColor)) bgColor = null;
+        
+    }
+    
     @Override
     public String toString()
     {

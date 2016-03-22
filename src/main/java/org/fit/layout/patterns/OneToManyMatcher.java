@@ -145,7 +145,11 @@ public class OneToManyMatcher
         AreaStyle styles[][] = new AreaStyle[srcTag.length][];
         for (int i = 0; i < srcTag.length; i++)
         {
+            if (srcTag[i].toString().equals("datespan"))
+                System.out.println("jo!");
             List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(0.33f));
+            variants.addAll(createStyleCombinations(variants, 1));
+            log.debug("Trying for {}: {}", srcTag[i], variants);
             styles[i] = variants.toArray(new AreaStyle[0]);
         }
         //generate style combinations
@@ -302,6 +306,29 @@ public class OneToManyMatcher
                 }
                 if (!foundBetter)
                     ret.add(cand.getA1()); //a1 has no "better" source area, use it
+            }
+        }
+        return ret;
+    }
+    
+    private Set<AreaStyle> createStyleCombinations(List<AreaStyle> styles, int maxWildcards)
+    {
+        Set<AreaStyle> ret = new HashSet<>();
+        for (int i = 0; i < styles.size(); i++)
+        {
+            AreaStyle s1 = styles.get(i);
+            for (int j = 0; j < styles.size(); j++)
+            {
+                if (i != j)
+                {
+                    AreaStyle s2 = styles.get(j);
+                    if (s1.getEditingDistance(s2) <= maxWildcards)
+                    {
+                        AreaStyle gen = new AreaStyle(s1);
+                        gen.generalizeToFit(s2);
+                        ret.add(gen);
+                    }
+                }
             }
         }
         return ret;
