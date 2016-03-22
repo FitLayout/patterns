@@ -6,7 +6,8 @@
 package org.fit.layout.patterns;
 
 import java.awt.Color;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Box;
@@ -34,15 +35,13 @@ public class AreaStyle
      */
     public AreaStyle(Area area)
     {
-        Vector<Box> boxes = area.getAllBoxes();
+        /*if (area.getId() == 18)
+            System.out.println("jo!");*/
         
         fontSize = area.getFontSize();
         style = area.getFontStyle();
         weight = area.getFontWeight();
-        if (!boxes.isEmpty())
-            color = boxes.firstElement().getColor();
-        else
-            color = Color.BLACK;
+        color = getAverageColor(area);
         bgColor = area.getEffectiveBackgroundColor();
         backgroundSeparated = area.isBackgroundSeparated();
         width = area.getWidth() / (float) area.getPage().getWidth();
@@ -155,6 +154,46 @@ public class AreaStyle
         ret += " bg:" + (bgColor == null ? "transparent" : String.format("#%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()));
         ret += "]";
         return ret;
+    }
+    
+    private Color getAverageColor(Area a)
+    {
+        List<Box> boxes = new ArrayList<Box>();
+        getLeafBoxes(a, boxes);
+        return getAverageBoxColor(boxes);
+    }
+    
+    private void getLeafBoxes(Area a, List<Box> dest)
+    {
+        if (a.isLeaf())
+            dest.addAll(a.getBoxes());
+        else
+        {
+            for (Area sub : a.getChildAreas())
+                getLeafBoxes(sub, dest);
+        }
+    }
+    
+    private Color getAverageBoxColor(List<Box> list)
+    {
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        int length = 0;
+        
+        for (Box box : list)
+        {
+            int len = box.getText().trim().length();
+            Color color = box.getColor();
+            r += color.getRed() * len;
+            g += color.getGreen() * len;
+            b += color.getBlue() * len;
+            length += len;
+        }
+        if (length == 0)
+            return Color.BLACK;
+        else
+            return new Color(r / length, g / length, b / length);
     }
     
 }
