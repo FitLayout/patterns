@@ -150,10 +150,15 @@ public class AreaStyle
     public String toString()
     {
         String ret = "[fs:" + fontSize + " w:" + weight + " s:" + style;
-        ret += " c:" + String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-        ret += " bg:" + (bgColor == null ? "transparent" : String.format("#%02x%02x%02x", bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue()));
+        ret += " c:" + formatColor(color);
+        ret += " bg:" + formatColor(bgColor);
         ret += "]";
         return ret;
+    }
+    
+    private String formatColor(Color color)
+    {
+        return (color == null ? "null" : String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue()));
     }
     
     private Color getAverageColor(Area a)

@@ -67,10 +67,20 @@ public class StyleAnalyzerFixed implements StyleAnalyzer
             }
         }
         return false;*/
-        return s1.getFontSize() == s2.getFontSize()
-                && s1.getWeight() == s2.getWeight()
-                && s1.getStyle() == s2.getStyle()
-                && s1.getColor().equals(s2.getColor());
+        return valueMatches(s1.getFontSize(), s2.getFontSize())
+                && valueMatches(s1.getWeight(), s2.getWeight())
+                && valueMatches(s1.getStyle(), s2.getStyle())
+                && valueMatches(s1.getColor(), s2.getColor());
+    }
+    
+    private boolean valueMatches(float val1, float val2)
+    {
+        return val1 == -1.0f || val2 == -1.0f || Math.abs(val2 - val1) < 0.001f;
+    }
+    
+    private boolean valueMatches(Object o1, Object o2)
+    {
+        return o1 == null || o2 == null || o1.equals(o2);
     }
     
 }
