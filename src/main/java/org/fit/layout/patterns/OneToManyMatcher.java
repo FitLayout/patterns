@@ -80,7 +80,7 @@ public class OneToManyMatcher
     private List<List<Area>> getMatches(Configuration conf)
     {
         StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
-        Disambiguator dis = new Disambiguator(sa, conf.useChains ? chains : null, minSupport);
+        Disambiguator dis = new Disambiguator(sa, conf.useChains ? chains : null, 0.09f); //lower the min support for real matching
         List<List<Area>> ret = new ArrayList<List<Area>>();
         for (Area a1 : areas)
         {

@@ -22,13 +22,22 @@ public class Disambiguator
     private StyleAnalyzer styles;
     private ChainList chains;
     private float minSupport;
-
+    private boolean allowNewTags; //allow assigning the tags not assigned by text tagging
     
     public Disambiguator(StyleAnalyzer styles, ChainList chains, float minSupport)
     {
         this.styles = styles;
         this.chains = chains;
         this.minSupport = minSupport;
+        this.allowNewTags = false;
+    }
+
+    public Disambiguator(StyleAnalyzer styles, ChainList chains, float minSupport, boolean allowNewTags)
+    {
+        this.styles = styles;
+        this.chains = chains;
+        this.minSupport = minSupport;
+        this.allowNewTags = allowNewTags;
     }
 
     public Tag getAreaTag(Area a)
@@ -39,8 +48,8 @@ public class Disambiguator
         Set<Tag> orig = a.getSupportedTags(minSupport);
         //tags assigned by style
         Set<Tag> byStyle = styles.inferTags(a);
-        //do not assign new tags by style now, only consider those already assigned
-        byStyle.retainAll(orig);
+        if (!allowNewTags)
+            byStyle.retainAll(orig); //do not assign new tags by style now, only consider those already assigned
         //any chains: if necessary, try to disambiguate the information obtained by style
         if (byStyle.size() > 1 && chains != null)
         {
