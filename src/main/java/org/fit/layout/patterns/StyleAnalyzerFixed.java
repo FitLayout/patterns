@@ -70,7 +70,8 @@ public class StyleAnalyzerFixed implements StyleAnalyzer
         return valueMatches(s1.getFontSize(), s2.getFontSize())
                 && valueMatches(s1.getWeight(), s2.getWeight())
                 && valueMatches(s1.getStyle(), s2.getStyle())
-                && valueMatches(s1.getColor(), s2.getColor());
+                && valueMatches(s1.getColor(), s2.getColor())
+                && valueMatches(s1.getBgColor(), s2.getBgColor());
     }
     
     private boolean valueMatches(float val1, float val2)
