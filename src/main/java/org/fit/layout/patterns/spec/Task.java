@@ -32,6 +32,11 @@ public abstract class Task
     {
         return subtasks;
     }
+    
+    public void addSubTask(Task subtask)
+    {
+        subtasks.add(subtask);
+    }
 
     public Tag getOutputTag()
     {
