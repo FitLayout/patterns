@@ -28,7 +28,7 @@ public class OneToMany extends Task
      * 
      * @author burgetr
      */
-    public enum OutputStructure 
+    public enum OutputType 
     {
         /** The output is represented as a sequence of areas with the given output tag and the subareas
          * with both the source tags. */
@@ -40,18 +40,30 @@ public class OneToMany extends Task
     
     private Tag oneTag;
     private Tag manyTag;
-    private OutputStructure outstruct;
+    private OutputType outputType;
+    private String textSeparator;
     
     public OneToMany(Tag oneTag, Tag manyTag, Tag outputTag)
     {
         super(outputTag);
         this.oneTag = oneTag;
         this.manyTag = manyTag;
-        this.outstruct = OutputStructure.STRUCTURED;
+        this.outputType = OutputType.STRUCTURED;
+        this.textSeparator = " ";
     }
 
-    
-    
+    public void setOutput(OutputType outputType)
+    {
+        this.outputType = outputType;
+        this.textSeparator = " ";
+    }
+
+    public void setOutput(OutputType outputType, String textSeparator)
+    {
+        this.outputType = outputType;
+        this.textSeparator = textSeparator;
+    }
+
     @Override
     public List<LogicalArea> match(Area root)
     {
@@ -77,7 +89,7 @@ public class OneToMany extends Task
         //find the matches on the current level
         OneToManyMatcher matcher = new OneToManyMatcher(oneTag, manyTag, 0.2f, true);
         List<List<Area>> matches = matcher.match(nodes);
-        switch (outstruct)
+        switch (outputType)
         {
             case FLAT:
                 return createOutputFlat(matches); 
@@ -98,7 +110,7 @@ public class OneToMany extends Task
             StringBuilder text = new StringBuilder();
             la.addArea(match.get(0));
             text.append(extractAreaText(oneTag, match.get(0)));
-            text.append(':');
+            text.append(textSeparator);
             la.addArea(match.get(1));
             text.append(extractAreaText(manyTag, match.get(1)));
             la.setText(text.toString());
