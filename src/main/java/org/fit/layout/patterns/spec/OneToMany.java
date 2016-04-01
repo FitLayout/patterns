@@ -6,11 +6,9 @@
 package org.fit.layout.patterns.spec;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.fit.layout.impl.DefaultLogicalArea;
 import org.fit.layout.model.Area;
@@ -49,7 +47,7 @@ public class OneToMany extends Task
         super(outputTag);
         this.oneTag = oneTag;
         this.manyTag = manyTag;
-        this.outstruct = OutputStructure.FLAT;
+        this.outstruct = OutputStructure.STRUCTURED;
     }
 
     
@@ -64,7 +62,7 @@ public class OneToMany extends Task
 
         //create source area list
         List<Area> nodes = new ArrayList<Area>();
-        findLeaves(root, nodes, getSubtaskTags()); //get leaf nodes and all the tagged nodes
+        findLeaves(root, nodes); //get leaf nodes and all the tagged nodes
         //replace the detected pairs with logical groups
         for (List<LogicalArea> sublist : sublists)
         {
@@ -166,15 +164,9 @@ public class OneToMany extends Task
     
     //====================================================================================
     
-    private void findLeaves(Area root, List<Area> dest, Collection<Tag> tags)
+    private void findLeaves(Area root, List<Area> dest)
     {
-        boolean tagfound = false;
-        if (tags != null)
-        {
-            Set<Tag> atags = root.getSupportedTags(0.2f);
-            atags.retainAll(tags);
-            tagfound = !atags.isEmpty();
-        }
+        boolean tagfound = root.hasTag(oneTag, 0.2f) || root.hasTag(manyTag, 0.2f);
         if (tagfound || root.isLeaf())
         {
             if (!root.isSeparator())
@@ -183,7 +175,7 @@ public class OneToMany extends Task
         else
         {
             for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildArea(i), dest, tags);
+                findLeaves(root.getChildArea(i), dest);
         }
     }
     
