@@ -40,14 +40,18 @@ public class OneToMany extends Task
     
     private Tag oneTag;
     private Tag manyTag;
+    private boolean fixedOrder;
+    private float minSupport;
     private OutputType outputType;
     private String textSeparator;
     
-    public OneToMany(Tag oneTag, Tag manyTag, Tag outputTag)
+    public OneToMany(Tag oneTag, Tag manyTag, boolean fixedOrder, Tag outputTag)
     {
         super(outputTag);
         this.oneTag = oneTag;
         this.manyTag = manyTag;
+        this.fixedOrder = fixedOrder;
+        this.minSupport = 0.2f;
         this.outputType = OutputType.STRUCTURED;
         this.textSeparator = " ";
     }
@@ -62,6 +66,16 @@ public class OneToMany extends Task
     {
         this.outputType = outputType;
         this.textSeparator = textSeparator;
+    }
+
+    public float getMinSupport()
+    {
+        return minSupport;
+    }
+
+    public void setMinSupport(float minSupport)
+    {
+        this.minSupport = minSupport;
     }
 
     @Override
@@ -87,7 +101,7 @@ public class OneToMany extends Task
         }
 
         //find the matches on the current level
-        OneToManyMatcher matcher = new OneToManyMatcher(oneTag, manyTag, 0.2f, true);
+        OneToManyMatcher matcher = new OneToManyMatcher(oneTag, manyTag, minSupport, fixedOrder);
         List<List<Area>> matches = matcher.match(nodes);
         switch (outputType)
         {
@@ -178,7 +192,7 @@ public class OneToMany extends Task
     
     private void findLeaves(Area root, List<Area> dest)
     {
-        boolean tagfound = root.hasTag(oneTag, 0.2f) || root.hasTag(manyTag, 0.2f);
+        boolean tagfound = root.hasTag(oneTag, minSupport) || root.hasTag(manyTag, minSupport);
         if (tagfound || root.isLeaf())
         {
             if (!root.isSeparator())
