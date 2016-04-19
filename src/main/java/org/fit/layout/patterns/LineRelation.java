@@ -24,7 +24,17 @@ public abstract class LineRelation extends Relation
     {
         Rectangular r1 = a1.getBounds();
         Rectangular r2 = a2.getBounds();
-        return (r2.getY1() < r1.midY() && r2.getY2() > r1.midY());
+        Rectangular tall, shrt;
+        if (r2.getHeight() > r1.getHeight())
+        {
+            tall = r2; shrt = r1;
+        }
+        else
+        {
+            tall = r1; shrt = r2;
+        }
+        
+        return (tall.getY1() < shrt.midY() && tall.getY2() > shrt.midY());
     }
     
 }

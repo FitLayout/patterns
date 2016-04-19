@@ -145,8 +145,6 @@ public class OneToManyMatcher
         AreaStyle styles[][] = new AreaStyle[srcTag.length][];
         for (int i = 0; i < srcTag.length; i++)
         {
-            if (srcTag[i].toString().equals("datespan"))
-                System.out.println("jo!");
             List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(0.33f));
             variants.addAll(createStyleCombinations(variants, 1));
             log.debug("Trying for {}: {}", srcTag[i], variants);
