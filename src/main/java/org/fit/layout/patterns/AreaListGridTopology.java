@@ -51,6 +51,12 @@ public class AreaListGridTopology implements AreaTopology
     }
 
     @Override
+    public Rectangular getTopologyPosition()
+    {
+        return grid.getAbsolutePosition();
+    }
+
+    @Override
     public Rectangular getPosition(Area area)
     {
         return positions.get(area);
