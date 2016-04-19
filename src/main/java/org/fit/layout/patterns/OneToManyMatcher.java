@@ -147,6 +147,11 @@ public class OneToManyMatcher
         {
             List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(0.33f));
             variants.addAll(createStyleCombinations(variants, 1));
+            if (variants.isEmpty())
+            {
+                log.error("No styles found for {}", srcTag[i]);
+                return all;
+            }
             log.debug("Trying for {}: {}", srcTag[i], variants);
             styles[i] = variants.toArray(new AreaStyle[0]);
         }
