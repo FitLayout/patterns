@@ -16,6 +16,8 @@ import org.fit.layout.model.LogicalArea;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.LogicalAreaGroup;
 import org.fit.layout.patterns.OneToManyMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -37,6 +39,8 @@ public class OneToMany extends Task
          * with the sub-areas with the "many" matches. */
         STRUCTURED 
     }
+    
+    private static Logger log = LoggerFactory.getLogger(OneToMany.class);
     
     private Tag oneTag;
     private Tag manyTag;
@@ -116,24 +120,27 @@ public class OneToMany extends Task
     protected List<LogicalArea> createOutputFlat(List<List<Area>> matches)
     {
         List<LogicalArea> timeAreas = new ArrayList<>();
-        for (List<Area> match : matches)
+        if (matches != null)
         {
-            //System.out.println("Match: " + match);
-            //create the item's root node
-            LogicalArea la = new DefaultLogicalArea();
-            StringBuilder text = new StringBuilder();
-            la.addArea(match.get(0));
-            text.append(extractAreaText(oneTag, match.get(0)));
-            text.append(textSeparator);
-            la.addArea(match.get(1));
-            text.append(extractAreaText(manyTag, match.get(1)));
-            la.setText(text.toString());
-            la.setMainTag(getOutputTag());
-            timeAreas.add(la);
-            
-            //add sub-areas for one and many
-            la.appendChild(createLogicalArea(oneTag, match.get(0)));
-            la.appendChild(createLogicalArea(manyTag, match.get(1)));
+            for (List<Area> match : matches)
+            {
+                //System.out.println("Match: " + match);
+                //create the item's root node
+                LogicalArea la = new DefaultLogicalArea();
+                StringBuilder text = new StringBuilder();
+                la.addArea(match.get(0));
+                text.append(extractAreaText(oneTag, match.get(0)));
+                text.append(textSeparator);
+                la.addArea(match.get(1));
+                text.append(extractAreaText(manyTag, match.get(1)));
+                la.setText(text.toString());
+                la.setMainTag(getOutputTag());
+                timeAreas.add(la);
+                
+                //add sub-areas for one and many
+                la.appendChild(createLogicalArea(oneTag, match.get(0)));
+                la.appendChild(createLogicalArea(manyTag, match.get(1)));
+            }
         }
         //System.out.println("Total:"+ matches.size());
         return timeAreas;
@@ -143,20 +150,25 @@ public class OneToMany extends Task
     protected List<LogicalArea> createOutputStructured(List<List<Area>> matches)
     {
         Map<Area, LogicalArea> oneRoots = new HashMap<>();
-        for (List<Area> match : matches)
+        if (matches != null)
         {
-            //System.out.println("DMatch: " + match);
-            
-            LogicalArea parent = oneRoots.get(match.get(0));
-            if (parent == null)
+            for (List<Area> match : matches)
             {
-                parent = createLogicalArea(getOutputTag(), match.get(0));
-                oneRoots.put(match.get(0), parent);
+                //System.out.println("DMatch: " + match);
+                
+                LogicalArea parent = oneRoots.get(match.get(0));
+                if (parent == null)
+                {
+                    parent = createLogicalArea(getOutputTag(), match.get(0));
+                    oneRoots.put(match.get(0), parent);
+                }
+                
+                LogicalArea manyLa = createLogicalArea(manyTag, match.get(1));
+                parent.appendChild(manyLa);
             }
-            
-            LogicalArea manyLa = createLogicalArea(manyTag, match.get(1));
-            parent.appendChild(manyLa);
         }
+        else
+            log.warn("No matches found for (" + oneTag + " x " + manyTag + ")");
         return new ArrayList<LogicalArea>(oneRoots.values());
     }
 
