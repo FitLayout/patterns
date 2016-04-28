@@ -35,7 +35,8 @@ public class RelationBelow extends Relation
             float em = Math.max(a2.getFontSize(), a1.getFontSize());
             if (dist >= -0.5f*em)
             {
-                float w = 1.0f - (dist * 0.4f) / topology.getTopologyHeight(); //the worst case should be around 0.4
+                int tw = topology.getTopologyPosition().getHeight();
+                float w = 1.0f - dist / tw;
                 return w;
             }
             else
