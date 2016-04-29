@@ -31,6 +31,7 @@ public class OneToManyMatcher
     private Tag[] srcTag;
     private boolean fixedOrder;
     private float minSupport;
+    private int useStyleWildcards;
     
     private List<Area> areas;
     
@@ -46,8 +47,19 @@ public class OneToManyMatcher
         srcTag[1] = manyTag;
         this.minSupport = minSupport;
         this.fixedOrder = fixedOrder;
+        useStyleWildcards = 1;
     }
     
+    public int getUseStyleWildcards()
+    {
+        return useStyleWildcards;
+    }
+
+    public void setUseStyleWildcards(int useStyleWildcards)
+    {
+        this.useStyleWildcards = useStyleWildcards;
+    }
+
     public List<List<Area>> match(List<Area> areas)
     {
         this.areas = areas;
@@ -84,8 +96,6 @@ public class OneToManyMatcher
         List<List<Area>> ret = new ArrayList<List<Area>>();
         for (Area a1 : areas)
         {
-            if (a1.getId() == 44)
-                System.out.println("jo!");
             if (srcTag[0].equals(dis.getAreaTag(a1)))
             {
                 List<Area> inrel = getAreasInBestRelation(a1, conf.relation, srcTag[0], srcTag[1], dis);
@@ -146,7 +156,8 @@ public class OneToManyMatcher
         for (int i = 0; i < srcTag.length; i++)
         {
             List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(0.33f));
-            variants.addAll(createStyleCombinations(variants, 1));
+            if (useStyleWildcards > 0)
+                variants.addAll(createStyleCombinations(variants, useStyleWildcards));
             if (variants.isEmpty())
             {
                 log.error("No styles found for {}", srcTag[i]);
