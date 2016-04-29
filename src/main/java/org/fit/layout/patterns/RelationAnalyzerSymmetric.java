@@ -27,9 +27,10 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
     {
         addRelation(new RelationSide(false));
         addRelation(new RelationSide(true));
-        addRelation(new RelationUnder());
         addRelation(new RelationAfter(false));
         addRelation(new RelationAfter(true));
+        addRelation(new RelationSameLine());
+        addRelation(new RelationUnder());
     }
 
 }
