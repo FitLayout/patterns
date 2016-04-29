@@ -15,17 +15,28 @@ import org.fit.layout.model.Rectangular;
  */
 public class RelationBelow extends Relation
 {
-
+    private boolean inverse;
+    
     public RelationBelow()
     {
-        super("below");
+        this(false);
     }
     
+    public RelationBelow(boolean inverse)
+    {
+        super(inverse ? "above" : "below");
+        this.inverse = inverse;
+    }
+
     @Override
     public float isInRelationship(Area a1, Area a2, AreaTopology topology)
     {
         //here a1 is the bottom area, a2 is the top area
         //we say that a1 is below a2
+        if (inverse)
+        {
+            Area x = a2; a2 = a1; a1 = x;
+        }
         final Rectangular gp1 = topology.getPosition(a1);
         final Rectangular gp2 = topology.getPosition(a2);
         Rectangular inter = gp1.intersection(new Rectangular(gp2.getX1(), gp1.getY1(), gp2.getX2(), gp1.getY2()));
