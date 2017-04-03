@@ -5,8 +5,6 @@
  */
 package org.fit.layout.patterns.graph;
 
-import java.util.List;
-
 /**
  * 
  * @author burgetr
@@ -14,7 +12,7 @@ import java.util.List;
 public class Node
 {
     private long id;
-    private List<String> uris;
+    private String[] uris;
     private String title;
     private boolean object;
     
@@ -28,12 +26,12 @@ public class Node
         this.id = id;
     }
     
-    public List<String> getUris()
+    public String[] getUris()
     {
         return uris;
     }
     
-    public void setUris(List<String> uris)
+    public void setUris(String[] uris)
     {
         this.uris = uris;
     }

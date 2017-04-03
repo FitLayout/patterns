@@ -5,7 +5,6 @@
  */
 package org.fit.layout.patterns.graph;
 
-import java.util.List;
 
 /**
  * 
@@ -15,7 +14,7 @@ public class Edge
 {
     private long srcId;
     private long dstId;
-    private List<String> uris;
+    private String[] uris;
     private String title;
     private boolean dstMany;
     private boolean srcMany;
@@ -40,12 +39,12 @@ public class Edge
         this.dstId = dstId;
     }
     
-    public List<String> getUris()
+    public String[] getUris()
     {
         return uris;
     }
     
-    public void setUris(List<String> uris)
+    public void setUris(String[] uris)
     {
         this.uris = uris;
     }

@@ -5,7 +5,10 @@
  */
 package org.fit.layout.patterns.graph;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -15,8 +18,15 @@ public class Graph
 {
     private long id;
     private String title;
-    private List<Node> nodes;
+    private Map<Long, Node> nodes;
     private List<Edge> edges;
+    
+    
+    public Graph()
+    {
+        nodes = new HashMap<>();
+        edges = new ArrayList<>();
+    }
     
     public long getId()
     {
@@ -38,14 +48,9 @@ public class Graph
         this.title = title;
     }
     
-    public List<Node> getNodes()
+    public Map<Long, Node> getNodes()
     {
         return nodes;
-    }
-    
-    public void setNodes(List<Node> nodes)
-    {
-        this.nodes = nodes;
     }
     
     public List<Edge> getEdges()
@@ -53,8 +58,14 @@ public class Graph
         return edges;
     }
     
-    public void setEdges(List<Edge> edges)
+    public void addNode(Node node)
     {
-        this.edges = edges;
+        nodes.put(node.getId(), node);
     }
+    
+    public void addEdge(Edge edge)
+    {
+        edges.add(edge);
+    }
+    
 }
