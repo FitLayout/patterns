@@ -7,8 +7,11 @@ package org.fit.layout.patterns.graph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 
@@ -20,12 +23,13 @@ public class Graph
     private String title;
     private Map<Long, Node> nodes;
     private List<Edge> edges;
-    
+    private Map<Long, Set<Edge>> edgeIndex;
     
     public Graph()
     {
         nodes = new HashMap<>();
         edges = new ArrayList<>();
+        edgeIndex = new HashMap<>();
     }
     
     public long getId()
@@ -66,6 +70,78 @@ public class Graph
     public void addEdge(Edge edge)
     {
         edges.add(edge);
+        Set<Edge> indexItem = edgeIndex.get(edge.getSrcId());
+        if (indexItem == null)
+        {
+            indexItem = new HashSet<Edge>();
+            edgeIndex.put(edge.getSrcId(), indexItem);
+        }
+        indexItem.add(edge);
+        indexItem = edgeIndex.get(edge.getDstId());
+        if (indexItem == null)
+        {
+            indexItem = new HashSet<Edge>();
+            edgeIndex.put(edge.getDstId(), indexItem);
+        }
+        indexItem.add(edge);
     }
+    
+    //===============================================================================
+    
+    public Set<Node> getNeighborsOf(Node node)
+    {
+        Set<Node> ret = new HashSet<>();
+        Set<Edge> edges = edgeIndex.get(node.getId());
+        if (edges != null)
+        {
+            for (Edge e : edges)
+            {
+                Node dest;
+                if (node.getId() == e.getSrcId())
+                    dest = nodes.get(e.getDstId());
+                else
+                    dest = nodes.get(e.getSrcId());
+                if (dest != null)
+                    ret.add(dest);
+            }
+        }
+        return ret;
+    }
+    
+    public List<Path> getPathsFrom(Node start)
+    {
+        Path current = new Path(start);
+        List<Path> ret = new ArrayList<>();
+        appendNext(current, ret);
+        return ret;
+    }
+    
+    public List<Path> getDatatypePathsFrom(Node start)
+    {
+        List<Path> ret = getPathsFrom(start);
+        for (Iterator<Path> it = ret.iterator(); it.hasNext();)
+        {
+            Path path = it.next();
+            if (path.getLast().isObject())
+                it.remove();
+        }
+        return ret;
+    }
+    
+    public void appendNext(Path current, List<Path> dest)
+    {
+        Node last = current.getLast();
+        Set<Node> nextNodes = getNeighborsOf(last);
+        for (Node next : nextNodes)
+        {
+            if (!current.contains(next))
+            {
+                Path newpath = new Path(current, next);
+                dest.add(newpath);
+                appendNext(newpath, dest);
+            }
+        }
+    }
+    
     
 }

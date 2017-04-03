@@ -78,5 +78,27 @@ public class Edge
     {
         this.srcMany = srcMany;
     }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int) (dstId ^ (dstId >>> 32));
+        result = prime * result + (int) (srcId ^ (srcId >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        Edge other = (Edge) obj;
+        if (dstId != other.dstId) return false;
+        if (srcId != other.srcId) return false;
+        return true;
+    }
     
 }
