@@ -24,12 +24,14 @@ public class Graph
     private Map<Long, Node> nodes;
     private List<Edge> edges;
     private Map<Long, Set<Edge>> edgeIndex;
+    private Map<String, Node> nodeUriIndex;
     
     public Graph()
     {
         nodes = new HashMap<>();
         edges = new ArrayList<>();
         edgeIndex = new HashMap<>();
+        nodeUriIndex = new HashMap<>();
     }
     
     public long getId()
@@ -65,6 +67,8 @@ public class Graph
     public void addNode(Node node)
     {
         nodes.put(node.getId(), node);
+        for (String uri : node.getUris())
+            nodeUriIndex.put(uri, node);
     }
     
     public void addEdge(Edge edge)
@@ -87,6 +91,11 @@ public class Graph
     }
     
     //===============================================================================
+
+    public Node findNodeByUri(String uri)
+    {
+        return nodeUriIndex.get(uri);
+    }
     
     public Set<Node> getNeighborsOf(Node node)
     {

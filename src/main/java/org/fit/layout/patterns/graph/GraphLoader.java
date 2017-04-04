@@ -43,7 +43,7 @@ public class GraphLoader
         @Override
         public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
         {
-            System.out.println("graph " + json.toString());
+            //System.out.println("graph " + json.toString());
             Graph ret = new Graph();
             
             JsonObject jGraph = json.getAsJsonObject().get("graph").getAsJsonObject();
