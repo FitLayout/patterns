@@ -97,9 +97,9 @@ public class Graph
         return nodeUriIndex.get(uri);
     }
     
-    public Set<Node> getNeighborsOf(Node node)
+    public Set<EdgeNodePair> getNeighborsOf(Node node)
     {
-        Set<Node> ret = new HashSet<>();
+        Set<EdgeNodePair> ret = new HashSet<>();
         Set<Edge> edges = edgeIndex.get(node.getId());
         if (edges != null)
         {
@@ -111,7 +111,7 @@ public class Graph
                 else
                     dest = nodes.get(e.getSrcId());
                 if (dest != null)
-                    ret.add(dest);
+                    ret.add(new EdgeNodePair(e, dest));
             }
         }
         return ret;
@@ -140,12 +140,12 @@ public class Graph
     public void appendNext(Path current, List<Path> dest)
     {
         Node last = current.getLast();
-        Set<Node> nextNodes = getNeighborsOf(last);
-        for (Node next : nextNodes)
+        Set<EdgeNodePair> nextNodes = getNeighborsOf(last);
+        for (EdgeNodePair next : nextNodes)
         {
-            if (!current.contains(next))
+            if (!current.contains(next.getNode()))
             {
-                Path newpath = new Path(current, next);
+                Path newpath = new Path(current, next.getNode(), next.isSrcMany(), next.isDstMany());
                 dest.add(newpath);
                 appendNext(newpath, dest);
             }
