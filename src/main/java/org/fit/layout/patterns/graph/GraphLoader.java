@@ -17,6 +17,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 /**
+ * This class implements the extraction graph construction based on an external description (currently JSON file).
  * 
  * @author burgetr
  */

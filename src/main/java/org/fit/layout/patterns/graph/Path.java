@@ -8,6 +8,7 @@ package org.fit.layout.patterns.graph;
 import java.util.ArrayList;
 
 /**
+ * A path in a graph represented as a sequence of nodes.
  * 
  * @author burgetr
  */

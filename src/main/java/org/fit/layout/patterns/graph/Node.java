@@ -6,6 +6,7 @@
 package org.fit.layout.patterns.graph;
 
 /**
+ * A node of an extraction graph.
  * 
  * @author burgetr
  */

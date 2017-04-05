@@ -7,6 +7,7 @@ package org.fit.layout.patterns.graph;
 
 
 /**
+ * An edge of an extraction graph.
  * 
  * @author burgetr
  */

@@ -6,6 +6,7 @@
 package org.fit.layout.patterns.graph;
 
 /**
+ * An edge that leads to a particular node.
  * 
  * @author burgetr
  */
