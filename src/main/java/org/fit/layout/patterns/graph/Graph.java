@@ -138,7 +138,7 @@ public class Graph
         return ret;
     }
     
-    public void appendNext(Path current, List<Path> dest)
+    private void appendNext(Path current, List<Path> dest)
     {
         Node last = current.getLast();
         Set<EdgeNodePair> nextNodes = getNeighborsOf(last);
