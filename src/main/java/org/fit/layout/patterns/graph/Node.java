@@ -37,6 +37,16 @@ public class Node
         this.uris = uris;
     }
     
+    public boolean hasUri(String uri)
+    {
+        for (String u : this.uris)
+        {
+            if (u.equals(uri))
+                return true;
+        }
+        return false;
+    }
+    
     public String getTitle()
     {
         return title;

@@ -120,9 +120,12 @@ public class Graph
     
     public List<Path> getPathsFrom(Node start)
     {
+        //recursively find all paths from the starting node
         Path current = new Path(start);
         List<Path> ret = new ArrayList<>();
-        appendNext(current, ret);
+        recursiveAppendNext(current, ret);
+        //disambiguate the paths (if there are more paths to the same node)
+        //TODO
         return ret;
     }
     
@@ -138,7 +141,7 @@ public class Graph
         return ret;
     }
     
-    private void appendNext(Path current, List<Path> dest)
+    private void recursiveAppendNext(Path current, List<Path> dest)
     {
         Node last = current.getLast();
         Set<EdgeNodePair> nextNodes = getNeighborsOf(last);
@@ -148,7 +151,7 @@ public class Graph
             {
                 Path newpath = new Path(current, next.getNode(), next.isSrcMany(), next.isDstMany());
                 dest.add(newpath);
-                appendNext(newpath, dest);
+                recursiveAppendNext(newpath, dest);
             }
         }
     }

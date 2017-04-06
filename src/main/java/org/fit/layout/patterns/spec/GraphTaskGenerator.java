@@ -5,13 +5,23 @@
  */
 package org.fit.layout.patterns.spec;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.fit.layout.classify.Tagger;
+import org.fit.layout.model.Area;
+import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.OneToManyMatcher;
 import org.fit.layout.patterns.graph.Graph;
 import org.fit.layout.patterns.graph.Node;
 import org.fit.layout.patterns.graph.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements generating an extraction task based on a graph description.
@@ -20,15 +30,23 @@ import org.fit.layout.patterns.graph.Path;
  */
 public class GraphTaskGenerator
 {
+    private static Logger log = LoggerFactory.getLogger(GraphTaskGenerator.class);
+
     private Graph graph;
     private Node mainNode;
-    private Set<RDFTag> assignedTags;
+    private List<Path> targetPaths;
+    private Map<Node, RDFTag> targetNodes;
+    private Map<Node, Tagger> taggers;
+    
     
     public GraphTaskGenerator(Graph graph, Node mainNode)
     {
         this.graph = graph;
         this.mainNode = mainNode;
-        this.assignedTags = createTags(graph, mainNode);
+        
+        targetPaths = graph.getDatatypePathsFrom(mainNode);
+        targetNodes = findTargetNodes(targetPaths);
+        taggers = new HashMap<>(); 
     }
 
     public Graph getGraph()
@@ -41,23 +59,103 @@ public class GraphTaskGenerator
         return mainNode;
     }
     
-    public Set<RDFTag> getAssignedTags()
+    public Collection<RDFTag> getAssignedTags()
     {
-        return assignedTags;
+        return targetNodes.values();
+    }
+    
+    public void mapTagger(String uri, Tagger tagger)
+    {
+        Node node = graph.findNodeByUri(uri);
+        if (node != null && targetNodes.containsKey(node))
+        {
+            taggers.put(node, tagger);
+            log.info("Mapped tagger {} for {}", tagger.toString(), node.toString());
+        }
+        else
+            log.error("Couldn't map tagger to unknown node URI: {}", uri);
+    }
+    
+    public void createTask(List<Area> leaves)
+    {
+        List<Node> oo = new ArrayList<>();
+        List<Node> om = new ArrayList<>();
+        List<Node> mo = new ArrayList<>();
+        List<Node> mm = new ArrayList<>();
+        //categorize nodes by target cardinality
+        for (Node n : targetNodes.keySet())
+        {
+            Path p = findPathFor(n);
+            if (p.isSrcMany())
+            {
+                if (p.isDstMany())
+                    mm.add(n);
+                else
+                    mo.add(n);
+            }
+            else
+            {
+                if (p.isDstMany())
+                    om.add(n);
+                else
+                    oo.add(n);
+            }
+        }
+        //start with M:1 if any
+        System.out.println("mo=" + mo);
+        System.out.println("oo=" + oo);
+        if (!mo.isEmpty() && !oo.isEmpty())
+        {
+            Node srcNode = mo.get(0);
+            Node dstNode = oo.get(0);
+            Tagger srcTagger = taggers.get(srcNode);
+            Tagger dstTagger = taggers.get(dstNode); 
+            if (srcTagger != null && dstTagger != null)
+            {
+                OneToManyMatcher matcher = new OneToManyMatcher(srcTagger.getTag(), dstTagger.getTag(), 0.2f, true);
+                List<List<Area>> matches = matcher.match(leaves);
+                System.out.println(srcNode + "x" + dstNode + " : found " + matches.size() + " matches");
+            }
+            else
+            {
+                if (srcTagger == null)
+                    log.error("No tagger registered for " + srcNode);
+                if (dstTagger == null)
+                    log.error("No tagger registered for " + dstNode);
+            }
+        }
     }
     
     //==========================================================
     
-    private Set<RDFTag> createTags(Graph g, Node main)
+    private Path findPathFor(Node target)
     {
-        List<Path> paths = g.getDatatypePathsFrom(main);
-        Set<RDFTag> ret = new HashSet<>(paths.size());
-        for (Path p : paths)
+        Path ret = null;
+        for (Path p : targetPaths)
         {
-            String[] uris = p.getLast().getUris();
-            ret.add(new RDFTag(p.getLast().getTitle(), uris.length > 0 ? uris[0] : null));
+            if (p.getLast().equals(target))
+            {
+                if (ret == null || p.isDstMany()) //prefer greater cardinality paths
+                    ret = p;
+            }
         }
         return ret;
     }
-
+    
+    private Map<Node, RDFTag> findTargetNodes(List<Path> paths)
+    {
+        Map<Node, RDFTag> ret = new HashMap<>();
+        for (Path p : paths)
+        {
+            Node target = p.getLast();
+            if (!ret.containsKey(target))
+            {
+                String[] uris = target.getUris();
+                RDFTag tag = new RDFTag(target.getTitle(), uris.length > 0 ? uris[0] : null);
+                ret.put(target, tag);
+            }
+        }
+        return ret;
+    }
+    
 }
