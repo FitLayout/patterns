@@ -24,14 +24,13 @@ import org.slf4j.LoggerFactory;
  * 
  * @author burgetr
  */
-public class OneToManyMatcher
+public class OneToManyMatcher extends BaseMatcher
 {
     private static Logger log = LoggerFactory.getLogger(OneToManyMatcher.class);
 
     private Tag[] srcTag;
     private boolean fixedOrder;
     private float minSupport;
-    private int useStyleWildcards;
     
     private List<Area> areas;
     
@@ -42,24 +41,15 @@ public class OneToManyMatcher
     
     public OneToManyMatcher(Tag oneTag, Tag manyTag, float minSupport, boolean fixedOrder)
     {
+        super();
         srcTag = new Tag[2];
         srcTag[0] = oneTag;
         srcTag[1] = manyTag;
         this.minSupport = minSupport;
         this.fixedOrder = fixedOrder;
-        useStyleWildcards = 1;
     }
     
-    public int getUseStyleWildcards()
-    {
-        return useStyleWildcards;
-    }
-
-    public void setUseStyleWildcards(int useStyleWildcards)
-    {
-        this.useStyleWildcards = useStyleWildcards;
-    }
-
+    @Override
     public List<List<Area>> match(List<Area> areas)
     {
         this.areas = areas;
@@ -156,8 +146,8 @@ public class OneToManyMatcher
         for (int i = 0; i < srcTag.length; i++)
         {
             List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(0.33f));
-            if (useStyleWildcards > 0)
-                variants.addAll(createStyleCombinations(variants, useStyleWildcards));
+            if (getUseStyleWildcards() > 0)
+                variants.addAll(createStyleCombinations(variants, getUseStyleWildcards()));
             if (variants.isEmpty())
             {
                 log.error("No styles found for {}", srcTag[i]);
