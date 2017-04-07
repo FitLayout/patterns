@@ -16,6 +16,7 @@ import java.util.Set;
 import org.fit.layout.classify.Tagger;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.AttributeGroupMatcher;
 import org.fit.layout.patterns.OneToManyMatcher;
 import org.fit.layout.patterns.graph.Graph;
 import org.fit.layout.patterns.graph.Node;
@@ -37,6 +38,7 @@ public class GraphTaskGenerator
     private List<Path> targetPaths;
     private Map<Node, RDFTag> targetNodes;
     private Map<Node, Tagger> taggers;
+    private float minSupport = 0.3f;
     
     
     public GraphTaskGenerator(Graph graph, Node mainNode)
@@ -82,6 +84,7 @@ public class GraphTaskGenerator
         List<Node> om = new ArrayList<>();
         List<Node> mo = new ArrayList<>();
         List<Node> mm = new ArrayList<>();
+        List<AttributeGroupMatcher.Attribute> attrs = new ArrayList<>();
         //categorize nodes by target cardinality
         for (Node n : targetNodes.keySet())
         {
@@ -100,9 +103,14 @@ public class GraphTaskGenerator
                 else
                     oo.add(n);
             }
+            Tagger tagger = taggers.get(n);
+            if (tagger != null)
+                attrs.add(new AttributeGroupMatcher.Attribute(tagger.getTag(), minSupport, true, p.isDstMany()));
+            else
+                log.error("No tagger registered for {}", n);
         }
         //start with M:1 if any
-        System.out.println("mo=" + mo);
+        /*System.out.println("mo=" + mo);
         System.out.println("oo=" + oo);
         if (!mo.isEmpty() && !oo.isEmpty())
         {
@@ -123,7 +131,9 @@ public class GraphTaskGenerator
                 if (dstTagger == null)
                     log.error("No tagger registered for " + dstNode);
             }
-        }
+        }*/
+        AttributeGroupMatcher matcher = new AttributeGroupMatcher(attrs);
+        matcher.match(leaves);
     }
     
     //==========================================================

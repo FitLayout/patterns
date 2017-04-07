@@ -6,6 +6,8 @@
 package org.fit.layout.patterns;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,10 +25,10 @@ public class ConsistentAreaAnalyzer
     public static final int BADSEQ_LIMIT = 3;
     
     private RelationAnalyzer ra;
-    private Set<Tag> consideredTags;
+    private Collection<Tag> consideredTags;
     private float minSupport;
     
-    public ConsistentAreaAnalyzer(RelationAnalyzer ra, Set<Tag> consideredTags, float minSupport)
+    public ConsistentAreaAnalyzer(RelationAnalyzer ra, Collection<Tag> consideredTags, float minSupport)
     {
         this.ra = ra;
         this.consideredTags = consideredTags;
@@ -36,9 +38,7 @@ public class ConsistentAreaAnalyzer
     public ConsistentAreaAnalyzer(RelationAnalyzer ra, Tag[] consideredTags, float minSupport)
     {
         this.ra = ra;
-        this.consideredTags = new HashSet<Tag>(consideredTags.length);
-        for (Tag tag : consideredTags)
-            this.consideredTags.add(tag);
+        this.consideredTags = Arrays.asList(consideredTags);
         this.minSupport = minSupport;
     }
     

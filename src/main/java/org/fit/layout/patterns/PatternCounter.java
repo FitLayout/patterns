@@ -1,10 +1,12 @@
 /**
- * StyleCounter.java
+ * PatternCounter.java
  *
  * Created on 5. 3. 2015, 16:30:24 by burgetr
  */
 package org.fit.layout.patterns;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -34,15 +36,27 @@ public class PatternCounter<T>
     
     /**
      * Adds a new occurence to the counter.
-     * @param style The style to be added.
+     * @param pattern The occurence to be added.
+     * @param weight How much weight should be added for a single occurence
      */
-    public void add(T style, float weight)
+    public void add(T pattern, float weight)
     {
-        Float cur = patterns.get(style);
+        Float cur = patterns.get(pattern);
         if (cur == null)
-            patterns.put(style, weight);
+            patterns.put(pattern, weight);
         else
-            patterns.put(style, cur+weight);
+            patterns.put(pattern, cur+weight);
+    }
+
+    /**
+     * Adds a collection of new occurences to the counter.
+     * @param items The collection of occurences to be added.
+     * @param weight How much weight should be added for a single occurence
+     */
+    public void addAll(Collection<T> items, float weight)
+    {
+        for (T item : items)
+            add(item, weight);
     }
     
     /**
@@ -104,6 +118,27 @@ public class PatternCounter<T>
     public Map<T, Float> getAll()
     {
     	return patterns;
+    }
+    
+    /**
+     * Obtains the frequent items where the frequency is greater or equal than factor*max_frequency.
+     * @return The list of frequent items
+     */
+    public List<T> getFrequent(float factor)
+    {
+        List<T> ret = new ArrayList<T>();
+        float maxfreq = 0;
+        for (Map.Entry<T, Float> entry : patterns.entrySet())
+        {
+            if (entry.getValue() > maxfreq)
+                maxfreq = entry.getValue();
+        }
+        for (Map.Entry<T, Float> entry : patterns.entrySet())
+        {
+            if (entry.getValue() >= factor * maxfreq)
+                ret.add(entry.getKey());
+        }
+        return ret;
     }
     
     /**
