@@ -19,8 +19,8 @@ import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
-import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.TagConnection;
+import org.fit.layout.patterns.model.TagConnectionList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,7 +181,7 @@ public class OneToManyMatcher extends BaseMatcher
                 //build statistics for the selected disambiguations
                 StyleAnalyzer sa = new StyleAnalyzerFixed(curStyles);
                 Disambiguator dis = new Disambiguator(sa, useChains ? chains : null, minSupport);
-                ConnectionList<TagConnection> cons = pa.getTagConnections(dis);
+                TagConnectionList cons = pa.getTagConnections(dis);
                 PatternCounter<TagConnection> pc = new PatternCounter<>();
                 for (TagConnection con : cons)
                 {

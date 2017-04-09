@@ -13,8 +13,9 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaConnection;
-import org.fit.layout.patterns.model.ConnectionList;
+import org.fit.layout.patterns.model.AreaConnectionList;
 import org.fit.layout.patterns.model.TagConnection;
+import org.fit.layout.patterns.model.TagConnectionList;
 
 /**
  * 
@@ -27,8 +28,8 @@ public class RelationAnalyzer
     private List<Relation> analyzedRelations;
     private List<Area> areas;
     private AreaTopology topology;
-    private ConnectionList<AreaConnection> areaConnections;
-    private ConnectionList<TagConnection> tagConnections;
+    private AreaConnectionList areaConnections;
+    private TagConnectionList tagConnections;
     
     public RelationAnalyzer(List<Area> areas)
     {
@@ -66,18 +67,18 @@ public class RelationAnalyzer
         return topology;
     }
 
-    public ConnectionList<AreaConnection> getAreaConnections()
+    public AreaConnectionList getAreaConnections()
     {
         if (areaConnections == null)
         {
-            areaConnections = new ConnectionList<>();
+            areaConnections = new AreaConnectionList();
             for (Relation r : analyzedRelations)
                 addConnectionsForRelation(areas, r, areaConnections);
         }
         return areaConnections;
     }
     
-    private void addConnectionsForRelation(List<Area> areas, Relation relation, ConnectionList<AreaConnection> dest)
+    private void addConnectionsForRelation(List<Area> areas, Relation relation, AreaConnectionList dest)
     {
         for (Area a1 : areas)
         {
@@ -163,11 +164,11 @@ public class RelationAnalyzer
         return ret;
     }
     
-    public ConnectionList<TagConnection> getTagConnections()
+    public TagConnectionList getTagConnections()
     {
         if (tagConnections == null)
         {
-            tagConnections = new ConnectionList<>();
+            tagConnections = new TagConnectionList();
             for (AreaConnection ac : getAreaConnections())
             {
                 Set<Tag> srcTags = ac.getA1().getTags().keySet();
@@ -183,9 +184,9 @@ public class RelationAnalyzer
         return tagConnections;
     }
     
-    public ConnectionList<TagConnection> getTagConnections(Disambiguator dis)
+    public TagConnectionList getTagConnections(Disambiguator dis)
     {
-        ConnectionList<TagConnection> ret = new ConnectionList<>();
+        TagConnectionList ret = new TagConnectionList();
         for (AreaConnection ac : getAreaConnections())
         {
             Tag src = dis.getAreaTag(ac.getA1());

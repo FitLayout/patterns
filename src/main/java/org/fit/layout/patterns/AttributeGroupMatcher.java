@@ -18,8 +18,8 @@ import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaStyle;
-import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.TagConnection;
+import org.fit.layout.patterns.model.TagConnectionList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,11 +189,11 @@ public class AttributeGroupMatcher extends BaseMatcher
      */
     private List<List<TagConnection>> generateTagPairs(float minFrequency)
     {
-        ConnectionList<TagConnection> all = pa.getTagConnections();
+        TagConnectionList all = pa.getTagConnections();
         PatternCounter<TagConnection> ccon = new PatternCounter<>();
         ccon.addAll(all, 1.0f);
         
-        ConnectionList<TagConnection> used = new ConnectionList<>(ccon.getFrequent(minFrequency));
+        TagConnectionList used = new TagConnectionList(ccon.getFrequent(minFrequency));
         
         log.debug("{} tag connections", ccon);
         log.debug("{} used", used.size());
