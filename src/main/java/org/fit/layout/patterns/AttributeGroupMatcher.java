@@ -18,6 +18,7 @@ import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaStyle;
+import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
 import org.slf4j.Logger;
@@ -84,7 +85,10 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<Configuration> scanDisambiguations()
     {
         List<Configuration> all = generateConfigurations();
-        int bestCoverage = 0;
+        log.debug("{} total configurations", all.size());
+        int bestCoverage = 100;
+        System.out.println(all.get(0));
+        //TODO find the best coverage
         
         //select the best configurations
         List<Configuration> best = new ArrayList<>();
@@ -122,13 +126,21 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private List<Configuration> generateConfigurations()
     {
+        List<Configuration> ret = new ArrayList<>();
         List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(0.1f);
-        List<List<TagConnection>> tagPairs = generateTagPairs(0.33f);
-        for (Map<Tag, AreaStyle> styles : styleMaps)
+        List<List<List<TagConnection>>> tagPairs = generateTagPairs(0.75f);
+        for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
         {
-            //TODO
+            for (List<List<TagConnection>> perm : tagPairs) //for all attr permutations
+            {
+                for (List<TagConnection> conns : perm) //for all coverings of attr permutations by tag connections
+                {
+                    Configuration conf = new Configuration(styles, conns, 0);
+                    ret.add(conf);
+                }
+            }
         }
-        return new ArrayList<>();
+        return ret;
     }
     
     /**
@@ -187,19 +199,78 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param minFrequency the minimal frequency of tags required to consider the style for that tag
      * @return A list of style mappings.
      */
-    private List<List<TagConnection>> generateTagPairs(float minFrequency)
+    private List<List<List<TagConnection>>> generateTagPairs(float minFrequency)
     {
         TagConnectionList all = pa.getTagConnections();
-        PatternCounter<TagConnection> ccon = new PatternCounter<>();
-        ccon.addAll(all, 1.0f);
+
+        //source attribute permutations
+        List<List<Attribute>> perms = findAttributePermutations();
         
-        TagConnectionList used = new TagConnectionList(ccon.getFrequent(minFrequency));
+        log.debug("Attribute permutations: {}", perms.size());
+        List<List<List<TagConnection>>> ret = new ArrayList<>(perms.size());
+        int total = 0;
+        for (List<Attribute> perm : perms)
+        {
+            log.debug("P: " + perm);
+            List<List<TagConnection>> mappings = findMappings(perm, all, minFrequency);
+            ret.add(mappings);
+            total += mappings.size();
+        }
+        log.debug("Total mappings {}", total);
         
-        log.debug("{} tag connections", ccon);
-        log.debug("{} used", used.size());
-        
+        return ret;
+    }
+    
+    private List<List<TagConnection>> findMappings(List<Attribute> attlist, TagConnectionList conn, float minFrequency)
+    {
+        List<List<TagConnection>> ret = new ArrayList<>();
+        List<List<TagConnection>> lists = new ArrayList<>(attlist.size() - 1);
+        //find candidates for every pair
+        for (int i = 0; i < attlist.size() - 1; i++)
+        {
+            Attribute a1 = attlist.get(i);
+            Attribute a2 = attlist.get(i + 1);
+            ConnectionList<Tag, TagConnection> cands = conn.filterForPair(a1.getTag(), a2.getTag());
+            PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
+            lists.add(cnt.getFrequent(minFrequency));
+            log.debug("    for {}-{} : {}", a1, a2, cnt);
+        }
+        //iterate over all candidates
+        int[] indices = new int[lists.size()];
+        Arrays.fill(indices, 0);
+        final int lastcnt = lists.get(lists.size() - 1).size();
+        while (indices[indices.length-1] != lastcnt)
+        {
+            List<TagConnection> newItem = new ArrayList<>(indices.length);
+            for (int i = 0; i < indices.length; i++)
+                newItem.add(lists.get(i).get(indices[i]));
+            ret.add(newItem);
+            
+            //increment the indices
+            indices[0]++;
+            for (int i = 0; i < indices.length - 1; i++)
+            {
+                if (indices[i] >= lists.get(i).size())
+                {
+                    indices[i] = 0;
+                    indices[i+1]++;
+                }
+            }
+        }
+        return ret;
+    }
+    
+    //===========================================================================================
+    
+    /**
+     * Finds all permutations of the attributes while ignoring the attribute order.
+     * @return A list of all different attribute permutations.
+     */
+    public List<List<Attribute>> findAttributePermutations()
+    {
+        //find all permutations
         List<List<Attribute>> perms = permutateAttributes(attrs);
-        
+        //filter out reverse permutations
         List<List<Attribute>> seqs = new ArrayList<>(perms.size() / 2);
         while (!perms.isEmpty())
         {
@@ -209,17 +280,10 @@ public class AttributeGroupMatcher extends BaseMatcher
             perms.remove(rev);
             seqs.add(item);
         }
-        System.out.println(seqs.size());
-        for (List<Attribute> perm : seqs)
-            System.out.println("P: " + perm);
-        
-        
-        
-        //TODO
-        return null;
+        return seqs;
     }
     
-    public List<List<Attribute>> permutateAttributes(List<Attribute> original)
+    private List<List<Attribute>> permutateAttributes(List<Attribute> original)
     {
         if (original.size() == 0)
         {

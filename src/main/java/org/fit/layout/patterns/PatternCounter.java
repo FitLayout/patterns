@@ -35,6 +35,17 @@ public class PatternCounter<T>
     }
     
     /**
+     * Creates a style counter and initializes it with a collection.
+     * @param the collection
+     * @param weight of the collection items
+     */
+    public PatternCounter(Collection<T> col, float weight)
+    {
+        patterns = new HashMap<T, Float>();
+        addAll(col, weight);
+    }
+    
+    /**
      * Adds a new occurence to the counter.
      * @param pattern The occurence to be added.
      * @param weight How much weight should be added for a single occurence

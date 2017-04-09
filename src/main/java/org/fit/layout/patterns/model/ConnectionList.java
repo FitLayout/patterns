@@ -93,6 +93,12 @@ public class ConnectionList<P, T extends Connection<?>> extends ArrayList<T>
             else if (!o2.equals(other.o2)) return false;
             return true;
         }
+
+        @Override
+        public String toString()
+        {
+            return "<" + o1.toString() + ", " + o2.toString() + ">";
+        }
         
     }
 
