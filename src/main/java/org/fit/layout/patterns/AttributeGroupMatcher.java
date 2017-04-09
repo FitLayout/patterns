@@ -17,6 +17,9 @@ import java.util.Set;
 import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.model.AreaStyle;
+import org.fit.layout.patterns.model.ConnectionList;
+import org.fit.layout.patterns.model.TagConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

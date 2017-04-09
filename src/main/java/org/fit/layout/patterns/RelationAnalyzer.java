@@ -12,6 +12,9 @@ import java.util.Set;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.model.AreaConnection;
+import org.fit.layout.patterns.model.ConnectionList;
+import org.fit.layout.patterns.model.TagConnection;
 
 /**
  * 

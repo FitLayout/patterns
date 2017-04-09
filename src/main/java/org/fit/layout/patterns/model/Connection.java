@@ -3,7 +3,9 @@
  *
  * Created on 28. 2. 2016, 19:45:42 by burgetr
  */
-package org.fit.layout.patterns;
+package org.fit.layout.patterns.model;
+
+import org.fit.layout.patterns.Relation;
 
 /**
  * 

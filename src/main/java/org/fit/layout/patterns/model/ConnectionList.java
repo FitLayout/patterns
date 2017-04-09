@@ -3,7 +3,7 @@
  *
  * Created on 28. 2. 2016, 18:47:48 by burgetr
  */
-package org.fit.layout.patterns;
+package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
 import java.util.Collection;

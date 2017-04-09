@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.model.AreaStyle;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.lazy.IBk;
