@@ -17,6 +17,7 @@ import java.util.Set;
 import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.TagConnection;
@@ -51,6 +52,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
+    public List<Attribute> getAttrs()
+    {
+        return attrs;
+    }
+
     @Override
     public List<List<Area>> match(List<Area> areas)
     {
@@ -307,6 +313,105 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
             return returnValue;
         }
+    }
+    
+    //===========================================================================================
+    
+    private int checkCovering(Configuration conf, Disambiguator dis)
+    {
+        Map<Attribute, Set<Area>> areaMap = new HashMap<>();
+        for (Attribute a : getAttrs())
+            areaMap.put(a, new HashSet<Area>());
+        
+        //start with all areas
+        for (Area a : areas)
+        {
+            for (Map.Entry<Attribute, Set<Area>> entry : areaMap.entrySet())
+            {
+                if (a.hasTag(entry.getKey().getTag(), entry.getKey().getMinSupport()))
+                    entry.getValue().add(a);
+            }
+        }
+        
+        return checkCovering(conf, areaMap, dis);
+    }
+    
+    private int checkCovering(Configuration conf, Map<Attribute, Set<Area>> areaMap, Disambiguator dis)
+    {
+        Set<Area> matchedAreas = new HashSet<Area>();
+        //remove matching pairs from areaMap
+        Area lastArea = null; //last connected area
+        for (TagConnection pair : conf.getPairs())
+        {
+            
+        }
+        
+        /*for (Area a : areas2)
+        {
+            if (tag2.equals(dis.getAreaTag(a)))
+            {
+                //if (a.getId() == 392)
+                //    System.out.println("jo!");
+                List<Area> inrel = getAreasInBestRelation(a, relation, tag2, tag1, dis);
+                boolean matched = false;
+                for (Area b : inrel)
+                {
+                    if (areas1.remove(b))
+                    {
+                        //log.debug("Cover: " + a + " " + relation + " " + b);
+                        //b.addTag(new VisualTag("minute"), 1.0f);
+                        matchedAreas.add(b);
+                        matched = true;
+                    }
+                }
+                if (matched)
+                {
+                    matchedAreas.add(a);
+                    //a.addTag(new VisualTag("hour"), 1.0f);
+                }
+            }
+        }*/
+        
+        return matchedAreas.size();
+    }
+    
+    /**
+     * Obtains all the area that are in the given relation with the given area and there exists
+     * no better source area for this with the same destination area and a higher weight.
+     * E.g. all areas below {@code a}.
+     * Only the areas with specified tags are taken into account, the tags are inferred using
+     * a disambiguator.
+     * @param a the area to compare
+     * @param r the relation to use.
+     * @param srcTag the tag required for the source areas (incl. {@code a})
+     * @param destTag the tag required for the destination areas
+     * @param dis the disambiguator used for assigning the tags to areas
+     * @return the list of corresponding areas
+     */
+    private List<Area> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, Disambiguator dis)
+    {
+        List<AreaConnection> dest = pa.getConnections(null, r, a, -1.0f);
+        List<Area> ret = new ArrayList<Area>(dest.size());
+        for (AreaConnection cand : dest)
+        {
+            if (destTag.equals(dis.getAreaTag(cand.getA1())))
+            {
+                //find the source nodes that are closer
+                List<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
+                boolean foundBetter = false;
+                for (AreaConnection betterCand : better)
+                {
+                    if (srcTag.equals(dis.getAreaTag(betterCand.getA2())))
+                    {
+                        foundBetter = true;
+                        break;
+                    }
+                }
+                if (!foundBetter)
+                    ret.add(cand.getA1()); //a1 has no "better" source area, use it
+            }
+        }
+        return ret;
     }
     
     //===========================================================================================
