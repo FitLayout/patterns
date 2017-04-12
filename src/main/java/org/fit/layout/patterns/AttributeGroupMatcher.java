@@ -92,9 +92,19 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         List<Configuration> all = generateConfigurations();
         log.debug("{} total configurations", all.size());
-        int bestCoverage = 100;
         System.out.println(all.get(0));
-        //TODO find the best coverage
+        
+        //find the best coverage
+        int bestCoverage = 0;
+        for (Configuration conf : all)
+        {
+            StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
+            Disambiguator dis = new Disambiguator(sa, null, 0.3f); //TODO minSupport?
+            int coverage = checkCovering(conf, dis);
+            conf.setCoverage(coverage);
+            if (coverage > bestCoverage)
+                bestCoverage = coverage;
+        }
         
         //select the best configurations
         List<Configuration> best = new ArrayList<>();
@@ -275,7 +285,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     public List<List<Attribute>> findAttributePermutations()
     {
         //find all permutations
-        List<List<Attribute>> perms = permutateAttributes(attrs);
+        List<List<Attribute>> perms = permutateAttributes(new ArrayList<>(attrs));
         //filter out reverse permutations
         List<List<Attribute>> seqs = new ArrayList<>(perms.size() / 2);
         while (!perms.isEmpty())
@@ -319,16 +329,20 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private int checkCovering(Configuration conf, Disambiguator dis)
     {
-        Map<Attribute, Set<Area>> areaMap = new HashMap<>();
+        Map<Tag, Set<Area>> areaMap = new HashMap<>();
+        Map<Tag, Float> supportMap = new HashMap<>();
         for (Attribute a : getAttrs())
-            areaMap.put(a, new HashSet<Area>());
+        {
+            areaMap.put(a.getTag(), new HashSet<Area>());
+            supportMap.put(a.getTag(), a.getMinSupport());
+        }
         
         //start with all areas
         for (Area a : areas)
         {
-            for (Map.Entry<Attribute, Set<Area>> entry : areaMap.entrySet())
+            for (Map.Entry<Tag, Set<Area>> entry : areaMap.entrySet())
             {
-                if (a.hasTag(entry.getKey().getTag(), entry.getKey().getMinSupport()))
+                if (a.hasTag(entry.getKey(), supportMap.get(entry.getKey())))
                     entry.getValue().add(a);
             }
         }
@@ -336,43 +350,61 @@ public class AttributeGroupMatcher extends BaseMatcher
         return checkCovering(conf, areaMap, dis);
     }
     
-    private int checkCovering(Configuration conf, Map<Attribute, Set<Area>> areaMap, Disambiguator dis)
+    private int checkCovering(Configuration conf, Map<Tag, Set<Area>> areaMap, Disambiguator dis)
     {
+        log.debug("Checking conf {}", conf);
         Set<Area> matchedAreas = new HashSet<Area>();
-        //remove matching pairs from areaMap
-        Area lastArea = null; //last connected area
-        for (TagConnection pair : conf.getPairs())
+        List<TagConnection> pairs = new ArrayList<>(conf.getPairs()); //pairs to go
+        TagConnection curPair = pairs.remove(0); //TODO the first one muste be selected more carefully
+        Set<Area> srcSet = areaMap.get(curPair.getA2());
+        for (Area a : srcSet)
         {
-            
+            recursiveFindMatchesFor(a, curPair, areaMap, pairs, dis, matchedAreas);
         }
         
-        /*for (Area a : areas2)
+        return matchedAreas.size();
+    }
+    
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, Map<Tag, Set<Area>> areaMap, List<TagConnection> pairs, Disambiguator dis, Set<Area> matchedAreas)
+    {
+        List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
+        Set<Area> destSet = areaMap.get(curPair.getA1());
+        boolean anyMatched = false;
+        for (Area b : inrel)
         {
-            if (tag2.equals(dis.getAreaTag(a)))
+            if (destSet.contains(b))
             {
-                //if (a.getId() == 392)
-                //    System.out.println("jo!");
-                List<Area> inrel = getAreasInBestRelation(a, relation, tag2, tag1, dis);
                 boolean matched = false;
-                for (Area b : inrel)
+                if (!pairs.isEmpty()) //some pairs are remaining?
                 {
-                    if (areas1.remove(b))
+                    //find a subsequent pair
+                    List<TagConnection> nextPairs = new ArrayList<>(pairs);
+                    TagConnection nextPair = null;
+                    for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
+                        if (nextPairs.get(i).getA2().equals(curPair.getA1()))
+                            nextPair = nextPairs.remove(i);
+                    if (nextPair != null)
                     {
-                        //log.debug("Cover: " + a + " " + relation + " " + b);
-                        //b.addTag(new VisualTag("minute"), 1.0f);
-                        matchedAreas.add(b);
-                        matched = true;
+                        matched = recursiveFindMatchesFor(b, nextPair, areaMap, nextPairs, dis, matchedAreas);
+                    }
+                    else
+                    {
+                        log.error("No next pair found but some are remaining?");
+                        matched = false;
                     }
                 }
-                if (matched)
+                else //no pairs remaining -- a complete match
+                    matched = true;
+                
+                if (matched) //successfully matched until the end of the sequence
                 {
-                    matchedAreas.add(a);
-                    //a.addTag(new VisualTag("hour"), 1.0f);
+                    destSet.remove(b);
+                    matchedAreas.add(b);
+                    anyMatched = true;
                 }
             }
-        }*/
-        
-        return matchedAreas.size();
+        }
+        return anyMatched;
     }
     
     /**

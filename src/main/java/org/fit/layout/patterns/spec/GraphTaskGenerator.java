@@ -8,16 +8,12 @@ package org.fit.layout.patterns.spec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.fit.layout.classify.Tagger;
 import org.fit.layout.model.Area;
-import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher;
-import org.fit.layout.patterns.OneToManyMatcher;
 import org.fit.layout.patterns.graph.Graph;
 import org.fit.layout.patterns.graph.Node;
 import org.fit.layout.patterns.graph.Path;
@@ -109,29 +105,6 @@ public class GraphTaskGenerator
             else
                 log.error("No tagger registered for {}", n);
         }
-        //start with M:1 if any
-        /*System.out.println("mo=" + mo);
-        System.out.println("oo=" + oo);
-        if (!mo.isEmpty() && !oo.isEmpty())
-        {
-            Node srcNode = mo.get(0);
-            Node dstNode = oo.get(0);
-            Tagger srcTagger = taggers.get(srcNode);
-            Tagger dstTagger = taggers.get(dstNode); 
-            if (srcTagger != null && dstTagger != null)
-            {
-                OneToManyMatcher matcher = new OneToManyMatcher(srcTagger.getTag(), dstTagger.getTag(), 0.2f, true);
-                List<List<Area>> matches = matcher.match(leaves);
-                System.out.println(srcNode + "x" + dstNode + " : found " + matches.size() + " matches");
-            }
-            else
-            {
-                if (srcTagger == null)
-                    log.error("No tagger registered for " + srcNode);
-                if (dstTagger == null)
-                    log.error("No tagger registered for " + dstNode);
-            }
-        }*/
         AttributeGroupMatcher matcher = new AttributeGroupMatcher(attrs);
         matcher.match(leaves);
     }
