@@ -96,14 +96,19 @@ public class AttributeGroupMatcher extends BaseMatcher
         
         //find the best coverage
         int bestCoverage = 0;
+        int i = 0;
         for (Configuration conf : all)
         {
+            log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
+
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.3f); //TODO minSupport?
             int coverage = checkCovering(conf, dis);
             conf.setCoverage(coverage);
             if (coverage > bestCoverage)
                 bestCoverage = coverage;
+            
+            log.debug("Result {}", coverage);
         }
         
         //select the best configurations
@@ -244,8 +249,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         //find candidates for every pair
         for (int i = 0; i < attlist.size() - 1; i++)
         {
-            Attribute a1 = attlist.get(i);
-            Attribute a2 = attlist.get(i + 1);
+            Attribute a1 = attlist.get(i + 1);
+            Attribute a2 = attlist.get(i);
             ConnectionList<Tag, TagConnection> cands = conn.filterForPair(a1.getTag(), a2.getTag());
             PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
             lists.add(cnt.getFrequent(minFrequency));
@@ -352,16 +357,14 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private int checkCovering(Configuration conf, Map<Tag, Set<Area>> areaMap, Disambiguator dis)
     {
-        log.debug("Checking conf {}", conf);
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPairs()); //pairs to go
-        TagConnection curPair = pairs.remove(0); //TODO the first one muste be selected more carefully
+        TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = areaMap.get(curPair.getA2());
         for (Area a : srcSet)
         {
             recursiveFindMatchesFor(a, curPair, areaMap, pairs, dis, matchedAreas);
         }
-        
         return matchedAreas.size();
     }
     
@@ -379,10 +382,10 @@ public class AttributeGroupMatcher extends BaseMatcher
                 {
                     //find a subsequent pair
                     List<TagConnection> nextPairs = new ArrayList<>(pairs);
-                    TagConnection nextPair = null;
-                    for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
+                    TagConnection nextPair = nextPairs.remove(0);
+                    /*for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
                         if (nextPairs.get(i).getA2().equals(curPair.getA1()))
-                            nextPair = nextPairs.remove(i);
+                            nextPair = nextPairs.remove(i);*/
                     if (nextPair != null)
                     {
                         matched = recursiveFindMatchesFor(b, nextPair, areaMap, nextPairs, dis, matchedAreas);
