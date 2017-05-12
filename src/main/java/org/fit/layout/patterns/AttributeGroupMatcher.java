@@ -37,6 +37,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<Area> areas;
     private List<StyleCounter<AreaStyle>> styleStats;
     private RelationAnalyzer pa;
+    
+    private Configuration tconf;
 
     
     public AttributeGroupMatcher(List<Attribute> attrs)
@@ -62,6 +64,9 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         this.areas = areas;
         gatherStatistics();
+        
+        tconf = createTestingConfiguration(areas);
+        log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -92,15 +97,18 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         List<Configuration> all = generateConfigurations();
         log.debug("{} total configurations", all.size());
-        System.out.println(all.get(0));
+        //System.out.println(all.get(0));
         
         //find the best coverage
         int bestCoverage = 0;
         int i = 0;
         for (Configuration conf : all)
         {
+            if (tconf != null && !tconf.equals(conf))
+                continue;
+            
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
-
+            
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.3f); //TODO minSupport?
             int coverage = checkCovering(conf, dis);
@@ -113,10 +121,13 @@ public class AttributeGroupMatcher extends BaseMatcher
         
         //select the best configurations
         List<Configuration> best = new ArrayList<>();
-        for (Configuration conf : all)
+        if (bestCoverage > 0)
         {
-            if (conf.getCoverage() == bestCoverage)
-                best.add(conf);
+            for (Configuration conf : all)
+            {
+                if (conf.getCoverage() == bestCoverage)
+                    best.add(conf);
+            }
         }
         
         return best;
@@ -517,6 +528,49 @@ public class AttributeGroupMatcher extends BaseMatcher
             return getPairs() + " " + getStyleMap() + " (" + getCoverage() + " matches)";
         }
         
+    }
+    
+    private Configuration createTestingConfiguration(List<Area> areas)
+    {
+        Map<Tag, AreaStyle> styleMap = new HashMap<>();
+        Area asession = null;
+        Area atitle = null;
+        Area apersons = null;
+        Area apages = null;
+        for (Area a : areas)
+        {
+            if (a.getText().equals("Technical papers"))
+                asession = a;
+            else if (a.getText().equals("A categorical approach to ontology alignment"))
+                atitle = a;
+            else if (a.getText().contains("Mossakowski"))
+                apersons = a;
+            else if (a.getText().equals("1-12"))
+                apages = a;
+        }
+        Tag tsession = findTagByName("session");
+        Tag ttitle = findTagByName("title");
+        Tag tpersons = findTagByName("persons");
+        Tag tpages = findTagByName("pages");
+        styleMap.put(tsession, new AreaStyle(asession));
+        styleMap.put(ttitle, new AreaStyle(atitle));
+        styleMap.put(tpersons, new AreaStyle(apersons));
+        styleMap.put(tpages, new AreaStyle(apages));
+        
+        List<TagConnection> conn = new ArrayList<>();
+        conn.add(new TagConnection(tsession, ttitle, new RelationBelow(true), 1.0f));
+        conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
+        conn.add(new TagConnection(tpages, ttitle, new RelationSide(true), 1.0f));
+        
+        return new Configuration(styleMap, conn, 0);
+    }
+    
+    private Tag findTagByName(String name)
+    {
+        for (Attribute a : attrs)
+            if (a.getTag().getValue().equals(name))
+                return a.getTag();
+        return null;
     }
     
     //==============================================================================================
