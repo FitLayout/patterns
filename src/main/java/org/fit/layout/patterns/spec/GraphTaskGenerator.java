@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.fit.layout.classify.Tagger;
-import org.fit.layout.model.Area;
 import org.fit.layout.patterns.AttributeGroupMatcher;
 import org.fit.layout.patterns.graph.Graph;
 import org.fit.layout.patterns.graph.Node;
@@ -74,7 +73,7 @@ public class GraphTaskGenerator
             log.error("Couldn't map tagger to unknown node URI: {}", uri);
     }
     
-    public void createTask(List<Area> leaves)
+    public AttributeGroupMatcher createTask()
     {
         List<Node> oo = new ArrayList<>();
         List<Node> om = new ArrayList<>();
@@ -105,8 +104,7 @@ public class GraphTaskGenerator
             else
                 log.error("No tagger registered for {}", n);
         }
-        AttributeGroupMatcher matcher = new AttributeGroupMatcher(attrs);
-        matcher.match(leaves);
+        return new AttributeGroupMatcher(attrs);
     }
     
     //==========================================================
