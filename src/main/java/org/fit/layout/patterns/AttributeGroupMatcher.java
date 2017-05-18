@@ -38,6 +38,11 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<StyleCounter<AreaStyle>> styleStats;
     private RelationAnalyzer pa;
     
+    //list of best configurations obtained by configure()
+    private List<Configuration> best;
+    private Configuration usedConf;
+    
+    //testing configuration
     private Configuration tconf;
 
     
@@ -59,8 +64,24 @@ public class AttributeGroupMatcher extends BaseMatcher
         return attrs;
     }
 
-    @Override
-    public List<List<Area>> match(List<Area> areas)
+    public List<Configuration> getBestConfigurations()
+    {
+        return best;
+    }
+    
+    public void setUsedConf(int index)
+    {
+        if (best != null && index >= 0 && index < best.size())
+            usedConf = best.get(index);
+        else
+            log.error("Cannot used non-existing configuration index {}", index);
+    }
+    
+    /**
+     * Checks the possible configurations on a list of areas and chooses the best ones. 
+     * @param areas
+     */
+    public void configure(List<Area> areas)
     {
         this.areas = areas;
         gatherStatistics();
@@ -74,9 +95,23 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.debug("Styles {}: {}", attrs.get(i).getTag(), styleStats.get(i));
         }
         
-        List<Configuration> best = scanDisambiguations();
+        best = scanDisambiguations();
         for (Configuration conf : best)
             log.debug("Best:{}", conf);
+    }
+    
+    @Override
+    public List<List<Area>> match(List<Area> areas)
+    {
+        if (best == null)
+            log.error("Matcher not configured");
+        else if (usedConf == null)
+            log.error("No configuration selected");
+        else
+        {
+            log.info("Using conf {}", usedConf);
+        }
+            
         /*if (!best.isEmpty())
         {
             log.debug("Using:{}", best.get(0));
@@ -104,8 +139,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         int i = 0;
         for (Configuration conf : all)
         {
-            if (tconf != null && !tconf.equals(conf))
-                continue;
+            //if (tconf != null && !tconf.equals(conf))
+            //    continue;
             
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
@@ -489,7 +524,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     /**
      * An individual extraction configuration: tag styles and relationships.
      */
-    private class Configuration
+    public class Configuration
     {
         private Map<Tag, AreaStyle> styleMap;
         private List<TagConnection> pairs;
