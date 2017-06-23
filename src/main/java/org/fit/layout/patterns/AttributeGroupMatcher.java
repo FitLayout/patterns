@@ -128,8 +128,13 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //==============================================================================================
     
+    /**
+     * Scans all possible configurations and finds the ones that cover the largest number of areas.
+     * @return The list of configurations that cover the larhest number of areas.
+     */
     private List<Configuration> scanDisambiguations()
     {
+        //generate all possible configurations
         List<Configuration> all = generateConfigurations();
         log.debug("{} total configurations", all.size());
         //System.out.println(all.get(0));
@@ -168,29 +173,10 @@ public class AttributeGroupMatcher extends BaseMatcher
         return best;
     }
     
-    private Set<AreaStyle> createStyleCombinations(List<AreaStyle> styles, int maxWildcards)
-    {
-        Set<AreaStyle> ret = new HashSet<>();
-        for (int i = 0; i < styles.size(); i++)
-        {
-            AreaStyle s1 = styles.get(i);
-            for (int j = 0; j < styles.size(); j++)
-            {
-                if (i != j)
-                {
-                    AreaStyle s2 = styles.get(j);
-                    if (s1.getEditingDistance(s2) <= maxWildcards)
-                    {
-                        AreaStyle gen = new AreaStyle(s1);
-                        gen.generalizeToFit(s2);
-                        ret.add(gen);
-                    }
-                }
-            }
-        }
-        return ret;
-    }
-    
+    /**
+     * Generates all the possible configurations that are applicable for the current area list.
+     * @return The list of configurations.
+     */
     private List<Configuration> generateConfigurations()
     {
         List<Configuration> ret = new ArrayList<>();
@@ -259,6 +245,36 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         log.debug("{} style combinations", totalStyles);
         return styleMaps;
+    }
+    
+    /**
+     * Takes all pairs from the given list of styles and creates a set of generalized styles 
+     * corresponding to the pairs using at most {@code maxWildcards} wildcards.
+     * @param styles the list of styles
+     * @param maxWildcards maximal number of wildcards used
+     * @return a set of generalized styles containing at most {@code maxWildcards} wildcards
+     */
+    private Set<AreaStyle> createStyleCombinations(List<AreaStyle> styles, int maxWildcards)
+    {
+        Set<AreaStyle> ret = new HashSet<>();
+        for (int i = 0; i < styles.size(); i++)
+        {
+            AreaStyle s1 = styles.get(i);
+            for (int j = 0; j < styles.size(); j++)
+            {
+                if (i != j)
+                {
+                    AreaStyle s2 = styles.get(j);
+                    if (s1.getEditingDistance(s2) <= maxWildcards)
+                    {
+                        AreaStyle gen = new AreaStyle(s1);
+                        gen.generalizeToFit(s2);
+                        ret.add(gen);
+                    }
+                }
+            }
+        }
+        return ret;
     }
     
     /**
