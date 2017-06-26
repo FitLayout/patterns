@@ -33,6 +33,12 @@ public class ConnectionList<P, T extends Connection<?>> extends ArrayList<T>
         groups = new HashMap<>();
     }
     
+    public ConnectionList(int size)
+    {
+        super(size);
+        groups = new HashMap<>();
+    }
+
     public ConnectionList<P, T> filterForPair(P v1, P v2)
     {
         Pair<P> pair = new Pair<>(v1, v2);

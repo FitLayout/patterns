@@ -22,6 +22,7 @@ import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
+import org.fit.layout.patterns.model.TagPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -295,16 +296,15 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         TagConnectionList all = pa.getTagConnections();
 
-        //source attribute permutations
-        List<List<Attribute>> perms = findAttributePermutations();
+        List<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
         
-        log.debug("Attribute permutations: {}", perms.size());
-        List<List<List<TagConnection>>> ret = new ArrayList<>(perms.size());
+        log.debug("Attribute patterns: {}", patterns.size());
+        List<List<List<TagConnection>>> ret = new ArrayList<>(patterns.size());
         int total = 0;
-        for (List<Attribute> perm : perms)
+        for (TagPattern pattern : patterns)
         {
-            log.debug("P: " + perm);
-            List<List<TagConnection>> mappings = findMappings(perm, all, minFrequency);
+            log.debug("P: " + pattern);
+            List<List<TagConnection>> mappings = findMappings(pattern, all, minFrequency);
             ret.add(mappings);
             total += mappings.size();
         }
@@ -313,19 +313,17 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    private List<List<TagConnection>> findMappings(List<Attribute> attlist, TagConnectionList conn, float minFrequency)
+    private List<List<TagConnection>> findMappings(TagPattern pattern, TagConnectionList allConnections, float minFrequency)
     {
         List<List<TagConnection>> ret = new ArrayList<>();
-        List<List<TagConnection>> lists = new ArrayList<>(attlist.size() - 1);
+        List<List<TagConnection>> lists = new ArrayList<>(pattern.size());
         //find candidates for every pair
-        for (int i = 0; i < attlist.size() - 1; i++)
+        for (TagConnection con : pattern)
         {
-            Attribute a1 = attlist.get(i + 1);
-            Attribute a2 = attlist.get(i);
-            ConnectionList<Tag, TagConnection> cands = conn.filterForPair(a1.getTag(), a2.getTag());
+            ConnectionList<Tag, TagConnection> cands = allConnections.filterForPair(con.getA1(), con.getA2());
             PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
             lists.add(cnt.getFrequent(minFrequency));
-            log.debug("    for {}-{} : {}", a1, a2, cnt);
+            log.debug("    for {}-{} : {}", con.getA1(), con.getA2(), cnt);
         }
         //iterate over all candidates
         int[] indices = new int[lists.size()];
@@ -354,50 +352,42 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //===========================================================================================
     
-    /**
-     * Finds all permutations of the attributes while ignoring the attribute order.
-     * @return A list of all different attribute permutations.
-     */
-    public List<List<Attribute>> findAttributePermutations()
+    private List<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, TagConnectionList allConnections)
     {
-        //find all permutations
-        List<List<Attribute>> perms = permutateAttributes(new ArrayList<>(attrs));
-        //filter out reverse permutations
-        List<List<Attribute>> seqs = new ArrayList<>(perms.size() / 2);
-        while (!perms.isEmpty())
+        List<TagPattern> ret = new ArrayList<>();
+        for (Attribute att : attlist)
         {
-            List<Attribute> item = perms.remove(0);
-            List<Attribute> rev = new ArrayList<>(item);
-            Collections.reverse(rev);
-            perms.remove(rev);
-            seqs.add(item);
-        }
-        return seqs;
-    }
-    
-    private List<List<Attribute>> permutateAttributes(List<Attribute> original)
-    {
-        if (original.size() == 0)
-        {
-            List<List<Attribute>> result = new ArrayList<>();
-            result.add(new ArrayList<Attribute>());
-            return result;
-        }
-        else
-        {
-            Attribute firstElement = original.remove(0);
-            List<List<Attribute>> returnValue = new ArrayList<>();
-            List<List<Attribute>> permutations = permutateAttributes(original);
-            for (List<Attribute> smallerPermutated : permutations)
+            Tag tag = att.getTag();
+            for (TagConnection cand : allConnections)
             {
-                for (int index = 0; index <= smallerPermutated.size(); index++)
+                if (cand.getA1().equals(tag))
                 {
-                    List<Attribute> temp = new ArrayList<>(smallerPermutated);
-                    temp.add(index, firstElement);
-                    returnValue.add(temp);
+                    TagPattern seed = new TagPattern(attlist.size() - 1);
+                    seed.add(cand);
+                    recursiveAddConnected(seed, attlist, allConnections, ret);
                 }
             }
-            return returnValue;
+        }
+        return ret;
+    }
+    
+    private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, TagConnectionList allConnections, List<TagPattern> dest)
+    {
+        for (TagConnection nextCand : allConnections)
+        {
+            if (current.mayAdd(nextCand))
+            {
+                TagPattern next = new TagPattern(current);
+                next.add(nextCand);
+                if (next.size() >= attlist.size() - 1)
+                {
+                    dest.add(next);
+                }
+                else
+                {
+                    recursiveAddConnected(next, attlist, allConnections, dest);
+                }
+            }
         }
     }
     

@@ -27,4 +27,9 @@ public class TagConnectionList extends ConnectionList<Tag, TagConnection>
         super(src);
     }
 
+    public TagConnectionList(int size)
+    {
+        super(size);
+    }
+
 }
