@@ -33,8 +33,9 @@ public class AttributeGroupMatcher extends BaseMatcher
 {
     private static Logger log = LoggerFactory.getLogger(AttributeGroupMatcher.class);
 
-    private List<Attribute> attrs;
+    private List<Attribute> attrs; //list of all attributes
     private List<Area> areas;
+    private Map<Tag, Set<Area>> tagAreas;
     private List<StyleCounter<AreaStyle>> styleStats;
     private RelationAnalyzer pa;
     
@@ -62,6 +63,14 @@ public class AttributeGroupMatcher extends BaseMatcher
     public List<Attribute> getAttrs()
     {
         return attrs;
+    }
+    
+    public Attribute getAttrForTag(Tag tag)
+    {
+        for (Attribute attr : attrs)
+            if (attr.getTag().equals(tag))
+                return attr;
+        return null;
     }
 
     public List<Configuration> getBestConfigurations()
@@ -144,8 +153,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         int i = 0;
         for (Configuration conf : all)
         {
-            //if (tconf != null && !tconf.equals(conf))
-            //    continue;
+            if (tconf != null && !tconf.equals(conf))
+                continue;
             
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
@@ -394,46 +403,30 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //===========================================================================================
     
+    /**
+     * Checks how many visual areas are covered with the given configuration.
+     * @param conf The configuration to check.
+     * @param dis The disambiguator for mapping areas to tags.
+     * @return The number of visual areas that match the given configuration.
+     */
     private int checkCovering(Configuration conf, Disambiguator dis)
-    {
-        Map<Tag, Set<Area>> areaMap = new HashMap<>();
-        Map<Tag, Float> supportMap = new HashMap<>();
-        for (Attribute a : getAttrs())
-        {
-            areaMap.put(a.getTag(), new HashSet<Area>());
-            supportMap.put(a.getTag(), a.getMinSupport());
-        }
-        
-        //start with all areas
-        for (Area a : areas)
-        {
-            for (Map.Entry<Tag, Set<Area>> entry : areaMap.entrySet())
-            {
-                if (a.hasTag(entry.getKey(), supportMap.get(entry.getKey())))
-                    entry.getValue().add(a);
-            }
-        }
-        
-        return checkCovering(conf, areaMap, dis);
-    }
-    
-    private int checkCovering(Configuration conf, Map<Tag, Set<Area>> areaMap, Disambiguator dis)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPairs()); //pairs to go
         TagConnection curPair = pairs.remove(0);
-        Set<Area> srcSet = areaMap.get(curPair.getA2());
+        Set<Area> srcSet = tagAreas.get(curPair.getA2());
+        System.out.println("src set: " + srcSet.size());
         for (Area a : srcSet)
         {
-            recursiveFindMatchesFor(a, curPair, areaMap, pairs, dis, matchedAreas);
+            recursiveFindMatchesFor(a, curPair, pairs, dis, matchedAreas);
         }
         return matchedAreas.size();
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, Map<Tag, Set<Area>> areaMap, List<TagConnection> pairs, Disambiguator dis, Set<Area> matchedAreas)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Disambiguator dis, Set<Area> matchedAreas)
     {
         List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
-        Set<Area> destSet = areaMap.get(curPair.getA1());
+        Set<Area> destSet = tagAreas.get(curPair.getA1());
         boolean anyMatched = false;
         for (Area b : inrel)
         {
@@ -450,7 +443,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                             nextPair = nextPairs.remove(i);*/
                     if (nextPair != null)
                     {
-                        matched = recursiveFindMatchesFor(b, nextPair, areaMap, nextPairs, dis, matchedAreas);
+                        matched = recursiveFindMatchesFor(b, nextPair, nextPairs, dis, matchedAreas);
                     }
                     else
                     {
@@ -515,6 +508,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private void gatherStatistics()
     {
+        //create the tagt to area mapping
+        tagAreas = createAttrTagMap();
         //count styles
         styleStats = new ArrayList<>(attrs.size());
         for (int i = 0; i < attrs.size(); i++)
@@ -533,6 +528,27 @@ public class AttributeGroupMatcher extends BaseMatcher
         /*ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, getTags(), attrs.get(0).getMinSupport());
         chains = ca.findConsistentChains(new RelationUnder());
         chains.addAll(ca.findConsistentChains(new RelationSide()));*/
+    }
+    
+    /**
+     * Creates a mapping from the tags specified by the individual attributes to sets of related areas.
+     * @return a mapping from tags to sets of areas
+     */
+    private Map<Tag, Set<Area>> createAttrTagMap()
+    {
+        Map<Tag, Set<Area>> areaMap = new HashMap<>(attrs.size());
+        for (Attribute attr : attrs)
+        {
+            Tag tag = attr.getTag();
+            Set<Area> areaSet = new HashSet<Area>();
+            for (Area a : areas)
+            {
+                if (a.hasTag(attr.getTag(), attr.getMinSupport()))
+                    areaSet.add(a);
+            }
+            areaMap.put(tag, areaSet);
+        }
+        return areaMap;
     }
     
     //===========================================================================================
