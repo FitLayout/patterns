@@ -13,13 +13,17 @@ import org.fit.layout.model.Tag;
 
 /**
  * A configuration of tag connections that represents a possible tag extraction pattern.
- * This is a specific case of a list of tag connections
+ * This is a basically a list of tag connections. The pattern should be connected - i.e. the tags
+ * and their connections should create a connected graph.
  * @author burgetr
  */
-public class TagPattern extends ArrayList<TagConnection>
+public class TagPattern extends ArrayList<TagPair>
 {
     private static final long serialVersionUID = 1L;
     
+    /**
+     * The tags covered by this pattern.
+     */
     private Set<Tag> tags;
     
     /**
@@ -38,23 +42,36 @@ public class TagPattern extends ArrayList<TagConnection>
         tags = new HashSet<>(src.tags);
     }
     
+    /**
+     * Obtains all tags covered by this pattern.
+     * @return a set of tags used in the connections
+     */
     public Set<Tag> getTags()
     {
         return tags;
     }
 
+    /**
+     * Adds a new tag pair to the pattern. No checking is performed. If the pattern should
+     * remain connected, the {@link TagPattern#mayAdd(TagConnection)} function should be used
+     * for checking.
+     */
     @Override
-    public boolean add(TagConnection e)
+    public boolean add(TagPair e)
     {
-        tags.add(e.getA1());
-        tags.add(e.getA2());
+        tags.add(e.getO1());
+        tags.add(e.getO2());
         return super.add(e);
     }
     
-    public boolean mayAdd(TagConnection e)
+    /**
+     * Checks whether the tag pattern remains connected when a new tag pair is added. 
+     * @param e the tag pair to test
+     * @return
+     */
+    public boolean mayAdd(TagPair e)
     {
-        return tags.contains(e.getA1()) !=  tags.contains(e.getA2());
+        return tags.contains(e.getO1()) !=  tags.contains(e.getO2());
     }
-    
 
 }

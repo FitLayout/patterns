@@ -20,8 +20,10 @@ import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
+import org.fit.layout.patterns.model.Pair;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
+import org.fit.layout.patterns.model.TagPair;
 import org.fit.layout.patterns.model.TagPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -318,12 +320,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<List<TagConnection>> ret = new ArrayList<>();
         List<List<TagConnection>> lists = new ArrayList<>(pattern.size());
         //find candidates for every pair
-        for (TagConnection con : pattern)
+        for (TagPair pair : pattern)
         {
-            ConnectionList<Tag, TagConnection> cands = allConnections.filterForPair(con.getA1(), con.getA2());
+            ConnectionList<Tag, TagConnection> cands = allConnections.filterForPair(pair);
             PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
             lists.add(cnt.getFrequent(minFrequency));
-            log.debug("    for {}-{} : {}", con.getA1(), con.getA2(), cnt);
+            log.debug("    for {}-{} : {}", pair.getO1(), pair.getO2(), cnt);
         }
         //iterate over all candidates
         int[] indices = new int[lists.size()];
@@ -352,20 +354,26 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //===========================================================================================
     
+    /**
+     * Discovers all usable tag patterns from the list of connections.
+     * @param attlist the list of attributes to consider
+     * @param allConnections the connections to consider
+     * @return a list of tag patterns
+     */
     private List<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, TagConnectionList allConnections)
     {
         List<TagPattern> ret = new ArrayList<>();
         for (Attribute att : attlist)
         {
             Tag tag = att.getTag();
-            for (TagConnection cand : allConnections)
+            //select distinct pairs for the tag
+            Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
+            //recursively scan other connections
+            for (TagPair pair : pairs)
             {
-                if (cand.getA1().equals(tag))
-                {
-                    TagPattern seed = new TagPattern(attlist.size() - 1);
-                    seed.add(cand);
-                    recursiveAddConnected(seed, attlist, allConnections, ret);
-                }
+                TagPattern seed = new TagPattern(attlist.size() - 1);
+                seed.add(pair);
+                recursiveAddConnected(seed, attlist, allConnections, ret);
             }
         }
         return ret;
@@ -373,22 +381,38 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, TagConnectionList allConnections, List<TagPattern> dest)
     {
-        for (TagConnection nextCand : allConnections)
+        //try to connect all the tags already covered by the tag pattern
+        for (Tag tag : current.getTags())
         {
-            if (current.mayAdd(nextCand))
+            Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
+            for (TagPair pair : pairs)
             {
-                TagPattern next = new TagPattern(current);
-                next.add(nextCand);
-                if (next.size() >= attlist.size() - 1)
+                if (current.mayAdd(pair)) //a new pair may be added
                 {
-                    dest.add(next);
-                }
-                else
-                {
-                    recursiveAddConnected(next, attlist, allConnections, dest);
+                    TagPattern next = new TagPattern(current);
+                    next.add(pair);
+                    if (next.size() >= attlist.size() - 1) //the pattern is complete, store it
+                    {
+                        dest.add(next);
+                    }
+                    else //incomplete pair, continue the search recursively
+                    {
+                        recursiveAddConnected(next, attlist, allConnections, dest);
+                    }
                 }
             }
         }
+    }
+    
+    private Set<TagPair> findDistinctPairsForStartTag(Tag startTag, TagConnectionList allConnections)
+    {
+        Set<TagPair> pairs = new HashSet<>();
+        for (TagConnection cand : allConnections.filterForFirstNode(startTag))
+        {
+            if (!cand.getA1().equals(cand.getA2())) //exclude reflexive pairs
+                pairs.add(cand.toPair());
+        }
+        return pairs;
     }
     
     //===========================================================================================

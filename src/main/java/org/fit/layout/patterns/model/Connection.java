@@ -45,6 +45,11 @@ public class Connection<T>
     {
         return weight;
     }
+    
+    public Pair<T> toPair()
+    {
+        return new Pair<>(a1, a2);
+    }
 
     @Override
     public String toString()

@@ -20,4 +20,10 @@ public class TagConnection extends Connection<Tag>
         super(a1, a2, relation, weight);
     }
 
+    @Override
+    public TagPair toPair()
+    {
+        return new TagPair(getA1(), getA2());
+    }
+
 }

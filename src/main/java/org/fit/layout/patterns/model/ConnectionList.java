@@ -11,101 +11,79 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
+ * A generic database of connections with different indices.
  * @author burgetr
  */
 public class ConnectionList<P, T extends Connection<?>> extends ArrayList<T>
 {
     private static final long serialVersionUID = 1L;
     
-    private Map<Pair<P>, ConnectionList<P, T>> groups;
+    /**
+     * Index by the first node of the connection.
+     */
+    private Map<P, ConnectionList<P, T>> firstNodeIndex;
+    
+    /**
+     * Pair index. It is build on request (see {@link ConnectionList#filterForPair(Pair)}).
+     */
+    private Map<Pair<P>, ConnectionList<P, T>> pairIndex;
     
     
     public ConnectionList()
     {
         super();
-        groups = new HashMap<>();
+        init();
     }
     
     public ConnectionList(Collection<T> src)
     {
         super(src);
-        groups = new HashMap<>();
+        init();
     }
     
     public ConnectionList(int size)
     {
         super(size);
-        groups = new HashMap<>();
+        init();
     }
 
-    public ConnectionList<P, T> filterForPair(P v1, P v2)
+    private void init()
     {
-        Pair<P> pair = new Pair<>(v1, v2);
-        ConnectionList<P, T> group = groups.get(pair);
+        firstNodeIndex = new HashMap<>();
+        pairIndex = new HashMap<>();
+    }
+    
+    public ConnectionList<P, T> filterForFirstNode(P node)
+    {
+        ConnectionList<P, T> group = firstNodeIndex.get(node);
         if (group == null)
         {
             group = new ConnectionList<>();
             for (T cand : this)
             {
-                if (cand.getA1().equals(v1) && cand.getA2().equals(v2))
+                if (cand.getA1().equals(node))
                     group.add(cand);
             }
-            groups.put(pair, group);
+            firstNodeIndex.put(node, group);
         }
         return group;
     }
     
-    //======================================================================================
-    
-    private static class Pair<P>
+    public ConnectionList<P, T> filterForPair(Pair<P> pair)
     {
-        public P o1;
-        public P o2;
-        
-        public Pair(P o1, P o2)
+        ConnectionList<P, T> group = pairIndex.get(pair);
+        if (group == null)
         {
-            this.o1 = o1;
-            this.o2 = o2;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((o1 == null) ? 0 : o1.hashCode());
-            result = prime * result + ((o2 == null) ? 0 : o2.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj)
-        {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-            @SuppressWarnings("unchecked")
-            Pair<P> other = (Pair<P>) obj;
-            if (o1 == null)
+            group = new ConnectionList<>();
+            for (T cand : this)
             {
-                if (other.o1 != null) return false;
+                if (cand.getA1().equals(pair.getO1()) && cand.getA2().equals(pair.getO2()))
+                    group.add(cand);
             }
-            else if (!o1.equals(other.o1)) return false;
-            if (o2 == null)
-            {
-                if (other.o2 != null) return false;
-            }
-            else if (!o2.equals(other.o2)) return false;
-            return true;
+            pairIndex.put(pair, group);
         }
-
-        @Override
-        public String toString()
-        {
-            return "<" + o1.toString() + ", " + o2.toString() + ">";
-        }
-        
+        return group;
     }
+    
 
 }
