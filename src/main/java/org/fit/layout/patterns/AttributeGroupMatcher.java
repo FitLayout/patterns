@@ -8,7 +8,6 @@ package org.fit.layout.patterns;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +21,7 @@ import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.ConnectionPattern;
-import org.fit.layout.patterns.model.Pair;
+import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
 import org.fit.layout.patterns.model.TagPair;
@@ -45,11 +44,11 @@ public class AttributeGroupMatcher extends BaseMatcher
     private RelationAnalyzer pa;
     
     //list of best configurations obtained by configure()
-    private List<Configuration> best;
-    private Configuration usedConf;
+    private List<MatcherConfiguration> best;
+    private MatcherConfiguration usedConf;
     
     //testing configuration
-    private Configuration tconf;
+    private MatcherConfiguration tconf;
 
     
     public AttributeGroupMatcher(List<Attribute> attrs)
@@ -78,7 +77,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         return null;
     }
 
-    public List<Configuration> getBestConfigurations()
+    public List<MatcherConfiguration> getBestConfigurations()
     {
         return best;
     }
@@ -110,7 +109,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         best = scanDisambiguations();
-        for (Configuration conf : best)
+        for (MatcherConfiguration conf : best)
             log.debug("Best:{}", conf);
     }
     
@@ -146,17 +145,17 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Scans all possible configurations and finds the ones that cover the largest number of areas.
      * @return The list of configurations that cover the larhest number of areas.
      */
-    private List<Configuration> scanDisambiguations()
+    private List<MatcherConfiguration> scanDisambiguations()
     {
         //generate all possible configurations
-        List<Configuration> all = generateConfigurations();
+        List<MatcherConfiguration> all = generateConfigurations();
         log.debug("{} total configurations", all.size());
         //System.out.println(all.get(0));
         
         //find the best coverage
         int bestCoverage = 0;
         int i = 0;
-        for (Configuration conf : all)
+        for (MatcherConfiguration conf : all)
         {
             if (tconf != null && !tconf.equals(conf))
                 continue;
@@ -174,10 +173,10 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         //select the best configurations
-        List<Configuration> best = new ArrayList<>();
+        List<MatcherConfiguration> best = new ArrayList<>();
         if (bestCoverage > 0)
         {
-            for (Configuration conf : all)
+            for (MatcherConfiguration conf : all)
             {
                 if (conf.getCoverage() == bestCoverage)
                     best.add(conf);
@@ -193,16 +192,16 @@ public class AttributeGroupMatcher extends BaseMatcher
      * by the underlying data.
      * @return A list of configurations.
      */
-    private List<Configuration> generateConfigurations()
+    private List<MatcherConfiguration> generateConfigurations()
     {
-        List<Configuration> ret = new ArrayList<>();
+        List<MatcherConfiguration> ret = new ArrayList<>();
         List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(0.1f);
         Set<ConnectionPattern> patterns = generateConnectionPatterns(0.75f);
         for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
         {
             for (ConnectionPattern conns : patterns)
             {
-                Configuration conf = new Configuration(styles, conns, 0);
+                MatcherConfiguration conf = new MatcherConfiguration(styles, conns, 0);
                 ret.add(conf);
             }
         }
@@ -449,7 +448,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private int checkCovering(Configuration conf, Disambiguator dis)
+    private int checkCovering(MatcherConfiguration conf, Disambiguator dis)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
@@ -593,51 +592,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //===========================================================================================
     
-    /**
-     * An individual extraction configuration: tag styles and relationships.
-     */
-    public class Configuration
-    {
-        private Map<Tag, AreaStyle> styleMap;
-        private ConnectionPattern pattern;
-        private int coverage;
-        
-        public Configuration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, int coverage)
-        {
-            this.styleMap = styleMap;
-            this.pattern = pattern;
-            this.coverage = coverage;
-        }
-
-        public Map<Tag, AreaStyle> getStyleMap()
-        {
-            return styleMap;
-        }
-
-        public ConnectionPattern getPattern()
-        {
-            return pattern;
-        }
-
-        public int getCoverage()
-        {
-            return coverage;
-        }
-        
-        public void setCoverage(int coverage)
-        {
-            this.coverage = coverage;
-        }
-
-        @Override
-        public String toString()
-        {
-            return getPattern() + " " + getStyleMap() + " (" + getCoverage() + " matches)";
-        }
-        
-    }
-    
-    private Configuration createTestingConfiguration(List<Area> areas)
+    private MatcherConfiguration createTestingConfiguration(List<Area> areas)
     {
         Map<Tag, AreaStyle> styleMap = new HashMap<>();
         Area asession = null;
@@ -669,7 +624,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
         conn.add(new TagConnection(tpages, ttitle, new RelationSide(true), 1.0f));
         
-        return new Configuration(styleMap, conn, 0);
+        return new MatcherConfiguration(styleMap, conn, 0);
     }
     
     private Tag findTagByName(String name)

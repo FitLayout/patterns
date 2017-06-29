@@ -23,7 +23,7 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTree;
 import org.fit.layout.model.LogicalAreaTree;
 import org.fit.layout.model.Page;
-import org.fit.layout.patterns.AttributeGroupMatcher;
+import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.JList;
 import java.awt.Insets;
 import javax.swing.JScrollPane;
-import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
@@ -55,7 +54,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     
     private JPanel pnl_main;
     private JButton btnAutoConfig;
-    private JList<AttributeGroupMatcher.Configuration> configList;
+    private JList<MatcherConfiguration> configList;
     private JScrollPane configScroll;
     
     
@@ -121,8 +120,8 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
             {
                 public void run()
                 {
-                    DefaultListModel<AttributeGroupMatcher.Configuration> model = new DefaultListModel<>();
-                    for (AttributeGroupMatcher.Configuration conf : provider.getMatcher().getBestConfigurations())
+                    DefaultListModel<MatcherConfiguration> model = new DefaultListModel<>();
+                    for (MatcherConfiguration conf : provider.getMatcher().getBestConfigurations())
                         model.addElement(conf);
                     getConfigList().setModel(model);
                     getConfigList().setSelectedIndex(0);
@@ -193,10 +192,10 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         return btnAutoConfig;
     }
     
-    private JList<AttributeGroupMatcher.Configuration> getConfigList() 
+    private JList<MatcherConfiguration> getConfigList() 
     {
         if (configList == null) {
-        	configList = new JList<AttributeGroupMatcher.Configuration>();
+        	configList = new JList<MatcherConfiguration>();
         	configList.addListSelectionListener(new ListSelectionListener() {
         	    public void valueChanged(ListSelectionEvent arg0) {
         	        int index = configList.getSelectedIndex();
