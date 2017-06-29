@@ -189,22 +189,21 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     /**
      * Generates all the possible configurations that are applicable for the current area list.
-     * @return The list of configurations.
+     * Creates all possible combinations of connection patterns and style maps supported
+     * by the underlying data.
+     * @return A list of configurations.
      */
     private List<Configuration> generateConfigurations()
     {
         List<Configuration> ret = new ArrayList<>();
         List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(0.1f);
-        List<List<ConnectionPattern>> tagPairs = generateTagPairs(0.75f);
+        Set<ConnectionPattern> patterns = generateConnectionPatterns(0.75f);
         for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
         {
-            for (List<ConnectionPattern> perm : tagPairs) //for all attr permutations
+            for (ConnectionPattern conns : patterns)
             {
-                for (ConnectionPattern conns : perm) //for all coverings of attr permutations by tag connections
-                {
-                    Configuration conf = new Configuration(styles, conns, 0);
-                    ret.add(conf);
-                }
+                Configuration conf = new Configuration(styles, conns, 0);
+                ret.add(conf);
             }
         }
         return ret;
@@ -292,27 +291,27 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     /**
-     * Generates all possible mappings from tags to styles for the given minimal frequency of tag instances with the given style.
-     * @param minFrequency the minimal frequency of tags required to consider the style for that tag
-     * @return A list of style mappings.
+     * Generates all supported connection patterns for the given minimal frequency of tag instances.
+     * @param minFrequency the minimal frequency of tag connections required to consider the tag connection
+     * @return A set of generated connection patterns.
      */
-    private List<List<ConnectionPattern>> generateTagPairs(float minFrequency)
+    private Set<ConnectionPattern> generateConnectionPatterns(float minFrequency)
     {
         TagConnectionList all = pa.getTagConnections();
 
         Set<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
-        
         log.debug("Attribute patterns: {}", patterns.size());
-        List<List<ConnectionPattern>> ret = new ArrayList<>(patterns.size());
+        
+        Set<ConnectionPattern> ret = new HashSet<>();
         int total = 0;
         for (TagPattern pattern : patterns)
         {
             log.debug("P: " + pattern);
             List<ConnectionPattern> mappings = findMappings(pattern, all, minFrequency);
-            ret.add(mappings);
+            ret.addAll(mappings);
             total += mappings.size();
         }
-        log.debug("Total mappings {}", total);
+        log.debug("Connection patterns: found {}, unique {}", total, ret.size());
         
         return ret;
     }
