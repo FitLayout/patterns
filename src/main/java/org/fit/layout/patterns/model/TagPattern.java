@@ -5,7 +5,6 @@
  */
 package org.fit.layout.patterns.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,13 +12,18 @@ import org.fit.layout.model.Tag;
 
 /**
  * A configuration of tag connections that represents a possible tag extraction pattern.
- * This is a basically a list of tag connections. The pattern should be connected - i.e. the tags
+ * This is a basically a set of tag connections. The pattern should be connected - i.e. the tags
  * and their connections should create a connected graph.
  * @author burgetr
  */
-public class TagPattern extends ArrayList<TagPair>
+public class TagPattern extends HashSet<TagPair>
 {
     private static final long serialVersionUID = 1L;
+    
+    /**
+     * Preferred size of the collection.
+     */
+    private int prefSize;
     
     /**
      * The tags covered by this pattern.
@@ -33,13 +37,15 @@ public class TagPattern extends ArrayList<TagPair>
     public TagPattern(int size)
     {
         super(size);
+        this.prefSize = size;
         tags = new HashSet<>(size + 1);
     }
     
     public TagPattern(TagPattern src)
     {
-        super(src);
+        super(src.prefSize);
         tags = new HashSet<>(src.tags);
+        addAll(src);
     }
     
     /**
@@ -73,5 +79,21 @@ public class TagPattern extends ArrayList<TagPair>
     {
         return tags.contains(e.getO1()) !=  tags.contains(e.getO2());
     }
+
+    @Override
+    public int hashCode()
+    {
+        //do not consider local properties, use the collection only
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        //do not consider local properties, use the collection only
+        return super.equals(obj);
+    }
+    
+    
 
 }

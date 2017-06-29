@@ -7,6 +7,7 @@ package org.fit.layout.patterns;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -298,7 +299,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         TagConnectionList all = pa.getTagConnections();
 
-        List<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
+        Set<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
         
         log.debug("Attribute patterns: {}", patterns.size());
         List<List<List<TagConnection>>> ret = new ArrayList<>(patterns.size());
@@ -315,19 +316,28 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
+    /**
+     * Finds all the tag connections that match a given tag pattern based on the existing connection list.
+     * @param pattern The tag pattern to be used
+     * @param allConnections List of all connections to be used
+     * @param minFrequency Minimal frequency of the connection that should be considered
+     * @return A list of tag connections for the individual pairs in the tag pattern
+     */
     private List<List<TagConnection>> findMappings(TagPattern pattern, TagConnectionList allConnections, float minFrequency)
     {
         List<List<TagConnection>> ret = new ArrayList<>();
-        List<List<TagConnection>> lists = new ArrayList<>(pattern.size());
         //find candidates for every pair
+        List<List<TagConnection>> lists = new ArrayList<>(pattern.size());
         for (TagPair pair : pattern)
         {
             ConnectionList<Tag, TagConnection> cands = allConnections.filterForPair(pair);
             PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
-            lists.add(cnt.getFrequent(minFrequency));
+            List<TagConnection> frequent = cnt.getFrequent(minFrequency); 
+            lists.add(frequent);
             log.debug("    for {}-{} : {}", pair.getO1(), pair.getO2(), cnt);
+            log.debug("      used {}", frequent);
         }
-        //iterate over all candidates
+        //iterate over all combinarions of candidates
         int[] indices = new int[lists.size()];
         Arrays.fill(indices, 0);
         final int lastcnt = lists.get(lists.size() - 1).size();
@@ -349,6 +359,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 }
             }
         }
+        log.debug("    {} combinarions used", ret.size());
         return ret;
     }
     
@@ -360,9 +371,9 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param allConnections the connections to consider
      * @return a list of tag patterns
      */
-    private List<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, TagConnectionList allConnections)
+    private Set<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, TagConnectionList allConnections)
     {
-        List<TagPattern> ret = new ArrayList<>();
+        Set<TagPattern> ret = new HashSet<>();
         for (Attribute att : attlist)
         {
             Tag tag = att.getTag();
@@ -379,7 +390,15 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, TagConnectionList allConnections, List<TagPattern> dest)
+    /**
+     * Takes a tag pattern and recursively scans for all pairs that may be added based on the existing connection list.
+     * When the pattern is complete, it is stored to a destination pattern collection. 
+     * @param current current (incomplete) tag pattern
+     * @param attlist list of attributes to consider
+     * @param allConnections list of tag connections to consider
+     * @param dest the destination pattern collection
+     */
+    private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, TagConnectionList allConnections, Collection<TagPattern> dest)
     {
         //try to connect all the tags already covered by the tag pattern
         for (Tag tag : current.getTags())
@@ -404,10 +423,16 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
     }
     
-    private Set<TagPair> findDistinctPairsForStartTag(Tag startTag, TagConnectionList allConnections)
+    /**
+     * Finds all distinct pairs of tags in a connection list with the given source tag.
+     * @param sourceTag the source tag (the second tag in the connection)
+     * @param allConnections the list of tag connections to use
+     * @return Resulting set of pairs.
+     */
+    private Set<TagPair> findDistinctPairsForStartTag(Tag sourceTag, TagConnectionList allConnections)
     {
         Set<TagPair> pairs = new HashSet<>();
-        for (TagConnection cand : allConnections.filterForFirstNode(startTag))
+        for (TagConnection cand : allConnections.filterForSecondNode(sourceTag))
         {
             if (!cand.getA1().equals(cand.getA2())) //exclude reflexive pairs
                 pairs.add(cand.toPair());

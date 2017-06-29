@@ -54,7 +54,7 @@ public class Connection<T>
     @Override
     public String toString()
     {
-        return a1.toString() + " " + relation.getName() + "(" + weight + ") " + a2.toString(); 
+        return a1.toString() + "-" + relation.getName() + "-" + a2.toString() + "(" + weight + ") "; 
     }
 
     @Override

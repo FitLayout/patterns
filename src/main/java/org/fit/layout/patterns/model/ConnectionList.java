@@ -24,6 +24,11 @@ public class ConnectionList<P, T extends Connection<?>> extends ArrayList<T>
     private Map<P, ConnectionList<P, T>> firstNodeIndex;
     
     /**
+     * Index by the second node of the connection.
+     */
+    private Map<P, ConnectionList<P, T>> secondNodeIndex;
+    
+    /**
      * Pair index. It is build on request (see {@link ConnectionList#filterForPair(Pair)}).
      */
     private Map<Pair<P>, ConnectionList<P, T>> pairIndex;
@@ -50,6 +55,7 @@ public class ConnectionList<P, T extends Connection<?>> extends ArrayList<T>
     private void init()
     {
         firstNodeIndex = new HashMap<>();
+        secondNodeIndex = new HashMap<>();
         pairIndex = new HashMap<>();
     }
     
@@ -65,6 +71,22 @@ public class ConnectionList<P, T extends Connection<?>> extends ArrayList<T>
                     group.add(cand);
             }
             firstNodeIndex.put(node, group);
+        }
+        return group;
+    }
+    
+    public ConnectionList<P, T> filterForSecondNode(P node)
+    {
+        ConnectionList<P, T> group = secondNodeIndex.get(node);
+        if (group == null)
+        {
+            group = new ConnectionList<>();
+            for (T cand : this)
+            {
+                if (cand.getA2().equals(node))
+                    group.add(cand);
+            }
+            secondNodeIndex.put(node, group);
         }
         return group;
     }
