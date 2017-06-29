@@ -99,8 +99,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        tconf = createTestingConfiguration(areas);
-        log.debug("TC: {}", tconf);
+        //tconf = createTestingConfiguration(areas);
+        //log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -111,6 +111,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         best = scanDisambiguations();
         for (MatcherConfiguration conf : best)
             log.debug("Best:{}", conf);
+        log.debug("Confiuration completed.");
     }
     
     @Override
@@ -157,8 +158,17 @@ public class AttributeGroupMatcher extends BaseMatcher
         int i = 0;
         for (MatcherConfiguration conf : all)
         {
-            if (tconf != null && !tconf.equals(conf))
-                continue;
+            /*String s = conf.toString();
+            if (s.contains("session-above-title") && s.contains("persons-below-title") && s.contains("pages-onRight-title"))
+                System.out.println("jo!");*/
+            
+            if (tconf != null)
+            {
+                if (tconf.getPattern().equals(conf.getPattern()))
+                    log.debug("Partial match {}", conf);
+                if (!tconf.equals(conf))
+                    continue;
+            }
             
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
@@ -306,6 +316,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (TagPattern pattern : patterns)
         {
             log.debug("P: " + pattern);
+            
+            /*String s = pattern.toString();
+            if (s.contains("<session, title>") && s.contains("<persons, title>") && s.contains("<title, pages>"))
+                System.out.println("jo!");*/
+            
             List<ConnectionPattern> mappings = findMappings(pattern, all, minFrequency);
             ret.addAll(mappings);
             total += mappings.size();
