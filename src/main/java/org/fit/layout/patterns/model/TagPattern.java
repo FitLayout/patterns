@@ -11,8 +11,8 @@ import java.util.Set;
 import org.fit.layout.model.Tag;
 
 /**
- * A configuration of tag connections that represents a possible tag extraction pattern.
- * This is a basically a set of tag connections. The pattern should be connected - i.e. the tags
+ * A configuration of tag pairs that represents a possible tag extraction pattern.
+ * This is a basically a set of tag pairs. The pattern should be connected - i.e. the tags
  * and their connections should create a connected graph.
  * @author burgetr
  */

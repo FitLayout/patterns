@@ -21,6 +21,7 @@ import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
+import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.Pair;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
@@ -194,12 +195,12 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         List<Configuration> ret = new ArrayList<>();
         List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(0.1f);
-        List<List<List<TagConnection>>> tagPairs = generateTagPairs(0.75f);
+        List<List<ConnectionPattern>> tagPairs = generateTagPairs(0.75f);
         for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
         {
-            for (List<List<TagConnection>> perm : tagPairs) //for all attr permutations
+            for (List<ConnectionPattern> perm : tagPairs) //for all attr permutations
             {
-                for (List<TagConnection> conns : perm) //for all coverings of attr permutations by tag connections
+                for (ConnectionPattern conns : perm) //for all coverings of attr permutations by tag connections
                 {
                     Configuration conf = new Configuration(styles, conns, 0);
                     ret.add(conf);
@@ -295,19 +296,19 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param minFrequency the minimal frequency of tags required to consider the style for that tag
      * @return A list of style mappings.
      */
-    private List<List<List<TagConnection>>> generateTagPairs(float minFrequency)
+    private List<List<ConnectionPattern>> generateTagPairs(float minFrequency)
     {
         TagConnectionList all = pa.getTagConnections();
 
         Set<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
         
         log.debug("Attribute patterns: {}", patterns.size());
-        List<List<List<TagConnection>>> ret = new ArrayList<>(patterns.size());
+        List<List<ConnectionPattern>> ret = new ArrayList<>(patterns.size());
         int total = 0;
         for (TagPattern pattern : patterns)
         {
             log.debug("P: " + pattern);
-            List<List<TagConnection>> mappings = findMappings(pattern, all, minFrequency);
+            List<ConnectionPattern> mappings = findMappings(pattern, all, minFrequency);
             ret.add(mappings);
             total += mappings.size();
         }
@@ -317,15 +318,16 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     /**
-     * Finds all the tag connections that match a given tag pattern based on the existing connection list.
+     * Finds all the connection patterns that match a given tag pattern based on the existing connection list.
+     * This generates all the supported combinations of relations between the tag pairs.
      * @param pattern The tag pattern to be used
      * @param allConnections List of all connections to be used
      * @param minFrequency Minimal frequency of the connection that should be considered
-     * @return A list of tag connections for the individual pairs in the tag pattern
+     * @return A list of all the connection patterns that correspond to the tag pattern
      */
-    private List<List<TagConnection>> findMappings(TagPattern pattern, TagConnectionList allConnections, float minFrequency)
+    private List<ConnectionPattern> findMappings(TagPattern pattern, TagConnectionList allConnections, float minFrequency)
     {
-        List<List<TagConnection>> ret = new ArrayList<>();
+        List<ConnectionPattern> ret = new ArrayList<>();
         //find candidates for every pair
         List<List<TagConnection>> lists = new ArrayList<>(pattern.size());
         for (TagPair pair : pattern)
@@ -343,7 +345,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         final int lastcnt = lists.get(lists.size() - 1).size();
         while (indices[indices.length-1] != lastcnt)
         {
-            List<TagConnection> newItem = new ArrayList<>(indices.length);
+            ConnectionPattern newItem = new ConnectionPattern(indices.length);
             for (int i = 0; i < indices.length; i++)
                 newItem.add(lists.get(i).get(indices[i]));
             ret.add(newItem);
@@ -451,7 +453,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private int checkCovering(Configuration conf, Disambiguator dis)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
-        List<TagConnection> pairs = new ArrayList<>(conf.getPairs()); //pairs to go
+        List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
         TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = tagAreas.get(curPair.getA2());
         System.out.println("src set: " + srcSet.size());
@@ -598,13 +600,13 @@ public class AttributeGroupMatcher extends BaseMatcher
     public class Configuration
     {
         private Map<Tag, AreaStyle> styleMap;
-        private List<TagConnection> pairs;
+        private ConnectionPattern pattern;
         private int coverage;
         
-        public Configuration(Map<Tag, AreaStyle> styleMap, List<TagConnection> pairs, int coverage)
+        public Configuration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, int coverage)
         {
             this.styleMap = styleMap;
-            this.pairs = pairs;
+            this.pattern = pattern;
             this.coverage = coverage;
         }
 
@@ -613,9 +615,9 @@ public class AttributeGroupMatcher extends BaseMatcher
             return styleMap;
         }
 
-        public List<TagConnection> getPairs()
+        public ConnectionPattern getPattern()
         {
-            return pairs;
+            return pattern;
         }
 
         public int getCoverage()
@@ -631,7 +633,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         @Override
         public String toString()
         {
-            return getPairs() + " " + getStyleMap() + " (" + getCoverage() + " matches)";
+            return getPattern() + " " + getStyleMap() + " (" + getCoverage() + " matches)";
         }
         
     }
@@ -663,7 +665,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         styleMap.put(tpersons, new AreaStyle(apersons));
         styleMap.put(tpages, new AreaStyle(apages));
         
-        List<TagConnection> conn = new ArrayList<>();
+        ConnectionPattern conn = new ConnectionPattern(3);
         conn.add(new TagConnection(tsession, ttitle, new RelationBelow(true), 1.0f));
         conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
         conn.add(new TagConnection(tpages, ttitle, new RelationSide(true), 1.0f));
