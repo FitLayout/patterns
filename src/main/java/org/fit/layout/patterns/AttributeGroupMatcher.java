@@ -99,8 +99,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        //tconf = createTestingConfiguration(areas);
-        //log.debug("TC: {}", tconf);
+        tconf = createTestingConfiguration(areas);
+        log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -469,7 +469,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
         TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = tagAreas.get(curPair.getA2());
-        System.out.println("src set: " + srcSet.size());
+        //System.out.println("src set: " + srcSet.size());
         for (Area a : srcSet)
         {
             recursiveFindMatchesFor(a, curPair, pairs, dis, matchedAreas);
@@ -480,11 +480,11 @@ public class AttributeGroupMatcher extends BaseMatcher
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Disambiguator dis, Set<Area> matchedAreas)
     {
         List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
-        Set<Area> destSet = tagAreas.get(curPair.getA1());
+        Set<Area> destSet = new HashSet<>(tagAreas.get(curPair.getA1()));
         boolean anyMatched = false;
         for (Area b : inrel)
         {
-            if (destSet.contains(b))
+            if (destSet.contains(b) && !matchedAreas.contains(b))
             {
                 boolean matched = false;
                 if (!pairs.isEmpty()) //some pairs are remaining?
@@ -637,7 +637,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         ConnectionPattern conn = new ConnectionPattern(3);
         conn.add(new TagConnection(tsession, ttitle, new RelationBelow(true), 1.0f));
         conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
-        conn.add(new TagConnection(tpages, ttitle, new RelationSide(true), 1.0f));
+        conn.add(new TagConnection(tpages, ttitle, new RelationSameLine(), 1.0f));
         
         return new MatcherConfiguration(styleMap, conn, 0);
     }
