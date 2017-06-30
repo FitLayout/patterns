@@ -6,6 +6,7 @@
 package org.fit.layout.patterns.model;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.fit.layout.model.Tag;
 
@@ -19,6 +20,7 @@ public class MatcherConfiguration
 {
     private Map<Tag, AreaStyle> styleMap;
     private ConnectionPattern pattern;
+    private Set<Tag> tags;
     private int coverage;
     
     public MatcherConfiguration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, int coverage)
@@ -26,6 +28,7 @@ public class MatcherConfiguration
         this.styleMap = styleMap;
         this.pattern = pattern;
         this.coverage = coverage;
+        this.tags = pattern.getTags();
     }
 
     public Map<Tag, AreaStyle> getStyleMap()
@@ -46,6 +49,11 @@ public class MatcherConfiguration
     public void setCoverage(int coverage)
     {
         this.coverage = coverage;
+    }
+
+    public Set<Tag> getTags()
+    {
+        return tags;
     }
 
     @Override

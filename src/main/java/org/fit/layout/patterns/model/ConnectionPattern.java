@@ -6,6 +6,9 @@
 package org.fit.layout.patterns.model;
 
 import java.util.HashSet;
+import java.util.Set;
+
+import org.fit.layout.model.Tag;
 
 /**
  * A configuration of tag connections that represents a possible tag extraction pattern.
@@ -21,6 +24,17 @@ public class ConnectionPattern extends HashSet<TagConnection>
     public ConnectionPattern(int size)
     {
         super(size);
+    }
+    
+    public Set<Tag> getTags()
+    {
+        Set<Tag> ret = new HashSet<>();
+        for (TagConnection con : this)
+        {
+            ret.add(con.getA1());
+            ret.add(con.getA2());
+        }
+        return ret;
     }
     
 }
