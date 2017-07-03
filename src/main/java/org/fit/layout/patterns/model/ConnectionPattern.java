@@ -5,6 +5,7 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,7 +17,7 @@ import org.fit.layout.model.Tag;
  * pattern with particular relations added to the individual tag pairs.
  * @author burgetr
  */
-public class ConnectionPattern extends HashSet<TagConnection>
+public class ConnectionPattern extends ArrayList<TagConnection>
 {
     private static final long serialVersionUID = 1L;
 
