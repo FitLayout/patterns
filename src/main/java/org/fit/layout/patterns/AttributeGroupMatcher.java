@@ -99,8 +99,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        tconf = createTestingConfiguration(areas);
-        log.debug("TC: {}", tconf);
+        //tconf = createTestingConfiguration(areas);
+        //log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -467,37 +467,49 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
+        Map<Tag, Area> match = new HashMap<>(); 
+        List<Map<Tag, Area>> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = tagAreas.get(curPair.getA2());
         //System.out.println("src set: " + srcSet.size());
         for (Area a : srcSet)
         {
-            recursiveFindMatchesFor(a, curPair, pairs, dis, matchedAreas);
+            match.put(curPair.getA2(), a);
+            recursiveFindMatchesFor(a, curPair, pairs, dis, match, matches, matchedAreas);
         }
-        return matchedAreas.size();
+        return matches.size();
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Disambiguator dis, Set<Area> matchedAreas)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Disambiguator dis, Map<Tag, Area> curMatch, List<Map<Tag, Area>> matches, Set<Area> matchedAreas)
     {
         List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
-        Set<Area> destSet = new HashSet<>(tagAreas.get(curPair.getA1()));
+        Set<Area> destSet = tagAreas.get(curPair.getA1());
         boolean anyMatched = false;
         for (Area b : inrel)
         {
-            if (destSet.contains(b) && !matchedAreas.contains(b))
+            if (destSet.contains(b) && !curMatch.containsValue(b) && !matchedAreas.contains(b))
             {
+                //create the new candidate match
+                Map<Tag, Area> nextMatch = new HashMap<Tag, Area>(curMatch);
+                nextMatch.put(curPair.getA1(), b);
+                
+                //test if the match is complete
                 boolean matched = false;
-                if (!pairs.isEmpty()) //some pairs are remaining?
+                if (!pairs.isEmpty()) //some pairs are remaining -- continue recursvely
                 {
-                    //find a subsequent pair
+                    //find the next pair
                     List<TagConnection> nextPairs = new ArrayList<>(pairs);
-                    TagConnection nextPair = nextPairs.remove(0);
-                    /*for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
-                        if (nextPairs.get(i).getA2().equals(curPair.getA1()))
-                            nextPair = nextPairs.remove(i);*/
+                    TagConnection nextPair = null;
+                    for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
+                    {
+                        Tag destTag = nextPairs.get(i).getA2();
+                        if (nextMatch.containsKey(destTag)) //found a connected pair
+                            nextPair = nextPairs.remove(i);
+                    }
                     if (nextPair != null)
                     {
-                        matched = recursiveFindMatchesFor(b, nextPair, nextPairs, dis, matchedAreas);
+                        Area seed = nextMatch.get(nextPair.getA2());
+                        matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, dis, nextMatch, matches, matchedAreas);
                     }
                     else
                     {
@@ -510,8 +522,8 @@ public class AttributeGroupMatcher extends BaseMatcher
                 
                 if (matched) //successfully matched until the end of the sequence
                 {
-                    destSet.remove(b);
-                    matchedAreas.add(b);
+                    matches.add(curMatch);
+                    matchedAreas.addAll(curMatch.values());
                     anyMatched = true;
                 }
             }

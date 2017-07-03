@@ -77,7 +77,8 @@ public class TagPattern extends HashSet<TagPair>
      */
     public boolean mayAdd(TagPair e)
     {
-        return tags.contains(e.getO1()) !=  tags.contains(e.getO2());
+        //return tags.contains(e.getO1()) !=  tags.contains(e.getO2());
+        return tags.contains(e.getO2()) && !tags.contains(e.getO1());
     }
 
     @Override
