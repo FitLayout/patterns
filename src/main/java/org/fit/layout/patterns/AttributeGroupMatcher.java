@@ -477,6 +477,12 @@ public class AttributeGroupMatcher extends BaseMatcher
             match.put(curPair.getA2(), a);
             recursiveFindMatchesFor(a, curPair, pairs, dis, match, matches, matchedAreas);
         }
+        if (matches.size() > 100)
+        {
+            for (Map<Tag, Area> m : matches)
+                System.out.println("  Match: " + m);
+            System.out.println("jo!");
+        }
         return matches.size();
     }
     
@@ -518,12 +524,15 @@ public class AttributeGroupMatcher extends BaseMatcher
                     }
                 }
                 else //no pairs remaining -- a complete match
+                {
+                    log.debug("Adding: " + nextMatch);
                     matched = true;
+                    matches.add(nextMatch);
+                    matchedAreas.addAll(nextMatch.values());
+                }
                 
                 if (matched) //successfully matched until the end of the sequence
                 {
-                    matches.add(curMatch);
-                    matchedAreas.addAll(curMatch.values());
                     anyMatched = true;
                 }
             }
