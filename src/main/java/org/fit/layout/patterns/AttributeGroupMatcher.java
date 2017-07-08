@@ -308,7 +308,17 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         TagConnectionList all = pa.getTagConnections();
 
-        Set<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
+        //Avoid M:1 relationships because our matcher only expects 1:1 or 1:M.
+        //The M:1 relationships may be expressed as 1:M for swapped tags.
+        //Create a blacklist for M:1 tags
+        Set<Tag> tagBlacklist = new HashSet<>();
+        for (Attribute att : attrs)
+        {
+            if (att.isSrcMany() && !att.isMany())
+                tagBlacklist.add(att.getTag());
+        }
+        
+        Set<TagPattern> patterns = findConnectedTagPatterns(attrs, tagBlacklist, all);
         log.debug("Attribute patterns: {}", patterns.size());
         
         Set<ConnectionPattern> ret = new HashSet<>();
@@ -386,8 +396,9 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param allConnections the connections to consider
      * @return a list of tag patterns
      */
-    private Set<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, TagConnectionList allConnections)
+    private Set<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, Set<Tag> tagBlacklist, TagConnectionList allConnections)
     {
+        //find the pairs that are not blacklisted
         Set<TagPattern> ret = new HashSet<>();
         for (Attribute att : attlist)
         {
@@ -397,9 +408,14 @@ public class AttributeGroupMatcher extends BaseMatcher
             //recursively scan other connections
             for (TagPair pair : pairs)
             {
-                TagPattern seed = new TagPattern(attlist.size() - 1);
-                seed.add(pair);
-                recursiveAddConnected(seed, attlist, allConnections, ret);
+                if (!tagBlacklist.contains(pair.getO1()))
+                {
+                    TagPattern seed = new TagPattern(attlist.size() - 1);
+                    seed.add(pair);
+                    recursiveAddConnected(seed, attlist, tagBlacklist, allConnections, ret);
+                }
+                else
+                    log.debug("Blacklisted (M:1): {}", pair);
             }
         }
         return ret;
@@ -410,10 +426,11 @@ public class AttributeGroupMatcher extends BaseMatcher
      * When the pattern is complete, it is stored to a destination pattern collection. 
      * @param current current (incomplete) tag pattern
      * @param attlist list of attributes to consider
+     * @param tagBlacklist blacklisted tags that should not be the first in the pair
      * @param allConnections list of tag connections to consider
      * @param dest the destination pattern collection
      */
-    private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, TagConnectionList allConnections, Collection<TagPattern> dest)
+    private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, Set<Tag> tagBlacklist, TagConnectionList allConnections, Collection<TagPattern> dest)
     {
         //try to connect all the tags already covered by the tag pattern
         for (Tag tag : current.getTags())
@@ -421,7 +438,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
             for (TagPair pair : pairs)
             {
-                if (current.mayAdd(pair)) //a new pair may be added
+                if (!tagBlacklist.contains(pair.getO1()) && current.mayAdd(pair)) //a new pair may be added
                 {
                     TagPattern next = new TagPattern(current);
                     next.add(pair);
@@ -431,7 +448,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     }
                     else //incomplete pair, continue the search recursively
                     {
-                        recursiveAddConnected(next, attlist, allConnections, dest);
+                        recursiveAddConnected(next, attlist, tagBlacklist, allConnections, dest);
                     }
                 }
             }
@@ -685,13 +702,23 @@ public class AttributeGroupMatcher extends BaseMatcher
         float minSupport;
         boolean required;
         boolean many;
+        boolean srcMany;
         
-        public Attribute(Tag tag, float minSupport, boolean required, boolean many)
+        /**
+         * Creates a new attribute with the given properties.
+         * @param tag the associated tag
+         * @param minSupport
+         * @param required is the attribute required for the entity?
+         * @param many are there multiple values acceptable for a single entity?
+         * @param srcMany may multiple entities share an identical value of the attribute?
+         */
+        public Attribute(Tag tag, float minSupport, boolean required, boolean many, boolean srcMany)
         {
             this.tag = tag;
             this.minSupport = minSupport;
             this.required = required;
             this.many = many;
+            this.srcMany = srcMany;
         }
 
         public Tag getTag()
@@ -714,6 +741,11 @@ public class AttributeGroupMatcher extends BaseMatcher
             return many;
         }
         
+        public boolean isSrcMany()
+        {
+            return srcMany;
+        }
+
         @Override
         public String toString()
         {
