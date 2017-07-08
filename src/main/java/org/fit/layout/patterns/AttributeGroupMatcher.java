@@ -99,8 +99,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        //tconf = createTestingConfiguration(areas);
-        //log.debug("TC: {}", tconf);
+        tconf = createTestingConfiguration(areas);
+        log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -628,6 +628,11 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //===========================================================================================
     
+    /**
+     * Creates a testing configuration used for debugging on Vol-1317.
+     * @param areas
+     * @return
+     */
     private MatcherConfiguration createTestingConfiguration(List<Area> areas)
     {
         Map<Tag, AreaStyle> styleMap = new HashMap<>();
@@ -656,7 +661,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         styleMap.put(tpages, new AreaStyle(apages));
         
         ConnectionPattern conn = new ConnectionPattern(3);
-        conn.add(new TagConnection(tsession, ttitle, new RelationBelow(true), 1.0f));
+        //conn.add(new TagConnection(tsession, ttitle, new RelationBelow(true), 1.0f));
+        conn.add(new TagConnection(ttitle, tsession, new RelationBelow(false), 1.0f));
         conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
         conn.add(new TagConnection(tpages, ttitle, new RelationSameLine(), 1.0f));
         
