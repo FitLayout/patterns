@@ -16,7 +16,7 @@ import org.fit.layout.model.Tag;
  * A result of matching a single matcher configuration.
  * @author burgetr
  */
-public class MatchResult
+public class MatchResult implements Comparable<MatchResult>
 {
     private List<Map<Tag, Area>> matches;
     private Set<Area> matchedAreas;
@@ -41,6 +41,17 @@ public class MatchResult
     public String toString()
     {
         return matches.size() + " matches, " + matchedAreas.size() + " areas covered";
+    }
+
+    @Override
+    public int compareTo(MatchResult o)
+    {
+        if (this.getMatchedAreas().size() > o.getMatchedAreas().size())
+            return 1;
+        else if (this.getMatchedAreas().size() < o.getMatchedAreas().size())
+            return -1;
+        else
+            return this.getMatches().size() - o.getMatches().size();
     }
     
 }

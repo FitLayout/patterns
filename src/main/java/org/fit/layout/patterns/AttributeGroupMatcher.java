@@ -100,8 +100,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        //tconf = createTestingConfiguration(areas);
-        //log.debug("TC: {}", tconf);
+        tconf = createTestingConfiguration(areas);
+        log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -177,7 +177,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         //System.out.println(all.get(0));
         
         //find the best coverage
-        int bestCoverage = 0;
+        MatchResult bestMatch = null;
         int i = 0;
         for (MatcherConfiguration conf : all)
         {
@@ -198,10 +198,9 @@ public class AttributeGroupMatcher extends BaseMatcher
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.2f); //TODO minSupport?
             MatchResult match = findMatches(conf, dis);
-            int coverage = match.getMatches().size();
-            conf.setCoverage(coverage);
-            if (coverage > bestCoverage)
-                bestCoverage = coverage;
+            conf.setResult(match);
+            if (bestMatch == null || bestMatch.compareTo(match) < 0)
+                bestMatch = match;
             
             log.debug("Result {}", match);
             if (i > 100) break;
@@ -209,11 +208,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         
         //select the best configurations
         List<MatcherConfiguration> best = new ArrayList<>();
-        if (bestCoverage > 0)
+        if (bestMatch != null)
         {
             for (MatcherConfiguration conf : all)
             {
-                if (conf.getCoverage() == bestCoverage)
+                if (conf.getResult() != null && conf.getResult().compareTo(bestMatch) == 0)
                     best.add(conf);
             }
         }
@@ -236,7 +235,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             for (ConnectionPattern conns : patterns)
             {
-                MatcherConfiguration conf = new MatcherConfiguration(styles, conns, 0);
+                MatcherConfiguration conf = new MatcherConfiguration(styles, conns, null);
                 ret.add(conf);
             }
         }
@@ -702,7 +701,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
         conn.add(new TagConnection(tpages, ttitle, new RelationSameLine(), 1.0f));
         
-        return new MatcherConfiguration(styleMap, conn, 0);
+        return new MatcherConfiguration(styleMap, conn, null);
     }
     
     private Tag findTagByName(String name)

@@ -21,13 +21,13 @@ public class MatcherConfiguration
     private Map<Tag, AreaStyle> styleMap;
     private ConnectionPattern pattern;
     private Set<Tag> tags;
-    private int coverage;
+    private MatchResult result;
     
-    public MatcherConfiguration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, int coverage)
+    public MatcherConfiguration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, MatchResult result)
     {
         this.styleMap = styleMap;
         this.pattern = pattern;
-        this.coverage = coverage;
+        this.result = result;
         this.tags = pattern.getTags();
     }
 
@@ -41,14 +41,14 @@ public class MatcherConfiguration
         return pattern;
     }
 
-    public int getCoverage()
+    public MatchResult getResult()
     {
-        return coverage;
+        return result;
     }
-    
-    public void setCoverage(int coverage)
+
+    public void setResult(MatchResult result)
     {
-        this.coverage = coverage;
+        this.result = result;
     }
 
     public Set<Tag> getTags()
@@ -59,7 +59,8 @@ public class MatcherConfiguration
     @Override
     public String toString()
     {
-        return getPattern() + " " + getStyleMap() + " (" + getCoverage() + " matches)";
+        String rs = (getResult() == null) ? "not checked" : getResult().toString(); 
+        return getPattern() + " " + getStyleMap() + " (" + rs + ")";
     }
 
     @Override
