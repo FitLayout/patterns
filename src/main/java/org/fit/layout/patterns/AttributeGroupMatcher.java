@@ -21,6 +21,7 @@ import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.ConnectionPattern;
+import org.fit.layout.patterns.model.MatchResult;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
@@ -99,8 +100,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        tconf = createTestingConfiguration(areas);
-        log.debug("TC: {}", tconf);
+        //tconf = createTestingConfiguration(areas);
+        //log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -118,12 +119,35 @@ public class AttributeGroupMatcher extends BaseMatcher
     public List<List<Area>> match(List<Area> areas)
     {
         if (best == null)
+        {
             log.error("Matcher not configured");
+            return null;
+        }
         else if (usedConf == null)
+        {
             log.error("No configuration selected");
+            return null;
+        }
         else
         {
             log.info("Using conf {}", usedConf);
+            StyleAnalyzer sa = new StyleAnalyzerFixed(usedConf.getStyleMap());
+            Disambiguator dis = new Disambiguator(sa, null, 0.09f); //TODO minSupport?
+            MatchResult result = findMatches(usedConf, dis);
+            
+            //transform match to the resulting lists
+            List<List<Area>> ret = new ArrayList<>(result.getMatches().size());
+            for (Map<Tag, Area> match : result.getMatches())
+            {
+                List<Area> item = new ArrayList<>(attrs.size());
+                for (Attribute a : attrs)
+                {
+                    item.add(match.get(a.getTag()));
+                }
+                ret.add(item);
+            }
+            
+            return ret;
         }
             
         /*if (!best.isEmpty())
@@ -137,7 +161,6 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         else
             return null;*/
-        return null;
     }
     
     //==============================================================================================
@@ -173,13 +196,15 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, 0.3f); //TODO minSupport?
-            int coverage = checkCovering(conf, dis);
+            Disambiguator dis = new Disambiguator(sa, null, 0.2f); //TODO minSupport?
+            MatchResult match = findMatches(conf, dis);
+            int coverage = match.getMatches().size();
             conf.setCoverage(coverage);
             if (coverage > bestCoverage)
                 bestCoverage = coverage;
             
-            log.debug("Result {}", coverage);
+            log.debug("Result {}", match);
+            if (i > 100) break;
         }
         
         //select the best configurations
@@ -480,7 +505,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private int checkCovering(MatcherConfiguration conf, Disambiguator dis)
+    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
@@ -494,13 +519,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             match.put(curPair.getA2(), a);
             recursiveFindMatchesFor(a, curPair, pairs, dis, match, matches, matchedAreas);
         }
-        if (matches.size() > 100)
-        {
-            for (Map<Tag, Area> m : matches)
-                System.out.println("  Match: " + m);
-            System.out.println("jo!");
-        }
-        return matches.size();
+        return new MatchResult(matches, matchedAreas);
     }
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Disambiguator dis, Map<Tag, Area> curMatch, List<Map<Tag, Area>> matches, Set<Area> matchedAreas)
