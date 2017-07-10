@@ -131,7 +131,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(usedConf.getStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, 0.09f); //TODO minSupport?
+            Disambiguator dis = new Disambiguator(sa, null, 0.09f, true); //TODO minSupport?
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult result = findMatches(usedConf, dis, tagAreas);
             
