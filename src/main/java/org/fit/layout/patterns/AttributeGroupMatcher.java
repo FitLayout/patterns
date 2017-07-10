@@ -40,7 +40,6 @@ public class AttributeGroupMatcher extends BaseMatcher
 
     private List<Attribute> attrs; //list of all attributes
     private List<Area> areas;
-    private Map<Tag, Set<Area>> tagAreas;
     private List<StyleCounter<AreaStyle>> styleStats;
     private RelationAnalyzer pa;
     
@@ -133,7 +132,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(usedConf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.09f); //TODO minSupport?
-            MatchResult result = findMatches(usedConf, dis);
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
+            MatchResult result = findMatches(usedConf, dis, tagAreas);
             
             //transform match to the resulting lists
             List<List<Area>> ret = new ArrayList<>(result.getMatches().size());
@@ -197,7 +197,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.2f); //TODO minSupport?
-            MatchResult match = findMatches(conf, dis);
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
+            MatchResult match = findMatches(conf, dis, tagAreas);
             conf.setResult(match);
             if (bestMatch == null || bestMatch.compareTo(match) < 0)
                 bestMatch = match;
@@ -504,7 +505,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis)
+    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
@@ -516,12 +517,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (Area a : srcSet)
         {
             match.put(curPair.getA2(), a);
-            recursiveFindMatchesFor(a, curPair, pairs, dis, match, matches, matchedAreas);
+            recursiveFindMatchesFor(a, curPair, pairs, match, matches, matchedAreas, dis, tagAreas);
         }
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Disambiguator dis, Map<Tag, Area> curMatch, List<Map<Tag, Area>> matches, Set<Area> matchedAreas)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Map<Tag, Area> curMatch, List<Map<Tag, Area>> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
         Set<Area> destSet = tagAreas.get(curPair.getA1());
@@ -550,7 +551,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     if (nextPair != null)
                     {
                         Area seed = nextMatch.get(nextPair.getA2());
-                        matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, dis, nextMatch, matches, matchedAreas);
+                        matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, matches, matchedAreas, dis, tagAreas);
                     }
                     else
                     {
@@ -618,8 +619,6 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private void gatherStatistics()
     {
-        //create the tagt to area mapping
-        tagAreas = createAttrTagMap();
         //count styles
         styleStats = new ArrayList<>(attrs.size());
         for (int i = 0; i < attrs.size(); i++)
@@ -644,20 +643,23 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Creates a mapping from the tags specified by the individual attributes to sets of related areas.
      * @return a mapping from tags to sets of areas
      */
-    private Map<Tag, Set<Area>> createAttrTagMap()
+    private Map<Tag, Set<Area>> createAttrTagMap(Disambiguator dis)
     {
         Map<Tag, Set<Area>> areaMap = new HashMap<>(attrs.size());
         for (Attribute attr : attrs)
+            areaMap.put(attr.getTag(), new HashSet<Area>());
+        
+        for (Area a : areas)
         {
-            Tag tag = attr.getTag();
-            Set<Area> areaSet = new HashSet<Area>();
-            for (Area a : areas)
+            Tag areaTag = dis.getAreaTag(a);
+            if (areaTag != null)
             {
-                if (a.hasTag(attr.getTag(), attr.getMinSupport()))
-                    areaSet.add(a);
+                Set<Area> areas = areaMap.get(areaTag);
+                if (areas != null)
+                    areas.add(a);
             }
-            areaMap.put(tag, areaSet);
         }
+        
         return areaMap;
     }
     
