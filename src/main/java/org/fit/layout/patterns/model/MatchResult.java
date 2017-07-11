@@ -5,8 +5,9 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
@@ -18,16 +19,16 @@ import org.fit.layout.model.Tag;
  */
 public class MatchResult implements Comparable<MatchResult>
 {
-    private List<Map<Tag, Area>> matches;
+    private List<Match> matches;
     private Set<Area> matchedAreas;
     
-    public MatchResult(List<Map<Tag, Area>> matches, Set<Area> matchedAreas)
+    public MatchResult(List<Match> matches, Set<Area> matchedAreas)
     {
         this.matches = matches;
         this.matchedAreas = matchedAreas;
     }
 
-    public List<Map<Tag, Area>> getMatches()
+    public List<Match> getMatches()
     {
         return matches;
     }
@@ -36,7 +37,7 @@ public class MatchResult implements Comparable<MatchResult>
     {
         return matchedAreas;
     }
-
+    
     @Override
     public String toString()
     {
@@ -52,6 +53,56 @@ public class MatchResult implements Comparable<MatchResult>
             return -1;
         else
             return this.getMatches().size() - o.getMatches().size();
+    }
+    
+    //==================================================================================================
+    
+    /**
+     * Groups the matches by the values of the given key tag.
+     * @param keyTag the tag to be used as the key.
+     */
+    public void groupByKey(Tag keyTag)
+    {
+        
+    }
+    
+    //==================================================================================================
+    
+    public static class Match extends HashMap<Tag, List<Area>>
+    {
+        private static final long serialVersionUID = 1L;
+        
+        public Match()
+        {
+            super();
+        }
+        
+        public Match(Match src)
+        {
+            super(src);
+        }
+
+        public void putSingle(Tag a1, Area b)
+        {
+            List<Area> list = new ArrayList<>(1);
+            list.add(b);
+            put(a1, list);
+        }
+        
+        public Area getSingle(Tag a1)
+        {
+            List<Area> list = get(a1);
+            if (list == null)
+                return null;
+            else
+            {
+                if (list.isEmpty())
+                    return null;
+                else
+                    return list.get(0);
+            }
+        }
+        
     }
     
 }

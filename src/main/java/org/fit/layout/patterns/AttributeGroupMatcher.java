@@ -39,6 +39,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private static Logger log = LoggerFactory.getLogger(AttributeGroupMatcher.class);
 
     private List<Attribute> attrs; //list of all attributes
+    private int keyAttr; //key attribute index or -1 if none
     private Set<Tag> tagBlacklist; //tags that should not be the first one in the pairs in order to avoid M:1 connections
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
     
@@ -71,6 +72,14 @@ public class AttributeGroupMatcher extends BaseMatcher
     public List<Attribute> getAttrs()
     {
         return attrs;
+    }
+    
+    public Attribute getKeyAttr()
+    {
+        if (keyAttr == -1)
+            return null;
+        else
+            return attrs.get(keyAttr);
     }
     
     public Attribute getAttrForTag(Tag tag)
@@ -141,12 +150,12 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             //transform match to the resulting lists
             List<List<Area>> ret = new ArrayList<>(result.getMatches().size());
-            for (Map<Tag, Area> match : result.getMatches())
+            for (MatchResult.Match match : result.getMatches())
             {
                 List<Area> item = new ArrayList<>(attrs.size());
                 for (Attribute a : attrs)
                 {
-                    item.add(match.get(a.getTag()));
+                    item.add(match.getSingle(a.getTag())); //TODO this processes onty the first value for each tag!
                 }
                 ret.add(item);
             }
@@ -502,20 +511,20 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
-        Map<Tag, Area> match = new HashMap<>(); 
-        List<Map<Tag, Area>> matches = new ArrayList<>();
+        MatchResult.Match match = new MatchResult.Match(); 
+        List<MatchResult.Match> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = tagAreas.get(curPair.getA2());
         //System.out.println("src set: " + srcSet.size());
         for (Area a : srcSet)
         {
-            match.put(curPair.getA2(), a);
+            match.putSingle(curPair.getA2(), a);
             recursiveFindMatchesFor(a, curPair, pairs, match, matches, matchedAreas, dis, tagAreas);
         }
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Map<Tag, Area> curMatch, List<Map<Tag, Area>> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, MatchResult.Match curMatch, List<MatchResult.Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
         Set<Area> destSet = tagAreas.get(curPair.getA1());
@@ -525,8 +534,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (destSet.contains(b) && !curMatch.containsValue(b) && !matchedAreas.contains(b))
             {
                 //create the new candidate match
-                Map<Tag, Area> nextMatch = new HashMap<Tag, Area>(curMatch);
-                nextMatch.put(curPair.getA1(), b);
+                MatchResult.Match nextMatch = new MatchResult.Match(curMatch);
+                nextMatch.putSingle(curPair.getA1(), b);
                 
                 //test if the match is complete
                 boolean matched = false;
@@ -543,7 +552,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     }
                     if (nextPair != null)
                     {
-                        Area seed = nextMatch.get(nextPair.getA2());
+                        Area seed = nextMatch.getSingle(nextPair.getA2());
                         matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, matches, matchedAreas, dis, tagAreas);
                     }
                     else
@@ -557,7 +566,8 @@ public class AttributeGroupMatcher extends BaseMatcher
                     log.debug("Adding: " + nextMatch);
                     matched = true;
                     matches.add(nextMatch);
-                    matchedAreas.addAll(nextMatch.values());
+                    for (List<Area> matchAreas : nextMatch.values())
+                        matchedAreas.addAll(matchAreas);
                 }
                 
                 if (matched) //successfully matched until the end of the sequence
@@ -640,6 +650,19 @@ public class AttributeGroupMatcher extends BaseMatcher
                 }
             }
         }
+        
+        //Find a key attribute if possible
+        keyAttr = -1;
+        for (int i = 0; i < attrs.size() && keyAttr == -1; i++)
+        {
+            Attribute att = attrs.get(i);
+            if (att.isRequired() && !att.isSrcMany() && !att.isMany())
+                keyAttr = i;
+        }
+        if (keyAttr == -1)
+            log.warn("No candidate for key attribute found. The results may be ambiguous.");
+        else
+            log.info("Using {} as the key attribute", getKeyAttr());
     }
     
     private void gatherStatistics()
