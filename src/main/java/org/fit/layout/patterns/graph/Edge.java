@@ -19,6 +19,8 @@ public class Edge
     private String title;
     private boolean dstMany;
     private boolean srcMany;
+    private boolean dstOptional;
+    private boolean srcOptional;
     
     public long getSrcId()
     {
@@ -78,6 +80,26 @@ public class Edge
     public void setSrcMany(boolean srcMany)
     {
         this.srcMany = srcMany;
+    }
+
+    public boolean isDstOptional()
+    {
+        return dstOptional;
+    }
+
+    public void setDstOptional(boolean dstOptional)
+    {
+        this.dstOptional = dstOptional;
+    }
+
+    public boolean isSrcOptional()
+    {
+        return srcOptional;
+    }
+
+    public void setSrcOptional(boolean srcOptional)
+    {
+        this.srcOptional = srcOptional;
     }
 
     @Override

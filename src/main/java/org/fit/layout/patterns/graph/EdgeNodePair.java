@@ -61,4 +61,14 @@ public class EdgeNodePair
         return reversedEdge() ? edge.isSrcMany() : edge.isDstMany();
     }
     
+    public boolean isSrcOptional()
+    {
+        return reversedEdge() ? edge.isDstOptional() : edge.isSrcOptional();
+    }
+    
+    public boolean isDstOptional()
+    {
+        return reversedEdge() ? edge.isSrcOptional() : edge.isDstOptional();
+    }
+    
 }

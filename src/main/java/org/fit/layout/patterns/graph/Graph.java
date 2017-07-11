@@ -149,7 +149,7 @@ public class Graph
         {
             if (!current.contains(next.getNode()))
             {
-                Path newpath = new Path(current, next.getNode(), next.isSrcMany(), next.isDstMany());
+                Path newpath = new Path(current, next.getNode(), next.isSrcMany(), next.isDstMany(), next.isDstOptional());
                 dest.add(newpath);
                 recursiveAppendNext(newpath, dest);
             }

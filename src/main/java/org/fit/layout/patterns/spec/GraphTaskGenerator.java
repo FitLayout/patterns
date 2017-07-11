@@ -100,7 +100,7 @@ public class GraphTaskGenerator
             }
             Tagger tagger = taggers.get(n);
             if (tagger != null)
-                attrs.add(new AttributeGroupMatcher.Attribute(tagger.getTag(), minSupport, true, p.isDstMany(), p.isSrcMany()));
+                attrs.add(new AttributeGroupMatcher.Attribute(tagger.getTag(), minSupport, !p.isOptional(), p.isDstMany(), p.isSrcMany()));
             else
                 log.error("No tagger registered for {}", n);
         }

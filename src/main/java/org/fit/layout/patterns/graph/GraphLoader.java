@@ -97,6 +97,11 @@ public class GraphLoader
             ret.setTitle(GraphLoader.getNullAsEmptyString(jValues.get("title")));
             ret.setSrcMany(jValues.get("cardinality").getAsJsonObject().get("src").getAsBoolean());
             ret.setDstMany(jValues.get("cardinality").getAsJsonObject().get("dst").getAsBoolean());
+            if (jValues.get("optional") != null)
+            {
+                ret.setSrcOptional(jValues.get("optional").getAsJsonObject().get("src").getAsBoolean());
+                ret.setDstOptional(jValues.get("optional").getAsJsonObject().get("dst").getAsBoolean());
+            }
             String[] uris = context.deserialize(jValues.get("uris"), String[].class);
             ret.setUris(uris);
             
