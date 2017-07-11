@@ -8,6 +8,7 @@ package org.fit.layout.patterns.model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
@@ -63,7 +64,16 @@ public class MatchResult implements Comparable<MatchResult>
      */
     public void groupByKey(Tag keyTag)
     {
-        
+        Map<Area, Match> groupMatches = new HashMap<>();
+        for (Match match : matches)
+        {
+            Area key = match.getSingle(keyTag);
+            Match group = groupMatches.get(key);
+            if (group == null)
+                groupMatches.put(key, match);
+            else
+                group.addValuesFrom(match);
+        }
     }
     
     //==================================================================================================
@@ -103,6 +113,17 @@ public class MatchResult implements Comparable<MatchResult>
             }
         }
         
+        public void addValuesFrom(Match other)
+        {
+            for (Tag t : other.keySet())
+            {
+                List<Area> current = get(t);
+                if (current == null)
+                    put(t, new ArrayList<Area>(other.get(t)));
+                else
+                    current.addAll(other.get(t));
+            }
+        }
     }
     
 }

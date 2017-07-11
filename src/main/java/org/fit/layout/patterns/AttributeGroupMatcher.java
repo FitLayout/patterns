@@ -147,6 +147,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, 0.09f, true); //TODO minSupport?
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult result = findMatches(usedConf, dis, tagAreas);
+            if (getKeyAttr() != null)
+                result.groupByKey(getKeyAttr().getTag());
             
             //transform match to the resulting lists
             List<List<Area>> ret = new ArrayList<>(result.getMatches().size());
