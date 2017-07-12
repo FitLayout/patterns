@@ -5,7 +5,6 @@
  */
 package org.fit.layout.patterns.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,9 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 
 /**
- * A result of matching a single matcher configuration.
+ * A result of matching a single matcher configuration. The result holds the statistics
+ * about the areas covered by the matches which allows to compare the different results.
+ * 
  * @author burgetr
  */
 public class MatchResult implements Comparable<MatchResult>
@@ -72,57 +73,7 @@ public class MatchResult implements Comparable<MatchResult>
             if (group == null)
                 groupMatches.put(key, match);
             else
-                group.addValuesFrom(match);
-        }
-    }
-    
-    //==================================================================================================
-    
-    public static class Match extends HashMap<Tag, List<Area>>
-    {
-        private static final long serialVersionUID = 1L;
-        
-        public Match()
-        {
-            super();
-        }
-        
-        public Match(Match src)
-        {
-            super(src);
-        }
-
-        public void putSingle(Tag a1, Area b)
-        {
-            List<Area> list = new ArrayList<>(1);
-            list.add(b);
-            put(a1, list);
-        }
-        
-        public Area getSingle(Tag a1)
-        {
-            List<Area> list = get(a1);
-            if (list == null)
-                return null;
-            else
-            {
-                if (list.isEmpty())
-                    return null;
-                else
-                    return list.get(0);
-            }
-        }
-        
-        public void addValuesFrom(Match other)
-        {
-            for (Tag t : other.keySet())
-            {
-                List<Area> current = get(t);
-                if (current == null)
-                    put(t, new ArrayList<Area>(other.get(t)));
-                else
-                    current.addAll(other.get(t));
-            }
+                group.union(match);
         }
     }
     

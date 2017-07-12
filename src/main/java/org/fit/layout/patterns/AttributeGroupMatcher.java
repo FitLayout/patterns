@@ -21,6 +21,7 @@ import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.ConnectionPattern;
+import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.fit.layout.patterns.model.TagConnection;
@@ -152,7 +153,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             //transform match to the resulting lists
             List<List<Area>> ret = new ArrayList<>(result.getMatches().size());
-            for (MatchResult.Match match : result.getMatches())
+            for (Match match : result.getMatches())
             {
                 List<Area> item = new ArrayList<>(attrs.size());
                 for (Attribute a : attrs)
@@ -513,8 +514,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
-        MatchResult.Match match = new MatchResult.Match(); 
-        List<MatchResult.Match> matches = new ArrayList<>();
+        Match match = new Match(); 
+        List<Match> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = tagAreas.get(curPair.getA2());
         //System.out.println("src set: " + srcSet.size());
@@ -526,7 +527,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, MatchResult.Match curMatch, List<MatchResult.Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
         Set<Area> destSet = tagAreas.get(curPair.getA1());
@@ -536,7 +537,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (destSet.contains(b) && !curMatch.containsValue(b) && !matchedAreas.contains(b))
             {
                 //create the new candidate match
-                MatchResult.Match nextMatch = new MatchResult.Match(curMatch);
+                Match nextMatch = new Match(curMatch);
                 nextMatch.putSingle(curPair.getA1(), b);
                 
                 //test if the match is complete
