@@ -8,6 +8,7 @@ package org.fit.layout.patterns;
 import java.util.List;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.patterns.model.Match;
 
 /**
  * A base class for matcher implementations.
@@ -18,12 +19,10 @@ public abstract class BaseMatcher
 {
     private int useStyleWildcards;
     
-    
     public BaseMatcher()
     {
         useStyleWildcards = 1;
     }
-    
 
     public int getUseStyleWildcards()
     {
@@ -37,6 +36,11 @@ public abstract class BaseMatcher
 
     //=====================================================================
     
-    public abstract List<List<Area>> match(List<Area> areas);
+    /**
+     * Applies the matcher on a list of areas and returns the matches.
+     * @param areas The list of areas to be matched.
+     * @return A list of discovered matches (data records) that assign the areas to the individual tags. 
+     */
+    public abstract List<Match> match(List<Area> areas);
     
 }

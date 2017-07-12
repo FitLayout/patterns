@@ -19,6 +19,7 @@ import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
+import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class OneToManyMatcher extends BaseMatcher
     }
     
     @Override
-    public List<List<Area>> match(List<Area> areas)
+    public List<Match> match(List<Area> areas)
     {
         this.areas = areas;
         gatherStatistics();
@@ -83,11 +84,11 @@ public class OneToManyMatcher extends BaseMatcher
     
     //===========================================================================================
 
-    private List<List<Area>> getMatches(Configuration conf)
+    private List<Match> getMatches(Configuration conf)
     {
         StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
         Disambiguator dis = new Disambiguator(sa, conf.useChains ? chains : null, 0.09f); //lower the min support for real matching
-        List<List<Area>> ret = new ArrayList<List<Area>>();
+        List<Match> ret = new ArrayList<>();
         for (Area a1 : areas)
         {
             if (srcTag[0].equals(dis.getAreaTag(a1)))
@@ -95,14 +96,13 @@ public class OneToManyMatcher extends BaseMatcher
                 List<Area> inrel = getAreasInBestRelation(a1, conf.relation, srcTag[0], srcTag[1], dis);
                 for (Area a2 : inrel)
                 {
-                    List<Area> match = new ArrayList<Area>(2);
-                    match.add(a1);
-                    match.add(a2);
+                    Match match = new Match();
+                    match.putSingle(srcTag[0], a1);
+                    match.putSingle(srcTag[1], a2);
                     ret.add(match);
                 }
             }
         }
-        
         return ret;
     }
 

@@ -129,7 +129,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     @Override
-    public List<List<Area>> match(List<Area> areas)
+    public List<Match> match(List<Area> areas)
     {
         if (best == null)
         {
@@ -151,19 +151,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
             
-            //transform match to the resulting lists
-            List<List<Area>> ret = new ArrayList<>(result.getMatches().size());
-            for (Match match : result.getMatches())
-            {
-                List<Area> item = new ArrayList<>(attrs.size());
-                for (Attribute a : attrs)
-                {
-                    item.add(match.getSingle(a.getTag())); //TODO this processes onty the first value for each tag!
-                }
-                ret.add(item);
-            }
-            
-            return ret;
+            return result.getMatches();
         }
             
         /*if (!best.isEmpty())
