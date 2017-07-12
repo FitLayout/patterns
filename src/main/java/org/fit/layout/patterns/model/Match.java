@@ -83,9 +83,17 @@ public class Match extends HashMap<Tag, List<Area>>
         {
             List<Area> current = get(t);
             if (current == null)
+            {
                 put(t, new ArrayList<Area>(other.get(t)));
+            }
             else
-                current.addAll(other.get(t));
+            {
+                for (Area a : other.get(t))
+                {
+                    if (!current.contains(a))
+                        current.add(a);
+                }
+            }
         }
     }
 }
