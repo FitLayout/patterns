@@ -502,13 +502,13 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
-        Match match = new Match(); 
         List<Match> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
         Set<Area> srcSet = tagAreas.get(curPair.getA2());
         //System.out.println("src set: " + srcSet.size());
         for (Area a : srcSet)
         {
+            Match match = new Match(); 
             match.putSingle(curPair.getA2(), a);
             recursiveFindMatchesFor(a, curPair, pairs, match, matches, matchedAreas, dis, tagAreas);
         }
@@ -522,7 +522,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         boolean anyMatched = false;
         for (Area b : inrel)
         {
-            if (destSet.contains(b) && !curMatch.containsValue(b) && !matchedAreas.contains(b))
+            if (destSet.contains(b) && !curMatch.containsValue(b))
             {
                 //create the new candidate match
                 Match nextMatch = new Match(curMatch);
