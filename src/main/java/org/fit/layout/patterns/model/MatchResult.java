@@ -6,6 +6,7 @@
 package org.fit.layout.patterns.model;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,14 +67,18 @@ public class MatchResult implements Comparable<MatchResult>
     public void groupByKey(Tag keyTag)
     {
         Map<Area, Match> groupMatches = new HashMap<>();
-        for (Match match : matches)
+        for (Iterator<Match> it = matches.iterator(); it.hasNext();)
         {
+            Match match = (Match) it.next();
             Area key = match.getSingle(keyTag);
             Match group = groupMatches.get(key);
             if (group == null)
                 groupMatches.put(key, match);
             else
+            {
                 group.union(match);
+                it.remove();
+            }
         }
     }
     
