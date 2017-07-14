@@ -5,8 +5,8 @@
  */
 package org.fit.layout.patterns.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.fit.layout.model.Tag;
@@ -17,7 +17,7 @@ import org.fit.layout.model.Tag;
  * and their connections should create a connected graph.
  * @author burgetr
  */
-public class TagPattern extends ArrayList<TagPair>
+public class TagPattern extends LinkedHashSet<TagPair>
 {
     private static final long serialVersionUID = 1L;
     
