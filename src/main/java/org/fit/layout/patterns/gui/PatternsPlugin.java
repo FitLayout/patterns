@@ -114,7 +114,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
             List<Area> leaves = new ArrayList<Area>();
             findLeaves(areaTree.getRoot(), leaves);
             
-            provider.getMatcher().configure(leaves);
+            provider.configureMatcher(leaves);
             
             SwingUtilities.invokeLater(new Runnable()
             {

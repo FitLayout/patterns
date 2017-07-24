@@ -105,6 +105,16 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     /**
+     * Sets the configuration used for testing. When set, the configuration lookup will be limited
+     * to the given configuration only, other configurations will be skipped.
+     * @param conf The testing configuration.
+     */
+    public void setTestingConfiguration(MatcherConfiguration conf)
+    {
+        tconf = conf;
+    }
+    
+    /**
      * Checks the possible configurations on a list of areas and chooses the best ones. 
      * @param areas
      */
@@ -113,8 +123,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.areas = areas;
         gatherStatistics();
         
-        tconf = createTestingConfiguration(areas);
-        log.debug("TC: {}", tconf);
+        if (tconf != null)
+            log.debug("TC: {}", tconf);
         
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
@@ -700,57 +710,6 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         return areaMap;
-    }
-    
-    //===========================================================================================
-    
-    /**
-     * Creates a testing configuration used for debugging on Vol-1317.
-     * @param areas
-     * @return
-     */
-    private MatcherConfiguration createTestingConfiguration(List<Area> areas)
-    {
-        Map<Tag, AreaStyle> styleMap = new HashMap<>();
-        Area asession = null;
-        Area atitle = null;
-        Area apersons = null;
-        Area apages = null;
-        for (Area a : areas)
-        {
-            if (a.getText().equals("Technical papers"))
-                asession = a;
-            else if (a.getText().equals("A categorical approach to ontology alignment"))
-                atitle = a;
-            else if (a.getText().contains("Mossakowski"))
-                apersons = a;
-            else if (a.getText().equals("1-12"))
-                apages = a;
-        }
-        Tag tsession = findTagByName("session");
-        Tag ttitle = findTagByName("title");
-        Tag tpersons = findTagByName("persons");
-        Tag tpages = findTagByName("pages");
-        styleMap.put(tsession, new AreaStyle(asession));
-        styleMap.put(ttitle, new AreaStyle(atitle));
-        styleMap.put(tpersons, new AreaStyle(apersons));
-        styleMap.put(tpages, new AreaStyle(apages));
-        
-        ConnectionPattern conn = new ConnectionPattern(3);
-        //conn.add(new TagConnection(tsession, ttitle, new RelationBelow(true), 1.0f));
-        conn.add(new TagConnection(ttitle, tsession, new RelationBelow(false), 1.0f));
-        conn.add(new TagConnection(tpersons, ttitle, new RelationBelow(false), 1.0f));
-        conn.add(new TagConnection(tpages, ttitle, new RelationSameLine(), 1.0f));
-        
-        return new MatcherConfiguration(styleMap, conn, null);
-    }
-    
-    private Tag findTagByName(String name)
-    {
-        for (Attribute a : attrs)
-            if (a.getTag().getValue().equals(name))
-                return a.getTag();
-        return null;
     }
     
     //==============================================================================================
