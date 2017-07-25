@@ -40,6 +40,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     private static Logger log = LoggerFactory.getLogger(AttributeGroupMatcher.class);
 
     private List<Attribute> attrs; //list of all attributes
+    private Set<Tag> allTags; //set of all tags assigned to the attributes
+    private Set<Tag> usedTags; //set of tags efficiently for extraction
     private int keyAttr; //key attribute index or -1 if none
     private Set<Tag> tagBlacklist; //tags that should not be the first one in the pairs in order to avoid M:1 connections
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
@@ -62,12 +64,14 @@ public class AttributeGroupMatcher extends BaseMatcher
         scanAttributes();
     }
 
-    public List<Tag> getTags()
+    public Set<Tag> getAllTags()
     {
-        List<Tag> ret = new ArrayList<>(attrs.size());
-        for (Attribute a : attrs)
-            ret.add(a.getTag());
-        return ret;
+        return allTags;
+    }
+    
+    public Set<Tag> getUsedTags()
+    {
+        return usedTags;
     }
     
     public List<Attribute> getAttrs()
@@ -347,7 +351,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         TagConnectionList all = pa.getTagConnections();
 
-        Set<TagPattern> patterns = findConnectedTagPatterns(attrs, all);
+        Set<TagPattern> patterns = findConnectedTagPatterns(all);
         log.debug("Attribute patterns: {}", patterns.size());
         
         Set<ConnectionPattern> ret = new HashSet<>();
@@ -425,26 +429,31 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param allConnections the connections to consider
      * @return a list of tag patterns
      */
-    private Set<TagPattern> findConnectedTagPatterns(List<Attribute> attlist, TagConnectionList allConnections)
+    private Set<TagPattern> findConnectedTagPatterns(TagConnectionList allConnections)
     {
         //find the pairs that are not blacklisted
         Set<TagPattern> ret = new HashSet<>();
-        for (Attribute att : attlist)
+        for (Tag tag : usedTags)
         {
-            Tag tag = att.getTag();
             //select distinct pairs for the tag
             Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
             //recursively scan other connections
             for (TagPair pair : pairs)
             {
-                if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair))
+                if (usedTags.contains(pair.getO1())) //exclude unused tags
                 {
-                    TagPattern seed = new TagPattern(attlist.size() - 1);
-                    seed.add(pair);
-                    recursiveAddConnected(seed, attlist, allConnections, ret);
+                    if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair))
+                    {
+                        TagPattern seed = new TagPattern(usedTags.size() - 1);
+                        seed.add(pair);
+                        if (usedTags.size() <= 2)
+                            ret.add(seed); //only two tags, no further search necessary
+                        else
+                            recursiveAddConnected(seed, allConnections, ret);
+                    }
+                    else
+                        log.debug("Blacklisted (M:1): {}", pair);
                 }
-                else
-                    log.debug("Blacklisted (M:1): {}", pair);
             }
         }
         return ret;
@@ -458,7 +467,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param allConnections list of tag connections to consider
      * @param dest the destination pattern collection
      */
-    private void recursiveAddConnected(TagPattern current, List<Attribute> attlist, TagConnectionList allConnections, Collection<TagPattern> dest)
+    private void recursiveAddConnected(TagPattern current, TagConnectionList allConnections, Collection<TagPattern> dest)
     {
         //try to connect all the tags already covered by the tag pattern
         for (Tag tag : current.getTags())
@@ -466,17 +475,20 @@ public class AttributeGroupMatcher extends BaseMatcher
             Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
             for (TagPair pair : pairs)
             {
-                if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair) && current.mayAdd(pair)) //a new pair may be added
+                if (usedTags.contains(pair.getO1())) //exclude unused tags
                 {
-                    TagPattern next = new TagPattern(current);
-                    next.add(pair);
-                    if (next.size() >= attlist.size() - 1) //the pattern is complete, store it
+                    if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair) && current.mayAdd(pair)) //a new pair may be added
                     {
-                        dest.add(next);
-                    }
-                    else //incomplete pair, continue the search recursively
-                    {
-                        recursiveAddConnected(next, attlist, allConnections, dest);
+                        TagPattern next = new TagPattern(current);
+                        next.add(pair);
+                        if (next.size() >= usedTags.size() - 1) //the pattern is complete, store it
+                        {
+                            dest.add(next);
+                        }
+                        else //incomplete pair, continue the search recursively
+                        {
+                            recursiveAddConnected(next, allConnections, dest);
+                        }
                     }
                 }
             }
@@ -664,6 +676,18 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.warn("No candidate for key attribute found. The results may be ambiguous.");
         else
             log.info("Using {} as the key attribute", getKeyAttr());
+        
+        //update the tag sets
+        allTags = findAllTags();
+        usedTags = new HashSet<>(allTags);
+    }
+    
+    private Set<Tag> findAllTags()
+    {
+        Set<Tag> ret = new HashSet<>();
+        for (Attribute a : attrs)
+            ret.add(a.getTag());
+        return ret;
     }
     
     private void gatherStatistics()
