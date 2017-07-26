@@ -14,7 +14,9 @@ import org.fit.layout.model.Tag;
 
 /**
  * This class represents a single result of matching. It is generally a map that
- * assigns a list of visual areas to the individual tags.
+ * assigns a list of visual areas to the individual tags. Moreover, the area
+ * relations used in this match may be stored as well for further statistical
+ * evaluation.
  * 
  * @author burgetr
  */
@@ -22,12 +24,15 @@ public class Match extends HashMap<Tag, List<Area>>
 {
     private static final long serialVersionUID = 1L;
     
+    private List<AreaConnection> areaConnections;
+    
     /**
      * Creates a new empty match.
      */
     public Match()
     {
         super();
+        areaConnections = new ArrayList<>();
     }
     
     /**
@@ -37,6 +42,7 @@ public class Match extends HashMap<Tag, List<Area>>
     public Match(Match src)
     {
         super(src);
+        areaConnections = new ArrayList<>(src.getAreaConnections());
     }
 
     /**
@@ -72,6 +78,31 @@ public class Match extends HashMap<Tag, List<Area>>
         }
     }
     
+    public void addAreaConnection(AreaConnection con)
+    {
+        areaConnections.add(con);
+    }
+    
+    public List<AreaConnection> getAreaConnections()
+    {
+        return areaConnections;
+    }
+    
+    public List<AreaConnection> getConnectionsForTag(Tag t)
+    {
+        List<AreaConnection> ret = new ArrayList<>();
+        List<Area> areas = get(t);
+        for (Area a : areas)
+        {
+            for (AreaConnection con : areaConnections)
+            {
+                if (con.getA1().equals(a))
+                    ret.add(con);
+            }
+        }
+        return ret;
+    }
+    
     /**
      * Creates an union of this match with another match. Adds all the areas assigned
      * by the source match to this match.
@@ -95,5 +126,7 @@ public class Match extends HashMap<Tag, List<Area>>
                 }
             }
         }
+        
+        areaConnections.addAll(other.getAreaConnections());
     }
 }

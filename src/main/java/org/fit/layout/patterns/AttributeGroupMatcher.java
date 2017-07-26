@@ -539,16 +539,18 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
-        List<Area> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
+        List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
         Set<Area> destSet = tagAreas.get(curPair.getA1());
         boolean anyMatched = false;
-        for (Area b : inrel)
+        for (AreaConnection con : inrel)
         {
+            Area b = con.getA1();
             if (destSet.contains(b) && !curMatch.containsValue(b))
             {
                 //create the new candidate match
                 Match nextMatch = new Match(curMatch);
                 nextMatch.putSingle(curPair.getA1(), b);
+                nextMatch.addAreaConnection(con); //store the used area connection for statistics
                 
                 //test if the match is complete
                 boolean matched = false;
@@ -593,23 +595,24 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     /**
-     * Obtains all the area that are in the given relation with the given area and there exists
-     * no better source area for this with the same destination area and a higher weight.
+     * Obtains the best area connections with the specified second area and the
+     * specified relation. The best connection means that there does not exist  
+     * any better source area for this with the same destination area and a higher weight.
      * E.g. all areas below {@code a}.
      * Only the areas with specified tags are taken into account, the tags are inferred using
      * a disambiguator.
-     * @param a the area to compare
-     * @param r the relation to use.
+     * @param a the area to be used as {@code A2} in the area connections.
+     * @param r the relation to be uses.
      * @param srcTag the tag required for the source areas (incl. {@code a})
      * @param destTag the tag required for the destination areas
      * @param dis the disambiguator used for assigning the tags to areas
-     * @return the list of corresponding areas
+     * @return the list of best area connections that correspond to the above criteria
      */
-    private List<Area> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, Disambiguator dis)
+    private List<AreaConnection> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, Disambiguator dis)
     {
-        List<AreaConnection> dest = pa.getConnections(null, r, a, -1.0f);
-        List<Area> ret = new ArrayList<Area>(dest.size());
-        for (AreaConnection cand : dest)
+        List<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
+        List<AreaConnection> ret = new ArrayList<>(all.size());
+        for (AreaConnection cand : all)
         {
             if (destTag.equals(dis.getAreaTag(cand.getA1())))
             {
@@ -625,7 +628,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     }
                 }
                 if (!foundBetter)
-                    ret.add(cand.getA1()); //a1 has no "better" source area, use it
+                    ret.add(cand); //a1 has no "better" source area, use it
             }
         }
         return ret;
