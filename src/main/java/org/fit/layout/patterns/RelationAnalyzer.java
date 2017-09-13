@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -164,10 +165,13 @@ public class RelationAnalyzer
         return ret;
     }
     
-    public List<Relation> getRelationsFor(Area a1, Area a2)
+    public Set<Relation> getRelationsFor(Area a1, Area a2, float minWeight)
     {
-        //TODO
-        return new ArrayList<>();
+        List<AreaConnection> conns = getConnections(a1, null, a2, minWeight);
+        Set<Relation> ret = new HashSet<>();
+        for (AreaConnection con : conns)
+            ret.add(con.getRelation());
+        return ret;
     }
     
     public TagConnectionList getTagConnections()

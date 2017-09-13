@@ -8,6 +8,7 @@ package org.fit.layout.patterns;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -162,6 +163,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, 0.09f); //TODO minSupport?
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult result = findMatches(usedConf, dis, tagAreas);
+            checkResultConsistency(result);
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
             
@@ -653,18 +655,32 @@ public class AttributeGroupMatcher extends BaseMatcher
                 PatternCounter<Relation> stats = new PatternCounter<>();
                 for (Match match : result.getMatches())
                 {
-                    Area a1 = match.getSingle(t1);
-                    Area a2 = match.getSingle(t2);
-                    if (a1 != null && a2 != null)
-                    {
-                        List<Relation> rels = pa.getRelationsFor(a1, a2);
-                        stats.addAll(rels, 1.0f);
-                    }
+                    Set<Relation> rels = getMatchRelations(match, t1, t2);
+                    stats.addAll(rels, 1.0f);
                 }
                 //retain only the most supported matches
-                //TODO
+                if (stats.getAll().size() > 1)
+                {
+                    Relation best = stats.getMostFrequent();
+                    for (Match match : result.getMatches())
+                    {
+                        Set<Relation> rels = getMatchRelations(match, t1, t2);
+                        if (!rels.contains(best))
+                            log.warn("Match {} not consistent for {}:{}", match, t1, t2);
+                    }
+                }
             }
         }
+    }
+    
+    private Set<Relation> getMatchRelations(Match match, Tag t1, Tag t2)
+    {
+        Area a1 = match.getSingle(t1);
+        Area a2 = match.getSingle(t2);
+        if (a1 != null && a2 != null)
+            return pa.getRelationsFor(a1, a2, -1.0f);
+        else
+            return Collections.emptySet();
     }
     
     //===========================================================================================
