@@ -164,6 +164,12 @@ public class RelationAnalyzer
         return ret;
     }
     
+    public List<Relation> getRelationsFor(Area a1, Area a2)
+    {
+        //TODO
+        return new ArrayList<>();
+    }
+    
     public TagConnectionList getTagConnections()
     {
         if (tagConnections == null)

@@ -217,6 +217,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, 0.2f); //TODO minSupport?
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult match = findMatches(conf, dis, tagAreas);
+            checkResultConsistency(match);
             conf.setResult(match);
             if (bestMatch == null || bestMatch.compareTo(match) < 0)
                 bestMatch = match;
@@ -632,6 +633,38 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
         }
         return ret;
+    }
+    
+    /**
+     * Checks the consistency of the match results and ensures that all the matches have the same
+     * relationships between each pair of attributes. Preserves the most supported matches and
+     * removes the inconsistent ones.
+     * @param result
+     */
+    private void checkResultConsistency(MatchResult result)
+    {
+        Tag[] tags = usedTags.toArray(new Tag[0]);
+        //scan relations between tag pairs
+        for (Tag t1 : tags)
+        {
+            for (Tag t2 : tags)
+            {
+                //gather statistics
+                PatternCounter<Relation> stats = new PatternCounter<>();
+                for (Match match : result.getMatches())
+                {
+                    Area a1 = match.getSingle(t1);
+                    Area a2 = match.getSingle(t2);
+                    if (a1 != null && a2 != null)
+                    {
+                        List<Relation> rels = pa.getRelationsFor(a1, a2);
+                        stats.addAll(rels, 1.0f);
+                    }
+                }
+                //retain only the most supported matches
+                //TODO
+            }
+        }
     }
     
     //===========================================================================================
