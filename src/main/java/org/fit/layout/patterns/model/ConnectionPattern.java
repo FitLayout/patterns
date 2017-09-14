@@ -38,4 +38,12 @@ public class ConnectionPattern extends LinkedHashSet<TagConnection>
         return ret;
     }
     
+    public Set<TagPair> getPairs()
+    {
+        Set<TagPair> ret = new HashSet<>();
+        for (TagConnection con : this)
+            ret.add(con.toPair());
+        return ret;
+    }
+    
 }

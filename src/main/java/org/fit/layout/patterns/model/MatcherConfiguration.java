@@ -19,7 +19,8 @@ import org.fit.layout.model.Tag;
 public class MatcherConfiguration
 {
     private Map<Tag, AreaStyle> styleMap;
-    private ConnectionPattern pattern;
+    private ConnectionPattern pattern; //the main connection pattern to search
+    private ConnectionPattern constraints; //additional constraints that should be followed (or null if none)
     private Set<Tag> tags;
     private MatchResult result;
     
@@ -56,11 +57,22 @@ public class MatcherConfiguration
         return tags;
     }
 
+    public ConnectionPattern getConstraints()
+    {
+        return constraints;
+    }
+
+    public void setConstraints(ConnectionPattern constraints)
+    {
+        this.constraints = constraints;
+    }
+
     @Override
     public String toString()
     {
-        String rs = (getResult() == null) ? "not checked" : getResult().toString(); 
-        return getPattern() + " " + getStyleMap() + " (" + rs + ")";
+        String rs = (getResult() == null) ? "not checked" : getResult().toString();
+        String cons = (getConstraints() == null) ? "" : " [&& " + getConstraints() + "]";
+        return getPattern() + cons + " " + getStyleMap() + " (" + rs + ")";
     }
 
     @Override
@@ -68,6 +80,7 @@ public class MatcherConfiguration
     {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
         result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());
         result = prime * result + ((styleMap == null) ? 0 : styleMap.hashCode());
         return result;
@@ -80,6 +93,11 @@ public class MatcherConfiguration
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         MatcherConfiguration other = (MatcherConfiguration) obj;
+        if (constraints == null)
+        {
+            if (other.constraints != null) return false;
+        }
+        else if (!constraints.equals(other.constraints)) return false;
         if (pattern == null)
         {
             if (other.pattern != null) return false;
@@ -92,6 +110,6 @@ public class MatcherConfiguration
         else if (!styleMap.equals(other.styleMap)) return false;
         return true;
     }
-    
+
     
 }

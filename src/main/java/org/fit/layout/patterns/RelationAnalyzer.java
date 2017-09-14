@@ -165,6 +165,13 @@ public class RelationAnalyzer
         return ret;
     }
     
+    /**
+     * Finds all relations between a pair of areas in the page.
+     * @param a1 the first area
+     * @param a2 the second area
+     * @param minWeight minimal relation weight to be considered
+     * @return A set of all relations found between {@code a1} and {@code a2}
+     */
     public Set<Relation> getRelationsFor(Area a1, Area a2, float minWeight)
     {
         List<AreaConnection> conns = getConnections(a1, null, a2, minWeight);

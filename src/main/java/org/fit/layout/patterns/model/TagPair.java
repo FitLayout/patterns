@@ -20,4 +20,9 @@ public class TagPair extends Pair<Tag>
         super(o1, o2);
     }
 
+    public TagPair reverse()
+    {
+        return new TagPair(getO2(), getO1());
+    }
+    
 }

@@ -163,7 +163,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, 0.09f); //TODO minSupport?
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult result = findMatches(usedConf, dis, tagAreas);
-            checkResultConsistency(result);
+            //inferConsistencyConstraints(usedConf, result); //TODO to be removed from here (the constraints should have been inferred before)
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
             
@@ -219,7 +219,14 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, 0.2f); //TODO minSupport?
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult match = findMatches(conf, dis, tagAreas);
-            checkResultConsistency(match);
+            //check whether the match is consistent
+            ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
+            if (constraints.size() > 0)
+            {
+                //some more constraints are necessary for ensuring the match consistency
+                conf.setConstraints(constraints);
+                match = findMatches(conf, dis, tagAreas);
+            }
             conf.setResult(match);
             if (bestMatch == null || bestMatch.compareTo(match) < 0)
                 bestMatch = match;
@@ -535,12 +542,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             Match match = new Match(); 
             match.putSingle(curPair.getA2(), a);
-            recursiveFindMatchesFor(a, curPair, pairs, match, matches, matchedAreas, dis, tagAreas);
+            recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas);
         }
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
         Set<Area> destSet = tagAreas.get(curPair.getA1());
@@ -571,7 +578,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     if (nextPair != null)
                     {
                         Area seed = nextMatch.getSingle(nextPair.getA2());
-                        matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, matches, matchedAreas, dis, tagAreas);
+                        matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, constraints, matches, matchedAreas, dis, tagAreas);
                     }
                     else
                     {
@@ -581,11 +588,16 @@ public class AttributeGroupMatcher extends BaseMatcher
                 }
                 else //no pairs remaining -- a complete match
                 {
-                    log.debug("Adding: " + nextMatch);
                     matched = true;
-                    matches.add(nextMatch);
-                    for (List<Area> matchAreas : nextMatch.values())
-                        matchedAreas.addAll(matchAreas);
+                    if (constraints == null || matchesConstraints(nextMatch, constraints))
+                    {
+                        log.debug("Adding: {}", nextMatch);
+                        matches.add(nextMatch);
+                        for (List<Area> matchAreas : nextMatch.values())
+                            matchedAreas.addAll(matchAreas);
+                    }
+                    else
+                        log.debug("Skipping inconsistent match: {}", nextMatch);
                 }
                 
                 if (matched) //successfully matched until the end of the sequence
@@ -638,41 +650,83 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     /**
-     * Checks the consistency of the match results and ensures that all the matches have the same
-     * relationships between each pair of attributes. Preserves the most supported matches and
-     * removes the inconsistent ones.
-     * @param result
+     * Checks the consistency of the matchig result and ensures that all the matches have the same
+     * relationships between each pair of attributes. If the matching result is inconsistent (there are
+     * different relations used for the same pair of tags accross the matches), a set of constraints
+     * (additional matching rules) is generated in order to preserve the most supported matches and
+     * remove the inconsistent ones.
+     * @param conf the matcher configuration used for obtaining the matching result
+     * @param result the matching result to be checked
+     * @return An additional connection pattern to be used to make the match result consistent. Empty
+     * for fully consistnt match results.
      */
-    private void checkResultConsistency(MatchResult result)
+    private ConnectionPattern inferConsistencyConstraints(MatcherConfiguration conf, MatchResult result)
     {
-        Tag[] tags = usedTags.toArray(new Tag[0]);
-        //scan relations between tag pairs
-        for (Tag t1 : tags)
+        Tag[] tags = conf.getTags().toArray(new Tag[0]);
+        Set<TagPair> mainPairs = conf.getPattern().getPairs();
+        Set<TagPair> newPairs = new HashSet<>();
+        for (int i = 0; i < tags.length; i++)
         {
-            for (Tag t2 : tags)
+            Tag t1 = tags[i];
+            for (int j = 0; j < tags.length; j++)
             {
-                //gather statistics
-                PatternCounter<Relation> stats = new PatternCounter<>();
-                for (Match match : result.getMatches())
+                Tag t2 = tags[j];
+                TagPair cand = new TagPair(t1, t2);
+                if (!mainPairs.contains(cand) && !mainPairs.contains(cand.reverse()))
                 {
-                    Set<Relation> rels = getMatchRelations(match, t1, t2);
-                    stats.addAll(rels, 1.0f);
-                }
-                //retain only the most supported matches
-                if (stats.getAll().size() > 1)
-                {
-                    Relation best = stats.getMostFrequent();
-                    for (Match match : result.getMatches())
-                    {
-                        Set<Relation> rels = getMatchRelations(match, t1, t2);
-                        if (!rels.contains(best))
-                            log.warn("Match {} not consistent for {}:{}", match, t1, t2);
-                    }
+                    newPairs.add(cand);
                 }
             }
+        }        
+        
+        //scan relations between tag pairs
+        ConnectionPattern constraints = new ConnectionPattern(newPairs.size());
+        for (TagPair pair : newPairs)
+        {
+            //gather statistics
+            PatternCounter<Relation> stats = new PatternCounter<>();
+            for (Match match : result.getMatches())
+            {
+                Set<Relation> rels = getMatchRelations(match, pair.getO1(), pair.getO2());
+                stats.addAll(rels, 1.0f);
+            }
+            //retain only the most supported matches
+            if (stats.getAll().size() > 1) //if some constraint is necessary
+            {
+                Relation best = stats.getMostFrequent();
+                log.warn("Inconsistency found for {}, best relations is {}", pair, best);
+                constraints.add(new TagConnection(pair.getO1(), pair.getO2(), best, 1.0f));
+            }
         }
+        return constraints;
     }
     
+    /**
+     * Checks whether the given match complies with the given constraints.
+     * @param match the match to be checked
+     * @param constraints the constraints
+     * @return {@code true} when the match complies with the constraints, {@code false} otherwise. 
+     */
+    private boolean matchesConstraints(Match match, ConnectionPattern constraints)
+    {
+        for (TagConnection con : constraints)
+        {
+            Set<Relation> found = getMatchRelations(match, con.getA1(), con.getA2());
+            if (!found.contains(con.getRelation()))
+                return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Finds all different relations among two areas in the page that are specified with a particular
+     * match and their tags.
+     * @param match The match to be used.
+     * @param t1 The tag of the first area.
+     * @param t2 The tag of the second area.
+     * @return A set of relationships among the first and second area that are mapped to {@code t1} and
+     * {@code t2} in the {@code match}.
+     */
     private Set<Relation> getMatchRelations(Match match, Tag t1, Tag t2)
     {
         Area a1 = match.getSingle(t1);
