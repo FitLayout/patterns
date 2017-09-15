@@ -41,10 +41,23 @@ public class MatchResult implements Comparable<MatchResult>
         return matchedAreas;
     }
     
+    public float getAverageConnectionWeight()
+    {
+        if (matches.size() > 0)
+        {
+            float sum = 0;
+            for (Match match : matches)
+                sum += match.getAverageConnectionWeight();
+            return sum / matches.size();
+        }
+        else
+            return 0;
+    }
+    
     @Override
     public String toString()
     {
-        return matches.size() + " matches, " + matchedAreas.size() + " areas covered";
+        return matches.size() + " matches, " + matchedAreas.size() + " areas covered, w=" + getAverageConnectionWeight();
     }
 
     @Override
@@ -55,7 +68,22 @@ public class MatchResult implements Comparable<MatchResult>
         else if (this.getMatchedAreas().size() < o.getMatchedAreas().size())
             return -1;
         else
-            return this.getMatches().size() - o.getMatches().size();
+        {
+            
+            if (this.getMatches().size() > o.getMatches().size())
+                return 1;
+            else if (this.getMatches().size() < o.getMatches().size())
+                return -1;
+            else
+            {
+                if (this.getAverageConnectionWeight() > o.getAverageConnectionWeight())
+                    return 1;
+                else if (this.getAverageConnectionWeight() < o.getAverageConnectionWeight())
+                    return -1;
+                else
+                    return 0;
+            }
+        }
     }
     
     //==================================================================================================

@@ -103,6 +103,19 @@ public class Match extends HashMap<Tag, List<Area>>
         return ret;
     }
     
+    public float getAverageConnectionWeight()
+    {
+        if (areaConnections.size() > 0)
+        {
+            float sum = 0;
+            for (AreaConnection con : areaConnections)
+                sum += con.getWeight();
+            return sum / areaConnections.size();
+        }
+        else
+            return 0;
+    }
+    
     /**
      * Creates an union of this match with another match. Adds all the areas assigned
      * by the source match to this match.
