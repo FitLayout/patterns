@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -239,11 +240,33 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<MatcherConfiguration> best = new ArrayList<>();
         if (bestMatch != null)
         {
-            for (MatcherConfiguration conf : all)
+            //sort by result score
+            all.sort(new Comparator<MatcherConfiguration>()
+            {
+                @Override
+                public int compare(MatcherConfiguration o1, MatcherConfiguration o2)
+                {
+                    MatchResult r1 = o1.getResult();
+                    MatchResult r2 = o2.getResult();
+                    if (r1 == null && r2 == null)
+                        return 0;
+                    else if (r1 == null)
+                        return 1;
+                    else if (r2 == null)
+                        return -1;
+                    else
+                        return r2.compareTo(r1);
+                }
+            });
+            
+            //choose first few
+            best = all.subList(0, Math.min(50, all.size()));
+            
+            /*for (MatcherConfiguration conf : all)
             {
                 if (conf.getResult() != null && conf.getResult().compareTo(bestMatch) == 0)
                     best.add(conf);
-            }
+            }*/
         }
         
         return best;
