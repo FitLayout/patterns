@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +24,42 @@ import org.fit.layout.model.Tag;
  */
 public class MatchResult implements Comparable<MatchResult>
 {
+    /** A list of comparators that are used for comparing the match result in the given order. */
+    private static List<Comparator<MatchResult>> cclist;
+    static {
+        cclist = new ArrayList<>(5);
+        cclist.add(new Comparator<MatchResult>() //number of matched areas
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                return o1.getMatchedAreas().size() - o2.getMatchedAreas().size();
+            }
+        });
+        cclist.add(new Comparator<MatchResult>() //total number of matches found
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                return o1.getMatches().size() - o2.getMatches().size();
+            }
+        });
+        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
+                    return 1;
+                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
+    }
+
+    
     private List<Match> matches;
     private Set<Area> matchedAreas;
     
@@ -88,27 +126,13 @@ public class MatchResult implements Comparable<MatchResult>
     @Override
     public int compareTo(MatchResult o)
     {
-        if (this.getMatchedAreas().size() > o.getMatchedAreas().size())
-            return 1;
-        else if (this.getMatchedAreas().size() < o.getMatchedAreas().size())
-            return -1;
-        else
+        for (Comparator<MatchResult> cc : cclist)
         {
-            
-            if (this.getMatches().size() > o.getMatches().size())
-                return 1;
-            else if (this.getMatches().size() < o.getMatches().size())
-                return -1;
-            else
-            {
-                if (this.getAverageConnectionWeight() > o.getAverageConnectionWeight())
-                    return 1;
-                else if (this.getAverageConnectionWeight() < o.getAverageConnectionWeight())
-                    return -1;
-                else
-                    return 0;
-            }
+            int comp = cc.compare(this, o);
+            if (comp != 0)
+                return comp;
         }
+        return 0;
     }
     
     //==================================================================================================
