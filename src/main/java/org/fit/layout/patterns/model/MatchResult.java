@@ -41,6 +41,10 @@ public class MatchResult implements Comparable<MatchResult>
         return matchedAreas;
     }
     
+    /**
+     * Computes the average value of the weights of the matches conatined in this result.
+     * @return The average weight of the matches or 0 for an empty match result
+     */
     public float getAverageConnectionWeight()
     {
         if (matches.size() > 0)
@@ -54,10 +58,31 @@ public class MatchResult implements Comparable<MatchResult>
             return 0;
     }
     
+    /**
+     * Computes the standard deviation of the weights of the matches conatined in this result.
+     * @return The standard deviation of the matches or 0 for an empty match result
+     */
+    public float getConnectionWeightSigma()
+    {
+        if (matches.size() > 0)
+        {
+            final float e = getAverageConnectionWeight();
+            float sum = 0;
+            for (Match match : matches)
+            {
+                float dif = match.getAverageConnectionWeight() - e;
+                sum += dif * dif;
+            }
+            return (float) Math.sqrt(sum / matches.size());
+        }
+        else
+            return 0;
+    }
+    
     @Override
     public String toString()
     {
-        return matches.size() + " matches, " + matchedAreas.size() + " areas covered, w=" + getAverageConnectionWeight();
+        return matches.size() + " matches, " + matchedAreas.size() + " areas covered, w=" + getAverageConnectionWeight() + ", s=" + getConnectionWeightSigma();
     }
 
     @Override
