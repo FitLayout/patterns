@@ -28,6 +28,48 @@ public class MatchResult implements Comparable<MatchResult>
     private static List<Comparator<MatchResult>> cclist;
     static {
         cclist = new ArrayList<>(5);
+        cclist.add(new Comparator<MatchResult>() //number of matched areas above a threshold
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getStats() != null && o1.getStats() == o2.getStats())
+                {
+                    final int threshold = o1.getStats().getMaxAreas() / 2;
+                    int t1 = (o1.getMatchedAreas().size() > threshold) ? 1 : 0;
+                    int t2 = (o2.getMatchedAreas().size() > threshold) ? 1 : 0;
+                    return t1 - t2;
+                }
+                else
+                    return 0; //cannot compare, use next comparators
+            }
+        });
+        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
+                    return 1;
+                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
+        cclist.add(new Comparator<MatchResult>() //connection weight standard deviation (lower is better)
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getConnectionWeightSigma() < o2.getConnectionWeightSigma())
+                    return 1;
+                else if (o1.getConnectionWeightSigma() > o2.getConnectionWeightSigma())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
         cclist.add(new Comparator<MatchResult>() //number of matched areas
         {
             @Override
@@ -44,29 +86,18 @@ public class MatchResult implements Comparable<MatchResult>
                 return o1.getMatches().size() - o2.getMatches().size();
             }
         });
-        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
-                    return 1;
-                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
-                    return -1;
-                else
-                    return 0;
-            }
-        });
     }
 
     
     private List<Match> matches;
     private Set<Area> matchedAreas;
+    private MatchStatistics stats;
     
     public MatchResult(List<Match> matches, Set<Area> matchedAreas)
     {
         this.matches = matches;
         this.matchedAreas = matchedAreas;
+        this.stats = null;
     }
 
     public List<Match> getMatches()
@@ -79,6 +110,17 @@ public class MatchResult implements Comparable<MatchResult>
         return matchedAreas;
     }
     
+    public MatchStatistics getStats()
+    {
+        return stats;
+    }
+
+    public void setStats(MatchStatistics stats)
+    {
+        this.stats = stats;
+        updateStats();
+    }
+
     /**
      * Computes the average value of the weights of the matches conatined in this result.
      * @return The average weight of the matches or 0 for an empty match result
@@ -157,6 +199,14 @@ public class MatchResult implements Comparable<MatchResult>
                 it.remove();
             }
         }
+    }
+    
+    //==================================================================================================
+    
+    public void updateStats()
+    {
+        stats.setMaxMatches(Math.max(stats.getMaxMatches(), getMatches().size()));
+        stats.setMaxAreas(Math.max(stats.getMaxAreas(), getMatchedAreas().size()));
     }
     
 }

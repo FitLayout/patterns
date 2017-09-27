@@ -25,6 +25,7 @@ import org.fit.layout.patterns.model.ConnectionList;
 import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
+import org.fit.layout.patterns.model.MatchStatistics;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagConnectionList;
@@ -198,6 +199,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         //System.out.println(all.get(0));
         
         //find the best coverage
+        MatchStatistics stats = new MatchStatistics();
         MatchResult bestMatch = null;
         int i = 0;
         for (MatcherConfiguration conf : all)
@@ -228,6 +230,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 conf.setConstraints(constraints);
                 match = findMatches(conf, dis, tagAreas);
             }
+            match.setStats(stats);
             conf.setResult(match);
             if (bestMatch == null || bestMatch.compareTo(match) < 0)
                 bestMatch = match;
@@ -834,7 +837,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
         }
         //create pattern analyzer
-        pa = new RelationAnalyzerSymmetric(areas);
+        pa = new RelationAnalyzer(areas);
+        //pa = new RelationAnalyzerSymmetric(areas);
         //discover tag chains used for disambiguation
         /*ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, getTags(), attrs.get(0).getMinSupport());
         chains = ca.findConsistentChains(new RelationUnder());
