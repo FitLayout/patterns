@@ -41,6 +41,13 @@ import org.slf4j.LoggerFactory;
 public class AttributeGroupMatcher extends BaseMatcher
 {
     private static Logger log = LoggerFactory.getLogger(AttributeGroupMatcher.class);
+    
+    /** Maximal number of best performing configurations returned */
+    private static final int BEST_CANDIDATE_LIMIT = 200;
+    /** Minimal support of a style in the source data for using it in generated configurations */
+    private static final float MIN_SUPPORT_STYLE = 0.1f;
+    /** Minimal support of the relation in the source data for using it in generated configurations */
+    private static final float MIN_SUPPORT_RELATIONS = 0.45f;
 
     private List<Attribute> attrs; //list of all attributes
     private Set<Tag> allTags; //set of all tags assigned to the attributes
@@ -263,7 +270,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             });
             
             //choose first few
-            best = all.subList(0, Math.min(50, all.size()));
+            best = all.subList(0, Math.min(BEST_CANDIDATE_LIMIT, all.size()));
             
             /*for (MatcherConfiguration conf : all)
             {
@@ -284,8 +291,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<MatcherConfiguration> generateConfigurations()
     {
         List<MatcherConfiguration> ret = new ArrayList<>();
-        List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(0.1f);
-        Set<ConnectionPattern> patterns = generateConnectionPatterns(0.75f);
+        List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(MIN_SUPPORT_STYLE);
+        Set<ConnectionPattern> patterns = generateConnectionPatterns(MIN_SUPPORT_RELATIONS);
         for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
         {
             for (ConnectionPattern conns : patterns)
