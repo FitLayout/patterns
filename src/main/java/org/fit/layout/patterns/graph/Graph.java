@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An extraction graph.
@@ -118,6 +119,19 @@ public class Graph
         return ret;
     }
     
+    public boolean containsEdgeBetween(Node n1, Node n2)
+    {
+        Set<Edge> cands = edgeIndex.get(n1.getId());
+        for (Edge e : cands)
+        {
+            if (e.getDstId() == n2.getId())
+                return true;
+        }
+        return false;
+    }
+    
+    //===============================================================================
+    
     public List<Path> getPathsFrom(Node start)
     {
         //recursively find all paths from the starting node
@@ -156,5 +170,65 @@ public class Graph
         }
     }
     
+    //===============================================================================
+
+    public void getGroups()
+    {
+        //create a group for every datatype node
+        Set<Group> groups = new HashSet<>();
+        List<Node> nodeList = new ArrayList<>(nodes.values());
+        for (Iterator<Node> it = nodeList.iterator(); it.hasNext();)
+        {
+            Node n = it.next();
+            if (!n.isObject())
+            {
+                groups.add(new Group(n));
+                it.remove();
+            }
+        }
+        //try to group the groups using object nodes
+        boolean change = true;
+        while (change)
+        {
+            change = false;
+            for (Iterator<Node> it = nodeList.iterator(); it.hasNext() && !change;)
+            {
+                Node n = it.next();
+                if (isOnMSide(n))
+                {
+                    System.out.println(n + " is on M side ");
+                    List<Group> subGroups = groups.stream().filter(g -> containsEdgeBetween(n, g.getRoot())).collect(Collectors.toList());
+                    System.out.println("sub: " + subGroups);
+                    if (subGroups.size() > 1 && subGroups.size() < groups.size())
+                    {
+                        Group newgroup = new Group(n);
+                        newgroup.setSubGroups(subGroups);
+                        groups.removeAll(subGroups);
+                        groups.add(newgroup);
+                        it.remove();
+                        change = true;
+                    }
+                }
+            }
+        }
+        System.out.println(groups);
+        System.out.println("remain: " + nodeList);
+    }
+    
+    /**
+     * Check whether a node is on the MANY side of any edge
+     * @param n
+     * @return
+     */
+    private boolean isOnMSide(Node n)
+    {
+        Set<EdgeNodePair> pairs = getNeighborsOf(n);
+        for (EdgeNodePair pair : pairs)
+        {
+            if (pair.isSrcMany())
+                return true;
+        }
+        return false;
+    }
     
 }
