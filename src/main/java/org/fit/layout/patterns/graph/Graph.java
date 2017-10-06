@@ -130,6 +130,17 @@ public class Graph
         return false;
     }
     
+    public boolean contains1xEdgeBetween(Node n1, Node n2)
+    {
+        Set<Edge> cands = edgeIndex.get(n1.getId());
+        for (Edge e : cands)
+        {
+            if (!e.isSrcMany() && e.getDstId() == n2.getId())
+                return true;
+        }
+        return false;
+    }
+    
     //===============================================================================
     
     public List<Path> getPathsFrom(Node start)
@@ -197,7 +208,9 @@ public class Graph
                 if (isOnMSide(n))
                 {
                     System.out.println(n + " is on M side ");
-                    List<Group> subGroups = groups.stream().filter(g -> containsEdgeBetween(n, g.getRoot())).collect(Collectors.toList());
+                    List<Group> subGroups = groups.stream()
+                            .filter(g -> contains1xEdgeBetween(n, g.getRoot()))
+                            .collect(Collectors.toList());
                     System.out.println("sub: " + subGroups);
                     if (subGroups.size() > 1 && subGroups.size() < groups.size())
                     {
@@ -205,9 +218,10 @@ public class Graph
                         newgroup.setSubGroups(subGroups);
                         groups.removeAll(subGroups);
                         groups.add(newgroup);
-                        it.remove();
                         change = true;
                     }
+                    System.out.println("removing " + n);
+                    it.remove();
                 }
             }
         }
