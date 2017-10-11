@@ -16,6 +16,8 @@ public class Node
     private String[] uris;
     private String title;
     private boolean object;
+    private boolean primary;
+    private String tagger;
     
     public long getId()
     {
@@ -65,6 +67,26 @@ public class Node
     public void setObject(boolean object)
     {
         this.object = object;
+    }
+
+    public boolean isPrimary()
+    {
+        return primary;
+    }
+
+    public void setPrimary(boolean primary)
+    {
+        this.primary = primary;
+    }
+
+    public String getTagger()
+    {
+        return tagger;
+    }
+
+    public void setTagger(String tagger)
+    {
+        this.tagger = tagger;
     }
 
     @Override

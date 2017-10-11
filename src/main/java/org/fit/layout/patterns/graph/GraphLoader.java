@@ -39,6 +39,11 @@ public class GraphLoader
         return jsonElement.isJsonNull() ? "" : jsonElement.getAsString();
     }
     
+    private static boolean getNullAsFalse(JsonElement jsonElement) 
+    {
+        return (jsonElement == null || jsonElement.isJsonNull()) ? false : jsonElement.getAsBoolean();
+    }
+    
     private static class GraphDeserializer implements JsonDeserializer<Graph>
     {
         @Override
@@ -53,7 +58,11 @@ public class GraphLoader
             
             Node[] nodes = context.deserialize(jGraph.get("nodes"), Node[].class);
             for (Node node : nodes)
+            {
                 ret.addNode(node);
+                if (node.isPrimary() && ret.getPrimaryNode() == null)
+                    ret.setPrimaryNode(node);
+            }
             
             Edge[] edges = context.deserialize(jGraph.get("edges"), Edge[].class);
             for (Edge edge : edges)
@@ -76,6 +85,10 @@ public class GraphLoader
             JsonObject jValues = jNode.get("values").getAsJsonObject();
             ret.setTitle(GraphLoader.getNullAsEmptyString(jValues.get("title")));
             ret.setObject(jValues.get("object").getAsBoolean());
+            ret.setPrimary(GraphLoader.getNullAsFalse(jValues.get("primary")));
+            JsonElement tagger = jValues.get("tagger");
+            if (tagger != null && !tagger.isJsonNull())
+                ret.setTagger(tagger.getAsString().trim());
             String[] uris = context.deserialize(jValues.get("uris"), String[].class);
             ret.setUris(uris);
             

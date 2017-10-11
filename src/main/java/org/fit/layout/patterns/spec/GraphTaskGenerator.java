@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns.spec;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,31 +31,25 @@ public class GraphTaskGenerator
     private static Logger log = LoggerFactory.getLogger(GraphTaskGenerator.class);
 
     private Graph graph;
-    private Node mainNode;
     private List<Path> targetPaths;
     private Map<Node, RDFTag> targetNodes;
     private Map<Node, Tagger> taggers;
     private float minSupport = 0.3f;
     
     
-    public GraphTaskGenerator(Graph graph, Node mainNode)
+    public GraphTaskGenerator(Graph graph)
     {
         this.graph = graph;
-        this.mainNode = mainNode;
         
-        targetPaths = graph.getDatatypePathsFrom(mainNode);
+        targetPaths = graph.getDatatypePathsFrom(graph.getPrimaryNode());
         targetNodes = findTargetNodes(targetPaths);
-        taggers = new HashMap<>(); 
+        taggers = new HashMap<>();
+        mapDefaultTaggers();
     }
 
     public Graph getGraph()
     {
         return graph;
-    }
-    
-    public Node getMainNode()
-    {
-        return mainNode;
     }
     
     public Collection<RDFTag> getAssignedTags()
@@ -64,13 +60,21 @@ public class GraphTaskGenerator
     public void mapTagger(String uri, Tagger tagger)
     {
         Node node = graph.findNodeByUri(uri);
-        if (node != null && targetNodes.containsKey(node))
+        if (node != null)
+            mapTagger(node, tagger);
+        else
+            log.error("Couldn't map tagger to unknown node URI: {}", uri);
+    }
+    
+    public void mapTagger(Node node, Tagger tagger)
+    {
+        if (targetNodes.containsKey(node))
         {
             taggers.put(node, tagger);
             log.info("Mapped tagger {} for {}", tagger.toString(), node.toString());
         }
         else
-            log.error("Couldn't map tagger to unknown node URI: {}", uri);
+            log.error("Couldn't map tagger to unknown node: {}", node);
     }
     
     public AttributeGroupMatcher createTask()
@@ -137,6 +141,31 @@ public class GraphTaskGenerator
             }
         }
         return ret;
+    }
+    
+    private void mapDefaultTaggers()
+    {
+        for (Node n : targetNodes.keySet())
+        {
+            String taggerName = n.getTagger();
+            if (taggerName != null)
+            {
+                try
+                {
+                    Class<?> clazz = Class.forName(taggerName);
+                    Constructor<?> cons = clazz.getConstructor();
+                    Object tagger = cons.newInstance();
+                    if (tagger instanceof Tagger)
+                        mapTagger(n, (Tagger) tagger);
+                    else
+                        log.error("Couldn't instantiate tagger {}: tagger is not instance of Tagger", taggerName);
+                } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                    log.error("Couldn't instantiate tagger {}: {}", taggerName, e.getMessage());
+                }
+            }
+            else
+                log.warn("No default tagger registered for {}", n);
+        }
     }
     
 }

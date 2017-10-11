@@ -23,6 +23,7 @@ public class Graph
 {
     private long id;
     private String title;
+    private Node primaryNode;
     private Map<Long, Node> nodes;
     private List<Edge> edges;
     private Map<Long, Set<Edge>> edgeIndex;
@@ -34,6 +35,7 @@ public class Graph
         edges = new ArrayList<>();
         edgeIndex = new HashMap<>();
         nodeUriIndex = new HashMap<>();
+        primaryNode = null;
     }
     
     public long getId()
@@ -56,6 +58,16 @@ public class Graph
         this.title = title;
     }
     
+    public Node getPrimaryNode()
+    {
+        return primaryNode;
+    }
+
+    public void setPrimaryNode(Node primaryNode)
+    {
+        this.primaryNode = primaryNode;
+    }
+
     public Map<Long, Node> getNodes()
     {
         return nodes;
