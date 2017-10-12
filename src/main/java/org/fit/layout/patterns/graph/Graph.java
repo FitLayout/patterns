@@ -313,14 +313,13 @@ public class Graph
                             .filter(g -> contains1xEdgeBetween(n, g.getRoot()))
                             .collect(Collectors.toList());
                     System.out.println("sub: " + subGroups);
-                    if (subGroups.size() > 1 && subGroups.size() < groups.size())
-                    {
-                        Group newgroup = new Group(n);
-                        newgroup.setSubGroups(subGroups);
-                        groups.removeAll(subGroups);
-                        groups.add(newgroup);
-                        change = true;
-                    }
+                    
+                    Group newgroup = new Group(n);
+                    newgroup.setSubGroups(subGroups);
+                    groups.removeAll(subGroups);
+                    groups.add(newgroup);
+                    change = true;
+                    
                     System.out.println("removing " + n);
                     it.remove();
                 }
