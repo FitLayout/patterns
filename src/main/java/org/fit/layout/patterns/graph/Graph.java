@@ -6,6 +6,7 @@
 package org.fit.layout.patterns.graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An extraction graph.
@@ -83,6 +85,8 @@ public class Graph
         nodes.put(node.getId(), node);
         for (String uri : node.getUris())
             nodeUriIndex.put(uri, node);
+        if (node.isPrimary() && getPrimaryNode() == null)
+            setPrimaryNode(node);
     }
     
     public void addEdge(Edge edge)
@@ -131,6 +135,18 @@ public class Graph
         return ret;
     }
     
+    public List<Edge> getEdgesBetween(Node n1, Node n2)
+    {
+        List<Edge> ret = new ArrayList<>();
+        Set<Edge> cands = edgeIndex.get(n1.getId());
+        for (Edge e : cands)
+        {
+            if (e.getDstId() == n2.getId())
+                ret.add(e);
+        }
+        return ret;
+    }
+    
     public boolean containsEdgeBetween(Node n1, Node n2)
     {
         Set<Edge> cands = edgeIndex.get(n1.getId());
@@ -151,6 +167,79 @@ public class Graph
                 return true;
         }
         return false;
+    }
+    
+    public Node[] getNodesForEdge(Edge e)
+    {
+        Node[] ret = new Node[2];
+        ret[0] = nodes.get(e.getSrcId());
+        ret[1] = nodes.get(e.getDstId());
+        return ret;
+    }
+    
+    /**
+     * Joins the object node pairs that are only connected with a 1:1 relationship to a single nodes.
+     * @return a new graph with the nodes collapsed
+     */
+    public Graph collapse()
+    {
+        Set<Node> newNodes = new HashSet<Node>(nodes.values());
+        Set<Edge> newEdges = new HashSet<Edge>(edges);
+        boolean change = true;
+        while (change)
+        {
+            change = false;
+            for (Iterator<Edge> it = newEdges.iterator(); it.hasNext();)
+            {
+                Edge e = it.next();
+                if (!e.isSrcMany() && !e.isDstMany())
+                {
+                    Node[] n = getNodesForEdge(e);
+                    if (n[0].isObject() && n[1].isObject())
+                    {
+                        List<Edge> ebetween =  getEdgesBetween(n[0], n[1]);
+                        if (ebetween.size() == 1)
+                        {
+                            //System.out.println("Collapsing " + n[0] + " = " + n[1]);
+                            //System.out.println("Removing " + e);
+                            it.remove();
+                            newNodes.remove(n[0]);
+                            newNodes.remove(n[1]);
+                            Node nn = createJoinedNode(n[0], n[1]);
+                            newNodes.add(nn);
+                            //reconnect edges
+                            for (Edge ne : newEdges)
+                            {
+                                if (ne.getSrcId() == n[1].getId())
+                                    ne.setSrcId(n[0].getId());
+                                else if (ne.getDstId() == n[1].getId())
+                                    ne.setDstId(n[0].getId());
+                            }
+                            change = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        //create the new graph
+        Graph ret = new Graph();
+        for (Node n : newNodes)
+            ret.addNode(n);
+        for (Edge e : newEdges)
+            ret.addEdge(e);
+        return ret;
+    }
+    
+    private Node createJoinedNode(Node n1, Node n2)
+    {
+        Node nn = new Node();
+        nn.setId(n1.getId());
+        nn.setObject(true);
+        nn.setUris(Stream.concat(Arrays.stream(n1.getUris()), Arrays.stream(n2.getUris())).toArray(size -> new String[size]));
+        nn.setTitle(n1.getTitle()+"="+n2.getTitle());
+        nn.setPrimary(n1.isPrimary() || n2.isPrimary());
+        return nn;
     }
     
     //===============================================================================

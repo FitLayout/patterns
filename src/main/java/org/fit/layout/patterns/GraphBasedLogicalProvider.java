@@ -55,7 +55,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     {
         GraphLoader gl = new GraphLoader();
         Reader r = new InputStreamReader(is);
-        Graph g = gl.loadFromJson(r);
+        Graph g = gl.loadFromJson(r).collapse();
         log.info("Graph {} : {} ", g.getId(), g.getTitle());
         log.info("Loaded {} nodes {} edges", g.getNodes().size(), g.getEdges().size());
         log.info("Paths:");

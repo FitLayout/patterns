@@ -58,11 +58,7 @@ public class GraphLoader
             
             Node[] nodes = context.deserialize(jGraph.get("nodes"), Node[].class);
             for (Node node : nodes)
-            {
                 ret.addNode(node);
-                if (node.isPrimary() && ret.getPrimaryNode() == null)
-                    ret.setPrimaryNode(node);
-            }
             
             Edge[] edges = context.deserialize(jGraph.get("edges"), Edge[].class);
             for (Edge edge : edges)
