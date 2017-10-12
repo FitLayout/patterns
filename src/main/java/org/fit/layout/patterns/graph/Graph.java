@@ -315,6 +315,7 @@ public class Graph
                     System.out.println("sub: " + subGroups);
                     
                     Group newgroup = new Group(n);
+                    newgroup.setMany(true);
                     newgroup.setSubGroups(subGroups);
                     groups.removeAll(subGroups);
                     groups.add(newgroup);

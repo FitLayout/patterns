@@ -17,11 +17,13 @@ import java.util.stream.Collectors;
 public class Group
 {
     private Node root;
+    private boolean many;
     private List<Group> subGroups;
     
     public Group(Node root)
     {
         this.root = root;
+        this.many = false;
         this.subGroups = new ArrayList<>();
     }
 
@@ -33,6 +35,16 @@ public class Group
     public void setRoot(Node root)
     {
         this.root = root;
+    }
+
+    public boolean isMany()
+    {
+        return many;
+    }
+
+    public void setMany(boolean many)
+    {
+        this.many = many;
     }
 
     public List<Group> getSubGroups()
@@ -54,7 +66,7 @@ public class Group
     public String toString()
     {
         String sub = subGroups.stream().map(g -> g.toString()).collect(Collectors.joining(","));
-        return root.toString() + "[" + sub + "]";
+        return (isMany() ? "*":"") + root.toString() + "[" + sub + "]";
     }
 
     @Override
