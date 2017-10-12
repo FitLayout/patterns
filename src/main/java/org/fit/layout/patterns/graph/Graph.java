@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -287,14 +286,14 @@ public class Graph
     public void getGroups()
     {
         //create a group for every datatype node
-        Set<Group> groups = new HashSet<>();
-        List<Node> nodeList = new ArrayList<>(nodes.values());
+        Map<Node, Group> groups = new HashMap<>();
+        Set<Node> nodeList = new HashSet<>(nodes.values());
         for (Iterator<Node> it = nodeList.iterator(); it.hasNext();)
         {
             Node n = it.next();
             if (!n.isObject())
             {
-                groups.add(new Group(n));
+                groups.put(n, new Group(n));
                 it.remove();
             }
         }
@@ -306,44 +305,34 @@ public class Graph
             for (Iterator<Node> it = nodeList.iterator(); it.hasNext() && !change;)
             {
                 Node n = it.next();
-                if (isOnMSide(n))
+                //find all connections to already grouped nodes
+                Set<EdgeNodePair> neighbors = getNeighborsOf(n);
+                List<Group> subGroups = new ArrayList<>(neighbors.size());
+                for (EdgeNodePair neigh : neighbors)
                 {
-                    System.out.println(n + " is on M side ");
-                    List<Group> subGroups = groups.stream()
-                            .filter(g -> contains1xEdgeBetween(n, g.getRoot()))
-                            .collect(Collectors.toList());
-                    System.out.println("sub: " + subGroups);
-                    
+                    Group sub = groups.get(neigh.getNode());
+                    if (sub != null)
+                    {
+                        sub.setMany(neigh.getEdge().isDstMany());
+                        subGroups.add(sub);
+                    }
+                }
+                //create a subgroup
+                if (!subGroups.isEmpty())
+                {
                     Group newgroup = new Group(n);
-                    newgroup.setMany(true);
-                    newgroup.setSubGroups(subGroups);
-                    groups.removeAll(subGroups);
-                    groups.add(newgroup);
-                    change = true;
-                    
-                    System.out.println("removing " + n);
+                    for (Group sub : subGroups)
+                    {
+                        groups.remove(sub.getRoot());
+                        newgroup.addSubGroup(sub);
+                    }
+                    groups.put(n, newgroup);
                     it.remove();
                 }
             }
         }
-        System.out.println(groups);
+        System.out.println(groups.values());
         System.out.println("remain: " + nodeList);
-    }
-    
-    /**
-     * Check whether a node is on the MANY side of any edge
-     * @param n
-     * @return
-     */
-    private boolean isOnMSide(Node n)
-    {
-        Set<EdgeNodePair> pairs = getNeighborsOf(n);
-        for (EdgeNodePair pair : pairs)
-        {
-            if (pair.isSrcMany())
-                return true;
-        }
-        return false;
     }
     
 }
