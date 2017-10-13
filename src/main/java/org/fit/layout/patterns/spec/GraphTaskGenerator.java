@@ -15,7 +15,9 @@ import java.util.Map;
 
 import org.fit.layout.classify.Tagger;
 import org.fit.layout.patterns.AttributeGroupMatcher;
+import org.fit.layout.patterns.AttributeGroupMatcher.Attribute;
 import org.fit.layout.patterns.graph.Graph;
+import org.fit.layout.patterns.graph.Group;
 import org.fit.layout.patterns.graph.Node;
 import org.fit.layout.patterns.graph.Path;
 import org.slf4j.Logger;
@@ -109,6 +111,44 @@ public class GraphTaskGenerator
                 log.error("No tagger registered for {}", n);
         }
         return new AttributeGroupMatcher(attrs);
+    }
+    
+    public List<AttributeGroupMatcher> createTasks()
+    {
+        Collection<Group> groups = graph.getGroups();
+        List<AttributeGroupMatcher> ret = new ArrayList<>();
+        recursiveAddTasks(groups, ret);
+        return ret;
+    }
+    
+    private List<Attribute> recursiveAddTasks(Collection<Group> groups, List<AttributeGroupMatcher> dest)
+    {
+        List<Attribute> attrs = new ArrayList<>();
+        for (Group group : groups)
+        {
+            List<Attribute> subattrs = recursiveAddTasks(group.getSubGroups(), dest);
+            //create a new task for groups
+            if (subattrs.size() > 1)
+                dest.add(new AttributeGroupMatcher(subattrs)); //TODO restrictions should be set here?
+            //adopt and update existing attributes
+            for (Attribute sattr : subattrs)
+            {
+                Attribute nsattr = new Attribute(sattr.getTag(),
+                        sattr.getMinSupport(), 
+                        sattr.isRequired() && group.isRequired(), 
+                        sattr.isMany() || group.isMany(),
+                        sattr.isSrcMany() || group.isSrcMany());
+                attrs.add(nsattr);
+            }
+            //find new attributes if any
+            Group sg = group;
+            Tagger tagger = taggers.get(sg.getRoot());
+            if (tagger != null)
+                attrs.add(new Attribute(tagger.getTag(), minSupport, sg.isRequired(), sg.isMany(), sg.isSrcMany()));
+            else if (!sg.getRoot().isObject())
+                log.error("No tagger registered for datatype node {}", sg.getRoot());
+        }
+        return attrs;
     }
     
     //==========================================================

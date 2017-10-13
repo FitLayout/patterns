@@ -87,6 +87,15 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                 GraphTaskGenerator gen = new GraphTaskGenerator(getGraph());
                 log.info("Tags: {}", gen.getAssignedTags());
                 groupMatcher = gen.createTask();
+                System.out.println("Single task: " + groupMatcher.getAttrs());
+                
+                List<AttributeGroupMatcher> tasks = gen.createTasks();
+                System.out.println("Tasks:");
+                for (AttributeGroupMatcher m : tasks)
+                {
+                    System.out.println("    " + m.getAttrs());
+                    groupMatcher = m;
+                }
             }
             else
                 log.error("getMatcher() called while no graph is loaded");

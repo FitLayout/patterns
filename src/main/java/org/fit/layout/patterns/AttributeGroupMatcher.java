@@ -931,7 +931,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         @Override
         public String toString()
         {
-            return tag.toString();
+            String ret =
+                    (isSrcMany() ? ">":"")
+                    + tag.toString()
+                    + (isMany() ? "*":"")
+                    + (isRequired() ? "":"?");
+            return ret;
         }
 
         @Override
