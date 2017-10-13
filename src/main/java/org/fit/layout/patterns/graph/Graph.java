@@ -307,13 +307,13 @@ public class Graph
                 Node n = it.next();
                 //find all connections to already grouped nodes
                 Set<EdgeNodePair> neighbors = getNeighborsOf(n);
-                List<Group> subGroups = new ArrayList<>(neighbors.size());
+                Set<Group> subGroups = new HashSet<>();
                 for (EdgeNodePair neigh : neighbors)
                 {
                     Group sub = groups.get(neigh.getNode());
                     if (sub != null)
                     {
-                        sub.setMany(neigh.getEdge().isDstMany());
+                        sub.setMany(neigh.isDstMany());
                         subGroups.add(sub);
                     }
                 }
