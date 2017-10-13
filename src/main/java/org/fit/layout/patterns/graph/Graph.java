@@ -7,6 +7,7 @@ package org.fit.layout.patterns.graph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -283,7 +284,7 @@ public class Graph
     
     //===============================================================================
 
-    public void getGroups()
+    public Collection<Group> getGroups()
     {
         //create a group for every datatype node
         Map<Node, Group> groups = new HashMap<>();
@@ -314,6 +315,8 @@ public class Graph
                     if (sub != null)
                     {
                         sub.setMany(neigh.isDstMany());
+                        sub.setSrcMany(neigh.isSrcMany());
+                        sub.setRequired(!neigh.isDstOptional());
                         subGroups.add(sub);
                     }
                 }
@@ -333,6 +336,7 @@ public class Graph
         }
         System.out.println(groups.values());
         System.out.println("remain: " + nodeList);
+        return groups.values();
     }
     
 }

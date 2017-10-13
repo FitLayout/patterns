@@ -18,6 +18,8 @@ public class Group
 {
     private Node root;
     private boolean many;
+    private boolean srcMany;
+    private boolean required;
     private List<Group> subGroups;
     
     public Group(Node root)
@@ -47,6 +49,26 @@ public class Group
         this.many = many;
     }
 
+    public boolean isSrcMany()
+    {
+        return srcMany;
+    }
+
+    public void setSrcMany(boolean srcMany)
+    {
+        this.srcMany = srcMany;
+    }
+
+    public boolean isRequired()
+    {
+        return required;
+    }
+
+    public void setRequired(boolean required)
+    {
+        this.required = required;
+    }
+
     public List<Group> getSubGroups()
     {
         return subGroups;
@@ -66,7 +88,11 @@ public class Group
     public String toString()
     {
         String sub = subGroups.stream().map(g -> g.toString()).collect(Collectors.joining(","));
-        return (isMany() ? "*":"") + root.toString() + "[" + sub + "]";
+        return (isMany() ? "*":"")
+                + (isSrcMany() ? ">":"")
+                + root.toString()
+                + (isRequired() ? "":"?")
+                + "[" + sub + "]";
     }
 
     @Override
