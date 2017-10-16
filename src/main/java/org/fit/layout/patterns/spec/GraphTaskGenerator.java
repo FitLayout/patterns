@@ -79,40 +79,6 @@ public class GraphTaskGenerator
             log.error("Couldn't map tagger to unknown node: {}", node);
     }
     
-    public AttributeGroupMatcher createTask()
-    {
-        List<Node> oo = new ArrayList<>();
-        List<Node> om = new ArrayList<>();
-        List<Node> mo = new ArrayList<>();
-        List<Node> mm = new ArrayList<>();
-        List<AttributeGroupMatcher.Attribute> attrs = new ArrayList<>();
-        //categorize nodes by target cardinality
-        for (Node n : targetNodes.keySet())
-        {
-            Path p = findPathFor(n);
-            if (p.isSrcMany())
-            {
-                if (p.isDstMany())
-                    mm.add(n);
-                else
-                    mo.add(n);
-            }
-            else
-            {
-                if (p.isDstMany())
-                    om.add(n);
-                else
-                    oo.add(n);
-            }
-            Tagger tagger = taggers.get(n);
-            if (tagger != null)
-                attrs.add(new AttributeGroupMatcher.Attribute(tagger.getTag(), minSupport, !p.isOptional(), p.isDstMany(), p.isSrcMany()));
-            else
-                log.error("No tagger registered for {}", n);
-        }
-        return new AttributeGroupMatcher(attrs);
-    }
-    
     public List<AttributeGroupMatcher> createTasks()
     {
         Collection<Group> groups = graph.getGroups();
@@ -159,20 +125,6 @@ public class GraphTaskGenerator
     }
     
     //==========================================================
-    
-    private Path findPathFor(Node target)
-    {
-        Path ret = null;
-        for (Path p : targetPaths)
-        {
-            if (p.getLast().equals(target))
-            {
-                if (ret == null || p.isDstMany()) //prefer greater cardinality paths
-                    ret = p;
-            }
-        }
-        return ret;
-    }
     
     private Map<Node, RDFTag> findTargetNodes(List<Path> paths)
     {

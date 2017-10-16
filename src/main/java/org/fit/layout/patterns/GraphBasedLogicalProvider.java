@@ -32,7 +32,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     /** Graph specification */
     private Graph graph;
     /** The used group matcher */
-    private AttributeGroupMatcher groupMatcher;
+    private List<AttributeGroupMatcher> groupMatchers;
     
     
     public GraphBasedLogicalProvider()
@@ -48,7 +48,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     public void setGraph(Graph graph)
     {
         this.graph = graph;
-        groupMatcher = null; //a new graph requires creating a new group matcher
+        groupMatchers = null; //a new graph requires creating new group matchers
     }
     
     public void loadGraphFromJson(InputStream is)
@@ -71,23 +71,21 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     }
 
     @Override
-    public void configureMatcher(List<Area> areas)
+    public void configureMatcher(AttributeGroupMatcher matcher, List<Area> areas)
     {
         //autoconfigure the matcher
-        getMatcher().configure(areas);
+        matcher.configure(areas);
     }
 
     @Override
-    public AttributeGroupMatcher getMatcher()
+    public List<AttributeGroupMatcher> getMatchers()
     {
-        if (groupMatcher == null)
+        if (groupMatchers == null)
         {
             if (getGraph() != null)
             {
                 GraphTaskGenerator gen = new GraphTaskGenerator(getGraph());
                 log.info("Tags: {}", gen.getAssignedTags());
-                groupMatcher = gen.createTask();
-                System.out.println("Single task: " + groupMatcher.getAttrs());
                 
                 List<AttributeGroupMatcher> tasks = gen.createTasks();
                 System.out.println("Tasks:");
@@ -98,13 +96,13 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                     {
                         System.out.println("      dep " + dep.getAttrs());
                     }
-                    groupMatcher = m;
                 }
+                groupMatchers = tasks;
             }
             else
-                log.error("getMatcher() called while no graph is loaded");
+                log.error("getMatchers() called while no graph is loaded");
         }
-        return groupMatcher;
+        return groupMatchers;
     }
 
 }

@@ -20,14 +20,15 @@ public interface PatternBasedLogicalProvider
 
     /**
      * Creates the matcher and performs its autoconfiguration on a given list of areas.
+     * @param matcher The matcher to be trained. It must be one of the matchers obtained by {@link #getMatchers()}.
      * @param areas The list of areas used for configuration.
      */
-    public void configureMatcher(List<Area> areas);
+    public void configureMatcher(AttributeGroupMatcher matcher, List<Area> areas);
     
     /**
-     * Obtains the matcher used by the logical provider.
-     * @return the matcher
+     * Obtains the matchers used by the logical provider.
+     * @return the list of matchers
      */
-    public AttributeGroupMatcher getMatcher();
+    public List<AttributeGroupMatcher> getMatchers();
     
 }

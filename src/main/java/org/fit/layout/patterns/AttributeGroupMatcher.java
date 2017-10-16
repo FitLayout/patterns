@@ -159,6 +159,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         tconf = conf;
     }
     
+    @Override
+    public String toString()
+    {
+        return getAttrs().toString();
+    }
+
     //===========================================================================================================
     
     /**
