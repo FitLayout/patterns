@@ -117,19 +117,26 @@ public class GraphTaskGenerator
     {
         Collection<Group> groups = graph.getGroups();
         List<AttributeGroupMatcher> ret = new ArrayList<>();
-        recursiveAddTasks(groups, ret);
+        List<AttributeGroupMatcher> depends = new ArrayList<>();
+        recursiveAddTasks(groups, ret, depends);
         return ret;
     }
     
-    private List<Attribute> recursiveAddTasks(Collection<Group> groups, List<AttributeGroupMatcher> dest)
+    private List<Attribute> recursiveAddTasks(Collection<Group> groups, List<AttributeGroupMatcher> dest, List<AttributeGroupMatcher> deps)
     {
         List<Attribute> attrs = new ArrayList<>();
         for (Group group : groups)
         {
-            List<Attribute> subattrs = recursiveAddTasks(group.getSubGroups(), dest);
+            List<AttributeGroupMatcher> depends = new ArrayList<>();
+            List<Attribute> subattrs = recursiveAddTasks(group.getSubGroups(), dest, depends);
             //create a new task for groups
             if (subattrs.size() > 1)
-                dest.add(new AttributeGroupMatcher(subattrs)); //TODO restrictions should be set here?
+            {
+                AttributeGroupMatcher matcher = new AttributeGroupMatcher(subattrs);
+                matcher.setDependencies(depends);
+                dest.add(matcher);
+                deps.add(matcher);
+            }
             //adopt and update existing attributes
             for (Attribute sattr : subattrs)
             {

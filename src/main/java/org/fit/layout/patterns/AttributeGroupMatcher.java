@@ -50,6 +50,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     private static final float MIN_SUPPORT_RELATIONS = 0.45f;
 
     private List<Attribute> attrs; //list of all attributes
+    private List<AttributeGroupMatcher> dependencies; //already configured group matchers
+    
     private Set<Tag> allTags; //set of all tags assigned to the attributes
     private Set<Tag> usedTags; //set of tags efficiently for extraction
     private int keyAttr; //key attribute index or -1 if none
@@ -72,6 +74,16 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         this.attrs = attrs;
         scanAttributes();
+    }
+
+    public List<AttributeGroupMatcher> getDependencies()
+    {
+        return dependencies;
+    }
+
+    public void setDependencies(List<AttributeGroupMatcher> dependencies)
+    {
+        this.dependencies = dependencies;
     }
 
     public Set<Tag> getAllTags()
@@ -118,6 +130,25 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.error("Cannot used non-existing configuration index {}", index);
     }
     
+    public MatcherConfiguration getUsedConf()
+    {
+        return usedConf;
+    }
+    
+    public AreaStyle getDependencyStyle(Tag tag)
+    {
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+            {
+                MatcherConfiguration dconf = dep.getUsedConf();
+                if (dconf != null && dconf.getStyleMap().containsKey(tag))
+                    return dconf.getStyleMap().get(tag);
+            }
+        }
+        return null;
+    }
+    
     /**
      * Sets the configuration used for testing. When set, the configuration lookup will be limited
      * to the given configuration only, other configurations will be skipped.
@@ -127,6 +158,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         tconf = conf;
     }
+    
+    //===========================================================================================================
     
     /**
      * Checks the possible configurations on a list of areas and chooses the best ones. 
@@ -316,16 +349,26 @@ public class AttributeGroupMatcher extends BaseMatcher
         AreaStyle styles[][] = new AreaStyle[attrs.size()][];
         for (int i = 0; i < attrs.size(); i++)
         {
-            List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(minFrequency));
-            if (getUseStyleWildcards() > 0)
-                variants.addAll(createStyleCombinations(variants, getUseStyleWildcards()));
-            if (variants.isEmpty())
+            final Attribute attr = attrs.get(i);
+            AreaStyle depstyle = getDependencyStyle(attr.getTag());
+            if (depstyle != null) //style is available from dependencies - use id
             {
-                log.error("No styles found for {}", attrs.get(i).getTag());
-                return new ArrayList<>();
+                log.debug("Using dependency style {}: {}", attr.getTag(), depstyle);
+                styles[i] = new AreaStyle[] { depstyle };
             }
-            log.debug("Trying for {}: {}", attrs.get(i).getTag(), variants);
-            styles[i] = variants.toArray(new AreaStyle[0]);
+            else //not yet determined - generate probable variants
+            {
+                List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(minFrequency));
+                if (getUseStyleWildcards() > 0)
+                    variants.addAll(createStyleCombinations(variants, getUseStyleWildcards()));
+                if (variants.isEmpty())
+                {
+                    log.error("No styles found for {}", attr.getTag());
+                    return new ArrayList<>();
+                }
+                log.debug("Trying for {}: {}", attr.getTag(), variants);
+                styles[i] = variants.toArray(new AreaStyle[0]);
+            }
             totalStyles = totalStyles * styles[i].length;
         }
         //generate style combinations
