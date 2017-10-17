@@ -135,6 +135,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         return usedConf;
     }
     
+    /**
+     * Finds a style for the given tag in dependencies that have been already resolved.
+     * @param tag The tag to look for.
+     * @return The area style or {@code null} when no such tag has been found in dependencies
+     */
     public AreaStyle getDependencyStyle(Tag tag)
     {
         if (dependencies != null)
@@ -144,6 +149,29 @@ public class AttributeGroupMatcher extends BaseMatcher
                 MatcherConfiguration dconf = dep.getUsedConf();
                 if (dconf != null && dconf.getStyleMap().containsKey(tag))
                     return dconf.getStyleMap().get(tag);
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Finds a tag connection for the given tag pair in dependencies that have been already resolved.
+     * @param pair The tag pair to look for
+     * @return The tag connection or {@code null} when no such tag pair has been found in dependencies
+     */
+    public TagConnection getDependencyTagConnection(TagPair pair)
+    {
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+            {
+                MatcherConfiguration dconf = dep.getUsedConf();
+                if (dconf != null)
+                {
+                    TagConnection con = dconf.getPattern().findForPair(pair);
+                    if (con != null)
+                        return con;
+                }
             }
         }
         return null;
@@ -478,34 +506,63 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<ConnectionPattern> ret = new ArrayList<>();
         //find candidates for every pair
         List<List<TagConnection>> lists = new ArrayList<>(pattern.size());
+        int total = 1; //total combinations expected
         for (TagPair pair : pattern)
         {
-            ConnectionList<Tag, TagConnection> cands = allConnections.filterForPair(pair);
-            PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
-            List<TagConnection> frequent = cnt.getFrequent(minFrequency); 
-            lists.add(frequent);
-            log.debug("    for {}-{} : {}", pair.getO1(), pair.getO2(), cnt);
-            log.debug("      used {}", frequent);
+            TagConnection dep = getDependencyTagConnection(pair);
+            if (dep != null) //tag connection was already resolved in dependencies
+            {
+                List<TagConnection> depList = new ArrayList<>(1);
+                depList.add(dep);
+                lists.add(depList);
+                log.debug("    for {}-{}", pair.getO1(), pair.getO2());
+                log.debug("      used dependency {}", depList);
+            }
+            else //not resolved
+            {
+                TagConnection rdep = getDependencyTagConnection(pair.reverse());
+                if (rdep != null) //reverse connection was resolved; do not resolve this pair at all
+                {
+                    List<TagConnection> depList = Collections.emptyList();
+                    lists.add(depList);
+                    total = 0;
+                    log.debug("    for {}-{}", pair.getO1(), pair.getO2());
+                    log.debug("      found reverse dependency, using {}", depList);
+                }
+                else //not resolved yet, try the most supported connections found in the page
+                {
+                    ConnectionList<Tag, TagConnection> cands = allConnections.filterForPair(pair);
+                    PatternCounter<TagConnection> cnt = new PatternCounter<>(cands, 1.0f);
+                    List<TagConnection> frequent = cnt.getFrequent(minFrequency); 
+                    lists.add(frequent);
+                    total = total * frequent.size();
+                    log.debug("    for {}-{} : {}", pair.getO1(), pair.getO2(), cnt);
+                    log.debug("      used {}", frequent);
+                }
+            }
         }
         //iterate over all combinarions of candidates
-        int[] indices = new int[lists.size()];
-        Arrays.fill(indices, 0);
-        final int lastcnt = lists.get(lists.size() - 1).size();
-        while (indices[indices.length-1] != lastcnt)
+        if (total > 0)
         {
-            ConnectionPattern newItem = new ConnectionPattern(indices.length);
-            for (int i = 0; i < indices.length; i++)
-                newItem.add(lists.get(i).get(indices[i]));
-            ret.add(newItem);
-            
-            //increment the indices
-            indices[0]++;
-            for (int i = 0; i < indices.length - 1; i++)
+            int[] indices = new int[lists.size()];
+            Arrays.fill(indices, 0);
+            final int lastcnt = lists.get(lists.size() - 1).size();
+            while (indices[indices.length-1] < lastcnt)
             {
-                if (indices[i] >= lists.get(i).size())
+                ConnectionPattern newItem = new ConnectionPattern(indices.length);
+                for (int i = 0; i < indices.length; i++)
+                    newItem.add(lists.get(i).get(indices[i]));
+                ret.add(newItem);
+                
+                //increment the indices
+                indices[0]++;
+                for (int i = 0; i < indices.length - 1; i++)
                 {
-                    indices[i] = 0;
-                    indices[i+1]++;
+                    if (indices[i] >= lists.get(i).size())
+                    {
+                        indices[i] = 0;
+                        indices[i+1]++;
+                    }
                 }
             }
         }
@@ -673,7 +730,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     matched = true;
                     if (constraints == null || matchesConstraints(nextMatch, constraints))
                     {
-                        log.debug("Adding: {}", nextMatch);
+                        //log.debug("Adding: {}", nextMatch);
                         matches.add(nextMatch);
                         for (List<Area> matchAreas : nextMatch.values())
                             matchedAreas.addAll(matchAreas);

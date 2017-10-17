@@ -46,4 +46,14 @@ public class ConnectionPattern extends LinkedHashSet<TagConnection>
         return ret;
     }
     
+    public TagConnection findForPair(TagPair pair)
+    {
+        for (TagConnection con : this)
+        {
+            if (con.getA1().equals(pair.getO1()) && con.getA2().equals(pair.o2))
+                return con;
+        }
+        return null;
+    }
+    
 }
