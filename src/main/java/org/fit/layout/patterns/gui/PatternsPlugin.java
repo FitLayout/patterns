@@ -123,7 +123,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         if (currentMatcher != -1)
         {
             AttributeGroupMatcher m = provider.getMatchers().get(currentMatcher);
-            getLblMatcherlabel().setText(m.toString());
+            getLblMatcherlabel().setText(m.toString() + " (" + (currentMatcher + 1) + " / " + provider.getMatchers().size() + ")");
             updateConfigList();
         }
         else

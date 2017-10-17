@@ -127,7 +127,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         if (best != null && index >= 0 && index < best.size())
             usedConf = best.get(index);
         else
-            log.error("Cannot used non-existing configuration index {}", index);
+            log.error("Cannot use non-existing configuration index {}", index);
     }
     
     public MatcherConfiguration getUsedConf()
