@@ -19,6 +19,7 @@ import java.util.Set;
 import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.graph.Group;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionList;
@@ -51,6 +52,7 @@ public class AttributeGroupMatcher extends BaseMatcher
 
     private List<Attribute> attrs; //list of all attributes
     private List<AttributeGroupMatcher> dependencies; //already configured group matchers
+    private Group group; //the group this matcher was created for (for tracking cardinalities etc.)
     
     private Set<Tag> allTags; //set of all tags assigned to the attributes
     private Set<Tag> usedTags; //set of tags efficiently for extraction
@@ -84,6 +86,16 @@ public class AttributeGroupMatcher extends BaseMatcher
     public void setDependencies(List<AttributeGroupMatcher> dependencies)
     {
         this.dependencies = dependencies;
+    }
+
+    public Group getGroup()
+    {
+        return group;
+    }
+
+    public void setGroup(Group group)
+    {
+        this.group = group;
     }
 
     public Set<Tag> getAllTags()
@@ -178,6 +190,21 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     /**
+     * Obtains all tags recognized by the dependent taggers.
+     * @return the set of recognized tags
+     */
+    public Set<Tag> getDependencyTags()
+    {
+        Set<Tag> ret = new HashSet<>();
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+                ret.addAll(dep.getUsedTags());
+        }
+        return ret;
+    }
+    
+    /**
      * Sets the configuration used for testing. When set, the configuration lookup will be limited
      * to the given configuration only, other configurations will be skipped.
      * @param conf The testing configuration.
@@ -236,10 +263,9 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(usedConf.getStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, 0.09f); //TODO minSupport?
+            Disambiguator dis = new Disambiguator(sa, null, 0.09f);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult result = findMatches(usedConf, dis, tagAreas);
-            //inferConsistencyConstraints(usedConf, result); //TODO to be removed from here (the constraints should have been inferred before)
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
             
@@ -293,7 +319,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, 0.2f); //TODO minSupport?
+            Disambiguator dis = new Disambiguator(sa, null, 0.2f);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
             MatchResult match = findMatches(conf, dis, tagAreas);
             //check whether the match is consistent
@@ -384,25 +410,17 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (int i = 0; i < attrs.size(); i++)
         {
             final Attribute attr = attrs.get(i);
-            AreaStyle depstyle = getDependencyStyle(attr.getTag());
-            if (depstyle != null) //style is available from dependencies - use id
+            
+            List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(minFrequency));
+            if (getUseStyleWildcards() > 0)
+                variants.addAll(createStyleCombinations(variants, getUseStyleWildcards()));
+            if (variants.isEmpty())
             {
-                log.debug("Using dependency style {}: {}", attr.getTag(), depstyle);
-                styles[i] = new AreaStyle[] { depstyle };
+                log.error("No styles found for {}", attr.getTag());
+                return new ArrayList<>();
             }
-            else //not yet determined - generate probable variants
-            {
-                List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(minFrequency));
-                if (getUseStyleWildcards() > 0)
-                    variants.addAll(createStyleCombinations(variants, getUseStyleWildcards()));
-                if (variants.isEmpty())
-                {
-                    log.error("No styles found for {}", attr.getTag());
-                    return new ArrayList<>();
-                }
-                log.debug("Trying for {}: {}", attr.getTag(), variants);
-                styles[i] = variants.toArray(new AreaStyle[0]);
-            }
+            log.debug("Trying for {}: {}", attr.getTag(), variants);
+            styles[i] = variants.toArray(new AreaStyle[0]);
             totalStyles = totalStyles * styles[i].length;
         }
         //generate style combinations
@@ -470,8 +488,10 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<ConnectionPattern> generateConnectionPatterns(float minFrequency)
     {
         TagConnectionList all = pa.getTagConnections();
-
-        Set<TagPattern> patterns = findConnectedTagPatterns(all);
+        Set<Tag> allInclDeps = new HashSet<>(usedTags);
+        allInclDeps.addAll(getDependencyTags());
+        
+        Set<TagPattern> patterns = findConnectedTagPatterns(all, usedTags, allInclDeps);
         log.debug("Attribute patterns: {}", patterns.size());
         
         Set<ConnectionPattern> ret = new HashSet<>();
@@ -578,27 +598,27 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param allConnections the connections to consider
      * @return a list of tag patterns
      */
-    private Set<TagPattern> findConnectedTagPatterns(TagConnectionList allConnections)
+    private Set<TagPattern> findConnectedTagPatterns(TagConnectionList allConnections, Set<Tag> localTags, Set<Tag> allowedTags)
     {
         //find the pairs that are not blacklisted
         Set<TagPattern> ret = new HashSet<>();
-        for (Tag tag : usedTags)
+        for (Tag tag : allowedTags)
         {
             //select distinct pairs for the tag
             Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
             //recursively scan other connections
             for (TagPair pair : pairs)
             {
-                if (usedTags.contains(pair.getO1())) //exclude unused tags
+                if (localTags.contains(pair.getO1())) //exclude unused tags
                 {
                     if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair))
                     {
                         TagPattern seed = new TagPattern(usedTags.size() - 1);
                         seed.add(pair);
-                        if (usedTags.size() <= 2)
+                        if (localTags.size() <= 2)
                             ret.add(seed); //only two tags, no further search necessary
                         else
-                            recursiveAddConnected(seed, allConnections, ret);
+                            recursiveAddConnected(seed, allConnections, localTags, ret);
                     }
                     else
                         log.debug("Blacklisted (M:1): {}", pair);
@@ -616,7 +636,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param allConnections list of tag connections to consider
      * @param dest the destination pattern collection
      */
-    private void recursiveAddConnected(TagPattern current, TagConnectionList allConnections, Collection<TagPattern> dest)
+    private void recursiveAddConnected(TagPattern current, TagConnectionList allConnections, Set<Tag> localTags, Collection<TagPattern> dest)
     {
         //try to connect all the tags already covered by the tag pattern
         for (Tag tag : current.getTags())
@@ -624,19 +644,19 @@ public class AttributeGroupMatcher extends BaseMatcher
             Set<TagPair> pairs = findDistinctPairsForStartTag(tag, allConnections);
             for (TagPair pair : pairs)
             {
-                if (usedTags.contains(pair.getO1())) //exclude unused tags
+                if (localTags.contains(pair.getO1())) //exclude unused tags
                 {
                     if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair) && current.mayAdd(pair)) //a new pair may be added
                     {
                         TagPattern next = new TagPattern(current);
                         next.add(pair);
-                        if (next.size() >= usedTags.size() - 1) //the pattern is complete, store it
+                        if (next.size() >= localTags.size() - 1) //the pattern is complete, store it
                         {
                             dest.add(next);
                         }
                         else //incomplete pair, continue the search recursively
                         {
-                            recursiveAddConnected(next, allConnections, dest);
+                            recursiveAddConnected(next, allConnections, localTags, dest);
                         }
                     }
                 }
@@ -694,7 +714,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (AreaConnection con : inrel)
         {
             Area b = con.getA1();
-            if (destSet.contains(b) && !curMatch.containsValue(b))
+            if (destSet.contains(b) && !curMatch.containsValue(b)) //TODO type mismatch!
             {
                 //create the new candidate match
                 Match nextMatch = new Match(curMatch);
@@ -703,7 +723,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 
                 //test if the match is complete
                 boolean matched = false;
-                if (!pairs.isEmpty()) //some pairs are remaining -- continue recursvely
+                if (!pairs.isEmpty()) //some pairs are remaining -- continue recursively
                 {
                     //find the next pair
                     List<TagConnection> nextPairs = new ArrayList<>(pairs);

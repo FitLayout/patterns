@@ -96,15 +96,16 @@ public class GraphTaskGenerator
             List<AttributeGroupMatcher> depends = new ArrayList<>();
             List<Attribute> subattrs = recursiveAddTasks(group.getSubGroups(), dest, depends);
             //create a new task for groups
-            if (subattrs.size() > 1)
+            if (subattrs.size() > 0)
             {
                 AttributeGroupMatcher matcher = new AttributeGroupMatcher(subattrs);
+                matcher.setGroup(group);
                 matcher.setDependencies(depends);
                 dest.add(matcher);
                 deps.add(matcher);
             }
             //adopt and update existing attributes
-            for (Attribute sattr : subattrs)
+            /*for (Attribute sattr : subattrs)
             {
                 Attribute nsattr = new Attribute(sattr.getTag(),
                         sattr.getMinSupport(), 
@@ -112,14 +113,13 @@ public class GraphTaskGenerator
                         sattr.isMany() || group.isMany(),
                         sattr.isSrcMany() || group.isSrcMany());
                 attrs.add(nsattr);
-            }
+            }*/
             //find new attributes if any
-            Group sg = group;
-            Tagger tagger = taggers.get(sg.getRoot());
+            Tagger tagger = taggers.get(group.getRoot());
             if (tagger != null)
-                attrs.add(new Attribute(tagger.getTag(), minSupport, sg.isRequired(), sg.isMany(), sg.isSrcMany()));
-            else if (!sg.getRoot().isObject())
-                log.error("No tagger registered for datatype node {}", sg.getRoot());
+                attrs.add(new Attribute(tagger.getTag(), minSupport, group.isRequired(), group.isMany(), group.isSrcMany()));
+            else if (!group.getRoot().isObject())
+                log.error("No tagger registered for datatype node {}", group.getRoot());
         }
         return attrs;
     }

@@ -94,7 +94,17 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                     System.out.println("    " + m.getAttrs());
                     for (AttributeGroupMatcher dep : m.getDependencies())
                     {
-                        System.out.println("      dep " + dep.getAttrs());
+                        String depinfo = "";
+                        if (dep.getGroup() != null)
+                        {
+                            if (dep.getGroup().isSrcMany())
+                                depinfo += ">";
+                            if (dep.getGroup().isMany())
+                                depinfo += "*";
+                            if (!dep.getGroup().isRequired())
+                                depinfo += "?";
+                        }
+                        System.out.println("      dep " + dep.getAttrs() + depinfo);
                     }
                 }
                 groupMatchers = tasks;
