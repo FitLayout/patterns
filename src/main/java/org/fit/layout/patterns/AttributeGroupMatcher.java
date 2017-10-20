@@ -60,6 +60,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<Tag> tagBlacklist; //tags that should not be the first one in the pairs in order to avoid M:1 connections
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
     
+    //areas and statistics used for configuration
     private List<Area> areas;
     private List<StyleCounter<AreaStyle>> styleStats;
     private RelationAnalyzer pa;
@@ -204,6 +205,21 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
+    public Map<Tag, List<Match>> getDependencyMatches(List<Area> areas)
+    {
+        Map<Tag, List<Match>> ret = new HashMap<>();
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+            {
+                List<Match> result = dep.match(areas);
+                for (Tag t : dep.getUsedTags())
+                    ret.put(t, result);
+            }
+        }
+        return ret;
+    }
+    
     /**
      * Sets the configuration used for testing. When set, the configuration lookup will be limited
      * to the given configuration only, other configurations will be skipped.
@@ -264,8 +280,9 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(usedConf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.09f);
-            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
-            MatchResult result = findMatches(usedConf, dis, tagAreas);
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
+            Map<Tag, List<Match>> depMatches = getDependencyMatches(areas);
+            MatchResult result = findMatches(usedConf, dis, tagAreas, depMatches);
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
             
@@ -320,15 +337,16 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(conf.getStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, 0.2f);
-            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(dis);
-            MatchResult match = findMatches(conf, dis, tagAreas);
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
+            Map<Tag, List<Match>> depMatches = getDependencyMatches(areas);
+            MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
             //check whether the match is consistent
             ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
             if (constraints.size() > 0)
             {
                 //some more constraints are necessary for ensuring the match consistency
                 conf.setConstraints(constraints);
-                match = findMatches(conf, dis, tagAreas);
+                match = findMatches(conf, dis, tagAreas, depMatches);
             }
             match.setStats(stats);
             conf.setResult(match);
@@ -689,7 +707,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
@@ -982,7 +1000,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Creates a mapping from the tags specified by the individual attributes to sets of related areas.
      * @return a mapping from tags to sets of areas
      */
-    private Map<Tag, Set<Area>> createAttrTagMap(Disambiguator dis)
+    private Map<Tag, Set<Area>> createAttrTagMap(List<Area> areas, Disambiguator dis)
     {
         Map<Tag, Set<Area>> areaMap = new HashMap<>(attrs.size());
         for (Attribute attr : attrs)
@@ -993,9 +1011,9 @@ public class AttributeGroupMatcher extends BaseMatcher
             Tag areaTag = dis.getAreaTag(a);
             if (areaTag != null)
             {
-                Set<Area> areas = areaMap.get(areaTag);
-                if (areas != null)
-                    areas.add(a);
+                Set<Area> tareas = areaMap.get(areaTag);
+                if (tareas != null)
+                    tareas.add(a);
             }
         }
         
