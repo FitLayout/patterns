@@ -8,15 +8,27 @@ package org.fit.layout.patterns;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.impl.BaseLogicalTreeProvider;
+import org.fit.layout.impl.DefaultLogicalArea;
+import org.fit.layout.impl.DefaultLogicalAreaTree;
+import org.fit.layout.impl.DefaultTag;
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTree;
+import org.fit.layout.model.LogicalArea;
+import org.fit.layout.model.LogicalAreaTree;
+import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.graph.Graph;
 import org.fit.layout.patterns.graph.GraphLoader;
 import org.fit.layout.patterns.graph.Node;
 import org.fit.layout.patterns.graph.Path;
 import org.fit.layout.patterns.gui.PatternBasedLogicalProvider;
+import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.spec.GraphTaskGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +41,8 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
 {
     private static Logger log = LoggerFactory.getLogger(GraphBasedLogicalProvider.class);
     
+    /** Main tag used for tagging the results */
+    private Tag mainTag = new DefaultTag("logical", "match");
     /** Graph specification */
     private Graph graph;
     /** The used group matcher */
@@ -113,6 +127,110 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                 log.error("getMatchers() called while no graph is loaded");
         }
         return groupMatchers;
+    }
+
+    @Override
+    public LogicalAreaTree createLogicalTree(AreaTree areaTree)
+    {
+        List<Area> leaves = new ArrayList<Area>();
+        findLeaves(areaTree.getRoot(), leaves);
+        
+        AttributeGroupMatcher matcher = getMatchers().get(getMatchers().size() - 1);
+        List<Match> matches = matcher.match(leaves);
+        if (matches == null)
+            matches = Collections.emptyList();
+        
+        LogicalArea lroot = new DefaultLogicalArea(areaTree.getRoot());
+        addLogicalAreas(matches, matcher, lroot, mainTag);
+        
+        DefaultLogicalAreaTree ret = new DefaultLogicalAreaTree(areaTree);
+        ret.setRoot(lroot);
+        return ret;
+    }
+
+    protected void addLogicalAreas(List<Match> matches, AttributeGroupMatcher matcher, LogicalArea destNode, Tag superAreaTag)
+    {
+        for (Match match : matches)
+        {
+            LogicalArea dest = destNode;
+            //create an enclosing area when required
+            if (superAreaTag != null)
+            {
+                LogicalArea la = new DefaultLogicalArea();
+                la.setMainTag(superAreaTag);
+                String ws = String.valueOf(match.getAverageConnectionWeight());
+                la.setText(ws);
+                destNode.appendChild(la);
+                dest = la;
+            }
+            //add logical areas for each tag
+            for (Tag tag : matcher.getUsedTags())
+            {
+                List<Area> areas = match.get(tag);
+                for (Area a : areas)
+                {
+                    dest.addArea(a);
+                    LogicalArea childArea = new DefaultLogicalArea(a);
+                    childArea.setMainTag(tag);
+                    dest.appendChild(childArea);
+                }
+            }
+            //add dependencies
+            for (AttributeGroupMatcher dep : matcher.getDependencies())
+            {
+                addLogicalAreas(match.getSubMatches(), dep, dest, null);
+            }
+        }
+    }
+    
+    //========================================================================================
+    
+    protected void findLeaves(Area root, List<Area> dest)
+    {
+        if (root.isLeaf())
+        {
+            if (!root.isSeparator())
+                dest.add(root);
+        }
+        else
+        {
+            for (int i = 0; i < root.getChildCount(); i++)
+                findLeaves(root.getChildArea(i), dest);
+        }
+    }
+    
+    protected void findLeaves(Area root, Tag[] tags, List<Area> dest)
+    {
+        if (tags != null)
+        {
+            Set<Tag> tagSet = new HashSet<>(tags.length);
+            for (Tag t : tags)
+                tagSet.add(t);
+            findLeaves(root, dest, tagSet);
+        }
+        else
+            findLeaves(root, dest, null);
+    }
+    
+    protected void findLeaves(Area root, List<Area> dest, Set<Tag> tags)
+    {
+        boolean tagfound = false;
+        if (tags != null)
+        {
+            Set<Tag> atags = root.getSupportedTags(0.2f);
+            atags.retainAll(tags);
+            tagfound = !atags.isEmpty();
+        }
+        if (tagfound || root.isLeaf())
+        {
+            if (!root.isSeparator())
+                dest.add(root);
+        }
+        else
+        {
+            for (int i = 0; i < root.getChildCount(); i++)
+                findLeaves(root.getChildArea(i), dest, tags);
+        }
     }
 
 }
