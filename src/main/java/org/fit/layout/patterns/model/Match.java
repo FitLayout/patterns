@@ -25,6 +25,7 @@ public class Match extends HashMap<Tag, List<Area>>
     private static final long serialVersionUID = 1L;
     
     private List<AreaConnection> areaConnections;
+    private List<Match> subMatches;
     
     /**
      * Creates a new empty match.
@@ -33,6 +34,7 @@ public class Match extends HashMap<Tag, List<Area>>
     {
         super();
         areaConnections = new ArrayList<>();
+        subMatches = new ArrayList<>();
     }
     
     /**
@@ -43,6 +45,7 @@ public class Match extends HashMap<Tag, List<Area>>
     {
         super(src);
         areaConnections = new ArrayList<>(src.getAreaConnections());
+        subMatches = new ArrayList<>(src.getSubMatches());
     }
 
     /**
@@ -116,6 +119,16 @@ public class Match extends HashMap<Tag, List<Area>>
             return 0;
     }
     
+    public List<Match> getSubMatches()
+    {
+        return subMatches;
+    }
+
+    public void addSubMatch(Match subMatch)
+    {
+        subMatches.add(subMatch);
+    }
+
     /**
      * Creates an union of this match with another match. Adds all the areas assigned
      * by the source match to this match.
@@ -141,5 +154,6 @@ public class Match extends HashMap<Tag, List<Area>>
         }
         
         areaConnections.addAll(other.getAreaConnections());
+        subMatches.addAll(other.getSubMatches());
     }
 }

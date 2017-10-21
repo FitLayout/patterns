@@ -755,7 +755,13 @@ public class AttributeGroupMatcher extends BaseMatcher
                     for (AreaConnection con : cons)
                     {
                         Area b = con.getA1();
-                        anyMatched |= tryNewMatch(b, con, curPair, pairs, curMatch, constraints, matches, matchedAreas,
+                        //create the new candidate match
+                        Match nextMatch = new Match(curMatch);
+                        nextMatch.putSingle(curPair.getA1(), b);
+                        nextMatch.addAreaConnection(con);
+                        nextMatch.addSubMatch(match);
+                        
+                        anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                                 dis, tagAreas, depMatches);
                     }
                 }
@@ -770,7 +776,12 @@ public class AttributeGroupMatcher extends BaseMatcher
                 Area b = con.getA1();
                 if (destSet.contains(b))
                 {
-                    anyMatched |= tryNewMatch(b, con, curPair, pairs, curMatch, constraints, matches, matchedAreas,
+                    //create the new candidate match
+                    Match nextMatch = new Match(curMatch);
+                    nextMatch.putSingle(curPair.getA1(), b);
+                    nextMatch.addAreaConnection(con);
+                    
+                    anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                             dis, tagAreas, depMatches);
                 }
             }
@@ -778,15 +789,10 @@ public class AttributeGroupMatcher extends BaseMatcher
         return anyMatched;
     }
 
-    private boolean tryNewMatch(Area b, AreaConnection con, TagConnection curPair,
-            List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches,
+    private boolean tryNewMatch(Match nextMatch,
+            List<TagConnection> pairs, ConnectionPattern constraints, List<Match> matches,
             Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
     {
-        //create the new candidate match
-        Match nextMatch = new Match(curMatch);
-        nextMatch.putSingle(curPair.getA1(), b);
-        nextMatch.addAreaConnection(con); //store the used area connection for statistics
-        
         //test if the match is complete
         boolean matched = false;
         if (!pairs.isEmpty()) //some pairs are remaining -- continue recursively
