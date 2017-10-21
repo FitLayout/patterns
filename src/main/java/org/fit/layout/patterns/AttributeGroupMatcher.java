@@ -713,77 +713,119 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
         List<Match> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
-        Set<Area> srcSet = tagAreas.get(curPair.getA2());
+        Set<Area> srcSet = findDependencyAreasForTag(curPair.getA2(), depMatches);
+        if (srcSet == null) //not found in dependencies; search in local areas
+            srcSet = tagAreas.get(curPair.getA2());
         //System.out.println("src set: " + srcSet.size());
         for (Area a : srcSet)
         {
             Match match = new Match(); 
             match.putSingle(curPair.getA2(), a);
-            recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas);
+            recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
         }
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    private Set<Area> findDependencyAreasForTag(Tag t, Map<Tag, List<Match>> depMatches)
     {
-        List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
-        Set<Area> destSet = tagAreas.get(curPair.getA1());
-        boolean anyMatched = false;
-        for (AreaConnection con : inrel)
+        List<Match> deps = depMatches.get(t);
+        if (deps != null)
         {
-            Area b = con.getA1();
-            if (destSet.contains(b) && !curMatch.containsValue(b)) //TODO type mismatch!
+            Set<Area> depAreas = new HashSet<>();
+            for (Match m : deps)
+                depAreas.addAll(m.get(t));
+            return depAreas;
+        }
+        else
+            return null;
+    }
+    
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis,
+            Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
+    {
+        boolean anyMatched = false;
+        List<Match> deps = depMatches.get(curPair.getA1());
+        if (deps != null)
+        {
+            for (Match match : deps)
             {
-                //create the new candidate match
-                Match nextMatch = new Match(curMatch);
-                nextMatch.putSingle(curPair.getA1(), b);
-                nextMatch.addAreaConnection(con); //store the used area connection for statistics
-                
-                //test if the match is complete
-                boolean matched = false;
-                if (!pairs.isEmpty()) //some pairs are remaining -- continue recursively
+                if (match.get(curPair.getA2()).contains(a)) //the match refers to the source area
                 {
-                    //find the next pair
-                    List<TagConnection> nextPairs = new ArrayList<>(pairs);
-                    TagConnection nextPair = null;
-                    for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
+                    List<AreaConnection> cons = match.getConnectionsForTag(curPair.getA1());
+                    for (AreaConnection con : cons)
                     {
-                        Tag destTag = nextPairs.get(i).getA2();
-                        if (nextMatch.containsKey(destTag)) //found a connected pair
-                            nextPair = nextPairs.remove(i);
-                    }
-                    if (nextPair != null)
-                    {
-                        Area seed = nextMatch.getSingle(nextPair.getA2());
-                        matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, constraints, matches, matchedAreas, dis, tagAreas);
-                    }
-                    else
-                    {
-                        log.error("No next pair found but some are remaining?");
-                        matched = false;
+                        Area b = con.getA1();
+                        anyMatched |= tryNewMatch(b, con, curPair, pairs, curMatch, constraints, matches, matchedAreas,
+                                dis, tagAreas, depMatches);
                     }
                 }
-                else //no pairs remaining -- a complete match
+            }
+        }
+        else
+        {
+            List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
+            Set<Area> destSet = tagAreas.get(curPair.getA1());
+            for (AreaConnection con : inrel)
+            {
+                Area b = con.getA1();
+                if (destSet.contains(b))
                 {
-                    matched = true;
-                    if (constraints == null || matchesConstraints(nextMatch, constraints))
-                    {
-                        //log.debug("Adding: {}", nextMatch);
-                        matches.add(nextMatch);
-                        for (List<Area> matchAreas : nextMatch.values())
-                            matchedAreas.addAll(matchAreas);
-                    }
-                    else
-                        log.debug("Skipping inconsistent match: {}", nextMatch);
-                }
-                
-                if (matched) //successfully matched until the end of the sequence
-                {
-                    anyMatched = true;
+                    anyMatched |= tryNewMatch(b, con, curPair, pairs, curMatch, constraints, matches, matchedAreas,
+                            dis, tagAreas, depMatches);
                 }
             }
         }
         return anyMatched;
+    }
+
+    private boolean tryNewMatch(Area b, AreaConnection con, TagConnection curPair,
+            List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches,
+            Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
+    {
+        //create the new candidate match
+        Match nextMatch = new Match(curMatch);
+        nextMatch.putSingle(curPair.getA1(), b);
+        nextMatch.addAreaConnection(con); //store the used area connection for statistics
+        
+        //test if the match is complete
+        boolean matched = false;
+        if (!pairs.isEmpty()) //some pairs are remaining -- continue recursively
+        {
+            //find the next pair
+            List<TagConnection> nextPairs = new ArrayList<>(pairs);
+            TagConnection nextPair = null;
+            for (int i = 0; nextPair == null && i < nextPairs.size(); i++)
+            {
+                Tag destTag = nextPairs.get(i).getA2();
+                if (nextMatch.containsKey(destTag)) //found a connected pair
+                    nextPair = nextPairs.remove(i);
+            }
+            if (nextPair != null)
+            {
+                Area seed = nextMatch.getSingle(nextPair.getA2());
+                matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, constraints, matches, matchedAreas, dis, tagAreas, depMatches);
+            }
+            else
+            {
+                log.error("No next pair found but some are remaining?");
+                matched = false;
+            }
+        }
+        else //no pairs remaining -- a complete match
+        {
+            matched = true;
+            if (constraints == null || matchesConstraints(nextMatch, constraints))
+            {
+                //log.debug("Adding: {}", nextMatch);
+                matches.add(nextMatch);
+                for (List<Area> matchAreas : nextMatch.values())
+                    matchedAreas.addAll(matchAreas);
+            }
+            else
+                log.debug("Skipping inconsistent match: {}", nextMatch);
+        }
+        
+        return matched;
     }
     
     /**
