@@ -713,31 +713,32 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
         List<Match> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
-        Set<Area> srcSet = findDependencyAreasForTag(curPair.getA2(), depMatches);
-        if (srcSet == null) //not found in dependencies; search in local areas
-            srcSet = tagAreas.get(curPair.getA2());
-        //System.out.println("src set: " + srcSet.size());
-        for (Area a : srcSet)
-        {
-            Match match = new Match(); 
-            match.putSingle(curPair.getA2(), a);
-            recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
-        }
-        return new MatchResult(matches, matchedAreas);
-    }
-    
-    private Set<Area> findDependencyAreasForTag(Tag t, Map<Tag, List<Match>> depMatches)
-    {
-        List<Match> deps = depMatches.get(t);
+        List<Match> deps = depMatches.get(curPair.getA2());
         if (deps != null)
         {
-            Set<Area> depAreas = new HashSet<>();
-            for (Match m : deps)
-                depAreas.addAll(m.get(t));
-            return depAreas;
+            for (Match dmatch : deps)
+            {        
+                for (Area a : dmatch.get(curPair.getA2()))
+                {
+                    Match match = new Match(); 
+                    match.putSingle(curPair.getA2(), a);
+                    match.addSubMatch(dmatch);
+                    recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                }
+            }
         }
         else
-            return null;
+        {
+            Set<Area> srcSet = tagAreas.get(curPair.getA2());
+            //System.out.println("src set: " + srcSet.size());
+            for (Area a : srcSet)
+            {
+                Match match = new Match(); 
+                match.putSingle(curPair.getA2(), a);
+                recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+            }
+        }
+        return new MatchResult(matches, matchedAreas);
     }
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis,
