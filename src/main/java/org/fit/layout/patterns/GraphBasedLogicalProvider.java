@@ -30,6 +30,7 @@ import org.fit.layout.patterns.graph.Path;
 import org.fit.layout.patterns.gui.PatternBasedLogicalProvider;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.spec.GraphTaskGenerator;
+import org.fit.layout.patterns.spec.RDFTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +119,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                             if (!dep.getGroup().isRequired())
                                 depinfo += "?";
                         }
-                        System.out.println("      dep " + dep.getAttrs() + depinfo);
+                        System.out.println("      dep " + dep.getGroup().getRoot() + " " + dep.getAttrs() + depinfo);
                     }
                 }
                 groupMatchers = tasks;
@@ -141,7 +142,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
             matches = Collections.emptyList();
         
         LogicalArea lroot = new DefaultLogicalArea(areaTree.getRoot());
-        addLogicalAreas(matches, matcher, lroot, mainTag);
+        addLogicalAreas(matches, matcher, lroot, createTagForMatcher(matcher));
         
         DefaultLogicalAreaTree ret = new DefaultLogicalAreaTree(areaTree);
         ret.setRoot(lroot);
@@ -178,9 +179,26 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
             //add dependencies
             for (AttributeGroupMatcher dep : matcher.getDependencies())
             {
-                addLogicalAreas(match.getSubMatches(), dep, dest, null);
+                addLogicalAreas(match.getSubMatches(), dep, dest, createTagForMatcher(dep));
             }
         }
+    }
+    
+    protected Tag createTagForMatcher(AttributeGroupMatcher matcher)
+    {
+        if (matcher.getGroup() != null && matcher.getGroup().getRoot() != null)
+        {
+            final Node root = matcher.getGroup().getRoot();
+            String name = root.getTitle();
+            if (name.lastIndexOf(':') != -1) //remove prefix from the name if used 
+                name = name.substring(name.lastIndexOf(':') + 1);
+            String uri = "";
+            if (root.getUris() != null && root.getUris().length > 0)
+                uri = root.getUris()[0];
+            return new RDFTag(name, uri);
+        }
+        else
+            return mainTag;
     }
     
     //========================================================================================
