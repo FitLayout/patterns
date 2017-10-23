@@ -851,14 +851,14 @@ public class AttributeGroupMatcher extends BaseMatcher
      */
     private List<AreaConnection> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, Disambiguator dis)
     {
-        List<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
+        Collection<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
         List<AreaConnection> ret = new ArrayList<>(all.size());
         for (AreaConnection cand : all)
         {
             if (destTag.equals(dis.getAreaTag(cand.getA1())))
             {
                 //find the source nodes that are closer
-                List<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
+                Collection<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
                 boolean foundBetter = false;
                 for (AreaConnection betterCand : better)
                 {

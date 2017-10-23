@@ -7,6 +7,7 @@ package org.fit.layout.patterns;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -295,14 +296,14 @@ public class OneToManyMatcher extends BaseMatcher
      */
     private List<Area> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, Disambiguator dis)
     {
-        List<AreaConnection> dest = pa.getConnections(null, r, a, -1.0f);
+        Collection<AreaConnection> dest = pa.getConnections(null, r, a, -1.0f);
         List<Area> ret = new ArrayList<Area>(dest.size());
         for (AreaConnection cand : dest)
         {
             if (destTag.equals(dis.getAreaTag(cand.getA1())))
             {
                 //find the source nodes that are closer
-                List<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
+                Collection<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
                 boolean foundBetter = false;
                 for (AreaConnection betterCand : better)
                 {
