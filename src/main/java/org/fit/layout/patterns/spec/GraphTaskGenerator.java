@@ -96,7 +96,8 @@ public class GraphTaskGenerator
             List<AttributeGroupMatcher> depends = new ArrayList<>();
             List<Attribute> subattrs = recursiveAddTasks(group.getSubGroups(), dest, depends);
             //create a new task for groups
-            if (subattrs.size() > 0)
+            final int subCnt = subattrs.size() + depends.size(); //total number of sub groups (sub attributes + dependencies)
+            if (subCnt > 1)
             {
                 AttributeGroupMatcher matcher = new AttributeGroupMatcher(subattrs);
                 matcher.setGroup(group);
@@ -104,16 +105,16 @@ public class GraphTaskGenerator
                 dest.add(matcher);
                 deps.add(matcher);
             }
-            //adopt and update existing attributes
-            /*for (Attribute sattr : subattrs)
+            else if (subCnt == 1) //only one member group - join it as an attribute to current group
             {
+                final Attribute sattr = subattrs.get(0);
                 Attribute nsattr = new Attribute(sattr.getTag(),
                         sattr.getMinSupport(), 
                         sattr.isRequired() && group.isRequired(), 
                         sattr.isMany() || group.isMany(),
                         sattr.isSrcMany() || group.isSrcMany());
                 attrs.add(nsattr);
-            }*/
+            }
             //find new attributes if any
             Tagger tagger = taggers.get(group.getRoot());
             if (tagger != null)
