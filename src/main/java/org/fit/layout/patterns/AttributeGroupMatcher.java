@@ -1037,8 +1037,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
         }
         //create pattern analyzer
-        pa = new RelationAnalyzer(areas);
-        //pa = new RelationAnalyzerSymmetric(areas);
+        //pa = new RelationAnalyzer(areas);
+        pa = new RelationAnalyzerSymmetric(areas);
         //discover tag chains used for disambiguation
         /*ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, getTags(), attrs.get(0).getMinSupport());
         chains = ca.findConsistentChains(new RelationUnder());

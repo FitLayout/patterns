@@ -160,6 +160,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                 LogicalArea la = new DefaultLogicalArea();
                 la.setMainTag(superAreaTag);
                 String ws = String.valueOf(match.getAverageConnectionWeight());
+                //match.dumpConnectionWeights();
                 la.setText(ws);
                 destNode.appendChild(la);
                 dest = la;

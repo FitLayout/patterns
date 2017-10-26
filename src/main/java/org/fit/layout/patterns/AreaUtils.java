@@ -102,5 +102,11 @@ public class AreaUtils
         }
         return false;
     }
+    
+    public static float statRound(float value)
+    {
+        final float f = 100000f;
+        return Math.round(value * f) / f;
+    }
 
 }

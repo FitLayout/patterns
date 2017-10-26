@@ -31,11 +31,9 @@ public class RelationSameLine extends LineRelation
                             a1.getBounds().getX1() - a2.getBounds().getX2());
             if (dist >= 0)
             {
-                int tw = topology.getTopologyPosition().getWidth();
-                float w = 1.0f - dist / tw;
-                /*if (a1.getId() == 40)
-                    System.out.println("Found: " + a1 + " " + getName() + " " + a2 + " w=" + w);*/
-                return w;
+                //int tw = topology.getTopologyPosition().getWidth();
+                //float w = 1.0f - dist / tw;
+                return 0.6f;
             }
             else
                 return 0.0f;

@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.AreaUtils;
 
 /**
  * This class represents a single result of matching. It is generally a map that
@@ -113,10 +114,17 @@ public class Match extends HashMap<Tag, List<Area>>
             float sum = 0;
             for (AreaConnection con : areaConnections)
                 sum += con.getWeight();
-            return sum / areaConnections.size();
+            return AreaUtils.statRound(sum / areaConnections.size());
         }
         else
             return 0;
+    }
+    
+    public void dumpConnectionWeights()
+    {
+        System.out.println("Match " + this);
+        for (AreaConnection con : areaConnections)
+            System.out.println("  " + con.getWeight() + " [" + con + "]");
     }
     
     public List<Match> getSubMatches()

@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.AreaUtils;
 
 /**
  * A result of matching a single matcher configuration. The result holds the statistics
@@ -44,19 +45,6 @@ public class MatchResult implements Comparable<MatchResult>
                     return 0; //cannot compare, use next comparators
             }
         });
-        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
-                    return 1;
-                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
-                    return -1;
-                else
-                    return 0;
-            }
-        });
         cclist.add(new Comparator<MatchResult>() //connection weight standard deviation (lower is better)
         {
             @Override
@@ -65,6 +53,19 @@ public class MatchResult implements Comparable<MatchResult>
                 if (o1.getConnectionWeightSigma() < o2.getConnectionWeightSigma())
                     return 1;
                 else if (o1.getConnectionWeightSigma() > o2.getConnectionWeightSigma())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
+        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
+                    return 1;
+                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
                     return -1;
                 else
                     return 0;
@@ -166,7 +167,7 @@ public class MatchResult implements Comparable<MatchResult>
             float sum = 0;
             for (Match match : matches)
                 sum += match.getAverageConnectionWeight();
-            return sum / matches.size();
+            return AreaUtils.statRound(sum / matches.size());
         }
         else
             return 0;
@@ -187,7 +188,7 @@ public class MatchResult implements Comparable<MatchResult>
                 float dif = match.getAverageConnectionWeight() - e;
                 sum += dif * dif;
             }
-            return (float) Math.sqrt(sum / matches.size());
+            return AreaUtils.statRound((float) Math.sqrt(sum / matches.size()));
         }
         else
             return 0;
@@ -199,8 +200,9 @@ public class MatchResult implements Comparable<MatchResult>
         return matches.size() + " matches, " + matchedAreas.size() + " areas covered"
             + ", w=" + getAverageConnectionWeight() 
             + ", s=" + getConnectionWeightSigma()
-            + ", min=" + getMinConnectionWeight()
-            + ", max=" + getMaxConnectionWeight();
+            //+ ", min=" + getMinConnectionWeight()
+            //+ ", max=" + getMaxConnectionWeight()
+            ;
     }
 
     @Override
