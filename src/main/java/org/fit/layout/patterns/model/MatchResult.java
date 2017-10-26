@@ -122,6 +122,40 @@ public class MatchResult implements Comparable<MatchResult>
     }
 
     /**
+     * Finds the minimal value of the weights of the matches conatined in this result.
+     * @return The minimal weight of the matches or 0 for an empty match result
+     */
+    public float getMinConnectionWeight()
+    {
+        if (matches.size() > 0)
+        {
+            float min = 1.0f;
+            for (Match match : matches)
+                min = Math.min(match.getAverageConnectionWeight(), min);
+            return min;
+        }
+        else
+            return 0;
+    }
+    
+    /**
+     * Finds the maximal value of the weights of the matches conatined in this result.
+     * @return The maximal weight of the matches or 0 for an empty match result
+     */
+    public float getMaxConnectionWeight()
+    {
+        if (matches.size() > 0)
+        {
+            float max = -1.0f;
+            for (Match match : matches)
+                max = Math.max(match.getAverageConnectionWeight(), max);
+            return max;
+        }
+        else
+            return 0;
+    }
+    
+    /**
      * Computes the average value of the weights of the matches conatined in this result.
      * @return The average weight of the matches or 0 for an empty match result
      */
@@ -162,7 +196,11 @@ public class MatchResult implements Comparable<MatchResult>
     @Override
     public String toString()
     {
-        return matches.size() + " matches, " + matchedAreas.size() + " areas covered, w=" + getAverageConnectionWeight() + ", s=" + getConnectionWeightSigma();
+        return matches.size() + " matches, " + matchedAreas.size() + " areas covered"
+            + ", w=" + getAverageConnectionWeight() 
+            + ", s=" + getConnectionWeightSigma()
+            + ", min=" + getMinConnectionWeight()
+            + ", max=" + getMaxConnectionWeight();
     }
 
     @Override
