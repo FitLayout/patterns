@@ -76,8 +76,13 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         log.info("Paths:");
         
         Node n = g.getPrimaryNode();
-        for (Path path : g.getDatatypePathsFrom(n))
-            log.info("> {}", path.toString());
+        if (n != null)
+        {
+            for (Path path : g.getDatatypePathsFrom(n))
+                log.info("> {}", path.toString());
+        }
+        else
+            log.error("No primary node specified!");
         
         log.info("Groups:");
         g.getGroups();
