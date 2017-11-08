@@ -171,9 +171,14 @@ public class Graph
     
     public Node[] getNodesForEdge(Edge e)
     {
+        return getNodesForEdge(e, nodes);
+    }
+    
+    private Node[] getNodesForEdge(Edge e, Map<Long, Node> nodemap)
+    {
         Node[] ret = new Node[2];
-        ret[0] = nodes.get(e.getSrcId());
-        ret[1] = nodes.get(e.getDstId());
+        ret[0] = nodemap.get(e.getSrcId());
+        ret[1] = nodemap.get(e.getDstId());
         return ret;
     }
     
@@ -183,8 +188,8 @@ public class Graph
      */
     public Graph collapse()
     {
-        Set<Node> newNodes = new HashSet<Node>(nodes.values());
-        Set<Edge> newEdges = new HashSet<Edge>(edges);
+        Map<Long, Node> newNodes = new HashMap<>(nodes);
+        Set<Edge> newEdges = new HashSet<>(edges);
         boolean change = true;
         while (change)
         {
@@ -194,7 +199,7 @@ public class Graph
                 Edge e = it.next();
                 if (!e.isSrcMany() && !e.isDstMany())
                 {
-                    Node[] n = getNodesForEdge(e);
+                    Node[] n = getNodesForEdge(e, newNodes);
                     if (n[0].isObject() && n[1].isObject())
                     {
                         List<Edge> ebetween =  getEdgesBetween(n[0], n[1]);
@@ -203,10 +208,10 @@ public class Graph
                             //System.out.println("Collapsing " + n[0] + " = " + n[1]);
                             //System.out.println("Removing " + e);
                             it.remove();
-                            newNodes.remove(n[0]);
-                            newNodes.remove(n[1]);
+                            newNodes.remove(n[0].getId());
+                            newNodes.remove(n[1].getId());
                             Node nn = createJoinedNode(n[0], n[1]);
-                            newNodes.add(nn);
+                            newNodes.put(nn.getId(), nn);
                             //reconnect edges
                             for (Edge ne : newEdges)
                             {
@@ -224,7 +229,7 @@ public class Graph
         }
         //create the new graph
         Graph ret = new Graph();
-        for (Node n : newNodes)
+        for (Node n : newNodes.values())
             ret.addNode(n);
         for (Edge e : newEdges)
             ret.addEdge(e);

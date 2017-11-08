@@ -112,7 +112,7 @@ public class Node
     @Override
     public String toString()
     {
-        return getId() + ":" + getTitle();
+        return (isPrimary() ? "#" : "") + getId() + ":" + getTitle();
     }
     
 }
