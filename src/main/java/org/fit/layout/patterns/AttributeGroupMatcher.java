@@ -220,6 +220,37 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
+    public AttributeGroupMatcher findDependencyByTag(Tag tag)
+    {
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+            {
+                Attribute local = dep.getAttrForTag(tag); 
+                if (local != null)
+                    return dep;
+                else
+                    return dep.findDependencyByTag(tag);
+            }
+        }
+        return null;
+    }
+    
+    public boolean isTagMany(Tag tag)
+    {
+        Attribute attr = getAttrForTag(tag);
+        if (attr != null)
+            return attr.isMany(); //local attribute
+        else 
+        {
+            AttributeGroupMatcher dep = findDependencyByTag(tag);
+            if (dep != null)
+                return dep.getGroup().isMany();
+            else
+                return false;
+        }
+    }
+    
     /**
      * Sets the configuration used for testing. When set, the configuration lookup will be limited
      * to the given configuration only, other configurations will be skipped.
@@ -283,8 +314,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
             Map<Tag, List<Match>> depMatches = getDependencyMatches(areas);
             MatchResult result = findMatches(usedConf, dis, tagAreas, depMatches);
-            if (getKeyAttr() != null)
-                result.groupByKey(getKeyAttr().getTag());
+            /*if (getKeyAttr() != null)
+                result.groupByKey(getKeyAttr().getTag());*/
             
             return result.getMatches();
         }
@@ -741,9 +772,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints, List<Match> matches, Set<Area> matchedAreas, Disambiguator dis,
-            Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
+    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
+            List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
     {
+        final boolean srcMany = isTagMany(curPair.getA2());
+        final boolean dstMany = isTagMany(curPair.getA1());
         boolean anyMatched = false;
         List<Match> deps = depMatches.get(curPair.getA1());
         if (deps != null)
@@ -770,12 +803,13 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         else
         {
-            List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dis);
+            List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dstMany, dis);
             Set<Area> destSet = tagAreas.get(curPair.getA1());
             for (AreaConnection con : inrel)
             {
                 Area b = con.getA1();
-                if (destSet.contains(b))
+                boolean mayUse = srcMany || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
+                if (mayUse && destSet.contains(b))
                 {
                     //create the new candidate match
                     Match nextMatch = new Match(curMatch);
@@ -846,12 +880,33 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param r the relation to be uses.
      * @param srcTag the tag required for the source areas (incl. {@code a})
      * @param destTag the tag required for the destination areas
+     * @param allowMany when set to {@code true}, all 'best' connections will be returned. Otherwise, only the one with the greatest weight will be returned.
      * @param dis the disambiguator used for assigning the tags to areas
      * @return the list of best area connections that correspond to the above criteria
      */
-    private List<AreaConnection> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, Disambiguator dis)
+    private List<AreaConnection> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, boolean allowMany, Disambiguator dis)
     {
         Collection<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
+        //if only a single match is allowed, sort the matches in order to start with the best candidates
+        if (!allowMany)
+        {
+            List<AreaConnection> clist = (all instanceof List) ? (List<AreaConnection>) all : new ArrayList<>(all);
+            Collections.sort(clist, new Comparator<AreaConnection>()
+            {
+                @Override
+                public int compare(AreaConnection o1, AreaConnection o2)
+                {
+                    if (o1.getWeight() < o2.getWeight())
+                        return 1;
+                    else if (o1.getWeight() > o2.getWeight())
+                        return -1;
+                    else
+                        return 0;
+                }
+            });
+            all = clist;
+        }
+        //scan the candidates
         List<AreaConnection> ret = new ArrayList<>(all.size());
         for (AreaConnection cand : all)
         {
@@ -869,7 +924,11 @@ public class AttributeGroupMatcher extends BaseMatcher
                     }
                 }
                 if (!foundBetter)
+                {
                     ret.add(cand); //a1 has no "better" source area, use it
+                    if (!allowMany)
+                        break; //we have found the best one
+                }
             }
         }
         return ret;
