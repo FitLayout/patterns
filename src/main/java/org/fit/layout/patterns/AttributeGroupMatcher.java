@@ -660,7 +660,15 @@ public class AttributeGroupMatcher extends BaseMatcher
             {
                 if (localTags.contains(pair.getO1())) //exclude unused tags
                 {
-                    if (!tagBlacklist.contains(pair.getO1()) && !pairBlacklist.contains(pair))
+                    if (pairBlacklist.contains(pair))
+                    {
+                        log.debug("Blacklisted (M:N): {}", pair);
+                    }
+                    else if (tagBlacklist.contains(pair.getO1()))
+                    {
+                        log.debug("Blacklisted (M:1): {}", pair);
+                    }
+                    else
                     {
                         TagPattern seed = new TagPattern(usedTags.size() - 1);
                         seed.add(pair);
@@ -669,8 +677,6 @@ public class AttributeGroupMatcher extends BaseMatcher
                         else
                             recursiveAddConnected(seed, allConnections, localTags, ret);
                     }
-                    else
-                        log.debug("Blacklisted (M:1): {}", pair);
                 }
             }
         }
@@ -1036,7 +1042,10 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (Attribute att : attrs)
         {
             if (att.isSrcMany() && !att.isMany())
+            {
                 tagBlacklist.add(att.getTag());
+                log.debug("Blacklisted M tag {}", att.getTag());
+            }
         }
         
         /* M:N relationships should be avoided for the same reason.
@@ -1046,11 +1055,20 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             for (Attribute a2 : attrs)
             {
-                if (a1 != a2 && a1.isSrcMany() && a2.isMany())
+                if (a1 != a2)
                 {
-                    TagPair pair = new TagPair(a2.getTag(), a1.getTag());
-                    pairBlacklist.add(pair);
-                    log.debug("Blacklisted M:N pair {}", pair);
+                    if (a1.isSrcMany() && a2.isMany())
+                    {
+                        TagPair pair = new TagPair(a2.getTag(), a1.getTag());
+                        pairBlacklist.add(pair);
+                        log.debug("Blacklisted M:N pair {}", pair);
+                    }
+                    else if (a1.isMany())
+                    {
+                        TagPair pair = new TagPair(a2.getTag(), a1.getTag());
+                        pairBlacklist.add(pair);
+                        log.debug("Blacklisted M:* pair {}", pair);
+                    }
                 }
             }
         }
