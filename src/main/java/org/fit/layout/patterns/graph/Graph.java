@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * An extraction graph.
  * 
@@ -23,6 +26,8 @@ import java.util.stream.Stream;
  */
 public class Graph
 {
+    private static Logger log = LoggerFactory.getLogger(Graph.class);
+
     private long id;
     private String title;
     private Node primaryNode;
@@ -314,21 +319,37 @@ public class Graph
                 //find all connections to already grouped nodes
                 Set<EdgeNodePair> neighbors = getNeighborsOf(n);
                 Set<Group> subGroups = new HashSet<>();
+                Node manySrc = null; //for checking duplicate M:* relationships 
+                boolean many = false;
+                boolean required = true;
                 for (EdgeNodePair neigh : neighbors)
                 {
                     Group sub = groups.get(neigh.getNode());
                     if (sub != null)
                     {
-                        sub.setMany(neigh.isDstMany());
-                        sub.setSrcMany(neigh.isSrcMany());
-                        sub.setRequired(!neigh.isDstOptional());
-                        subGroups.add(sub);
+                        if (!neigh.isSrcMany())
+                        {
+                            sub.setMany(neigh.isDstMany());
+                            sub.setRequired(!neigh.isDstOptional());
+                            subGroups.add(sub);
+                        }
+                        else //M:* relation: do not treat as a subgroup, just set the attributes of the source
+                        {
+                            if (manySrc != null)
+                                log.error("Multiple M:* relationships pointing to {}", n);
+                            manySrc = n;
+                            sub.setRequired(!neigh.isDstOptional());
+                            many = true;
+                            required = !neigh.isSrcOptional();
+                        }
                     }
                 }
                 //create a subgroup
                 if (!subGroups.isEmpty())
                 {
                     Group newgroup = new Group(n);
+                    newgroup.setRequired(required);
+                    newgroup.setMany(many);
                     for (Group sub : subGroups)
                     {
                         groups.remove(sub.getRoot());
@@ -339,8 +360,8 @@ public class Graph
                 }
             }
         }
-        System.out.println(groups.values());
-        System.out.println("remain: " + nodeList);
+        log.info("Groups: {}", groups.values());
+        log.info("remain: {}", nodeList);
         return groups.values();
     }
     

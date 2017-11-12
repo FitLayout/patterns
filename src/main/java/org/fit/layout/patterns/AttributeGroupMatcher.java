@@ -1201,11 +1201,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         @Override
         public String toString()
         {
+            final String[] card = new String[] {"?", "", "*", "+"};
             String ret =
                     (isSrcMany() ? ">":"")
                     + tag.toString()
-                    + (isMany() ? "*":"")
-                    + (isRequired() ? "":"?");
+                    + card[(isMany()?1:0) * 2  + (isRequired()?1:0)];
             return ret;
         }
 

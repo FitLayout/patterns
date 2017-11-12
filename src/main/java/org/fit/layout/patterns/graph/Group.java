@@ -87,12 +87,12 @@ public class Group
     @Override
     public String toString()
     {
+        final String[] card = new String[] {"?", "", "*", "+"};
         String sub = subGroups.stream().map(g -> g.toString()).collect(Collectors.joining(","));
-        return (isMany() ? "*":"")
-                + (isSrcMany() ? ">":"")
+        return ((isSrcMany() ? ">":"")
                 + root.toString()
-                + (isRequired() ? "":"?")
-                + "[" + sub + "]";
+                + card[(isMany()?1:0) * 2  + (isRequired()?1:0)]
+                + "[" + sub + "]");
     }
 
     @Override

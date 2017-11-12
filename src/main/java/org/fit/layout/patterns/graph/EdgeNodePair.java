@@ -71,4 +71,16 @@ public class EdgeNodePair
         return reversedEdge() ? edge.isSrcOptional() : edge.isDstOptional();
     }
     
+    @Override
+    public String toString()
+    {
+        final String[] card = new String[] {"?", "", "*", "+"};
+        String ret = "";
+        ret += card[(isSrcMany()?1:0) * 2  + (isSrcOptional()?0:1)];
+        ret += reversedEdge() ? "<-" : "->"; 
+        ret += getNode().toString();
+        ret += card[(isDstMany()?1:0) * 2  + (isDstOptional()?0:1)];
+        return ret;
+    }
+    
 }

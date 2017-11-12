@@ -84,7 +84,14 @@ public class GraphTaskGenerator
         Collection<Group> groups = graph.getGroups();
         List<AttributeGroupMatcher> ret = new ArrayList<>();
         List<AttributeGroupMatcher> depends = new ArrayList<>();
-        recursiveAddTasks(groups, ret, depends);
+        List<Attribute> attrs = recursiveAddTasks(groups, ret, depends);
+        if (!attrs.isEmpty()) //some attributes remaining, create a top matcher
+        {
+            AttributeGroupMatcher matcher = new AttributeGroupMatcher(attrs);
+            //matcher.setGroup(group); //TODO
+            matcher.setDependencies(depends);
+            ret.add(matcher);
+        }
         return ret;
     }
     
