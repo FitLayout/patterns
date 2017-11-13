@@ -177,6 +177,8 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
                 for (Area a : areas)
                 {
                     dest.addArea(a);
+                    if (destNode != dest)
+                        destNode.addArea(a);
                     LogicalArea childArea = new DefaultLogicalArea(a);
                     childArea.setMainTag(tag);
                     dest.appendChild(childArea);
