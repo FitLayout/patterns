@@ -658,7 +658,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             //recursively scan other connections
             for (TagPair pair : pairs)
             {
-                if (localTags.contains(pair.getO1())) //exclude unused tags
+                if (localTags.contains(pair.getO1()) || localTags.contains(pair.getO2())) //exclude unused tags
                 {
                     if (pairBlacklist.contains(pair))
                     {
@@ -789,7 +789,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             for (Match match : deps)
             {
-                if (match.get(curPair.getA2()).contains(a)) //the match refers to the source area
+                final List<Area> ref = match.get(curPair.getA2());
+                if (ref != null && ref.contains(a)) //the match refers to the source area
                 {
                     List<AreaConnection> cons = match.getConnectionsForTag(curPair.getA1());
                     for (AreaConnection con : cons)
