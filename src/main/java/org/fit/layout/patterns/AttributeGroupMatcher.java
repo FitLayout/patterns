@@ -754,13 +754,16 @@ public class AttributeGroupMatcher extends BaseMatcher
         if (deps != null)
         {
             for (Match dmatch : deps)
-            {        
-                for (Area a : dmatch.get(curPair.getA2()))
+            {
+                if (dmatch.isDisjointWith(matchedAreas)) //the match does not contain any already matched area
                 {
-                    Match match = new Match(); 
-                    match.putSingle(curPair.getA2(), a);
-                    match.addSubMatch(dmatch);
-                    recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                    for (Area a : dmatch.get(curPair.getA2()))
+                    {
+                        Match match = new Match(); 
+                        //match.putSingle(curPair.getA2(), a);
+                        match.addSubMatch(dmatch);
+                        recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                    }
                 }
             }
         }
@@ -789,21 +792,24 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             for (Match match : deps)
             {
-                final List<Area> ref = match.get(curPair.getA2());
-                if (ref != null && ref.contains(a)) //the match refers to the source area
+                if (match.isDisjointWith(matchedAreas))
                 {
-                    List<AreaConnection> cons = match.getConnectionsForTag(curPair.getA1());
-                    for (AreaConnection con : cons)
+                    final List<Area> ref = match.get(curPair.getA2());
+                    if (ref != null && ref.contains(a)) //the match refers to the source area
                     {
-                        Area b = con.getA1();
-                        //create the new candidate match
-                        Match nextMatch = new Match(curMatch);
-                        nextMatch.putSingle(curPair.getA1(), b);
-                        nextMatch.addAreaConnection(con);
-                        nextMatch.addSubMatch(match);
-                        
-                        anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
-                                dis, tagAreas, depMatches);
+                        List<AreaConnection> cons = match.getConnectionsForTag(curPair.getA1());
+                        for (AreaConnection con : cons)
+                        {
+                            Area b = con.getA1();
+                            //create the new candidate match
+                            Match nextMatch = new Match(curMatch);
+                            nextMatch.putSingle(curPair.getA1(), b);
+                            nextMatch.addAreaConnection(con);
+                            nextMatch.addSubMatch(match);
+                            
+                            anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
+                                    dis, tagAreas, depMatches);
+                        }
                     }
                 }
             }
@@ -866,8 +872,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             {
                 //log.debug("Adding: {}", nextMatch);
                 matches.add(nextMatch);
-                for (List<Area> matchAreas : nextMatch.values())
-                    matchedAreas.addAll(matchAreas);
+                nextMatch.addAllAreasTo(matchedAreas);
             }
             else
                 log.debug("Skipping inconsistent match: {}", nextMatch);

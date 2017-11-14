@@ -6,9 +6,13 @@
 package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
@@ -197,6 +201,39 @@ public class Match extends HashMap<Tag, List<Area>>
     public boolean containsArea(Area a)
     {
         return (findArea(a) != null);
+    }
+    
+    /**
+     * Adds all the matched areas to a specified destination collection.
+     * @param dest the destination collection
+     */
+    public void addAllAreasTo(Collection<Area> dest)
+    {
+        for (List<Area> matchAreas : values())
+            dest.addAll(matchAreas);
+        for (Match sub : subMatches)
+            sub.addAllAreasTo(dest);
+    }
+    
+    /**
+     * Obtains a set of all the matched areas.
+     * @return the set of areas
+     */
+    public Set<Area> getAllAreas()
+    {
+        Set<Area> ret = new HashSet<>();
+        addAllAreasTo(ret);
+        return ret;
+    }
+    
+    /**
+     * Checks whether the set of matched areas is disjoint with another collection.
+     * @param areas The collection to compare with.
+     * @return {@code true} when this match does not contain any area from the given collection
+     */
+    public boolean isDisjointWith(Collection<Area> areas)
+    {
+        return Collections.disjoint(areas, getAllAreas());
     }
     
 }
