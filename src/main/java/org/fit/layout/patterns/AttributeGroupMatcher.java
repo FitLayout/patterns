@@ -797,19 +797,12 @@ public class AttributeGroupMatcher extends BaseMatcher
                     final List<Area> ref = match.get(curPair.getA2());
                     if (ref != null && ref.contains(a)) //the match refers to the source area
                     {
-                        List<AreaConnection> cons = match.getConnectionsForTag(curPair.getA1());
-                        for (AreaConnection con : cons)
-                        {
-                            Area b = con.getA1();
-                            //create the new candidate match
-                            Match nextMatch = new Match(curMatch);
-                            nextMatch.putSingle(curPair.getA1(), b);
-                            nextMatch.addAreaConnection(con);
-                            nextMatch.addSubMatch(match);
-                            
-                            anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
-                                    dis, tagAreas, depMatches);
-                        }
+                        //create the new candidate match with the chosen sub-match
+                        Match nextMatch = new Match(curMatch);
+                        nextMatch.addSubMatch(match);
+                        
+                        anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
+                                dis, tagAreas, depMatches);
                     }
                 }
             }
