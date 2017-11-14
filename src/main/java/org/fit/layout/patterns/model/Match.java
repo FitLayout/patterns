@@ -8,6 +8,7 @@ package org.fit.layout.patterns.model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
@@ -164,4 +165,38 @@ public class Match extends HashMap<Tag, List<Area>>
         areaConnections.addAll(other.getAreaConnections());
         subMatches.addAll(other.getSubMatches());
     }
+    
+    /**
+     * Finds the tag that is matched to a given area by this match or its sub-matches.
+     * @param a The matched area.
+     * @return The corresponding tag or {@code null} when this match does not include the given area.
+     */
+    public Tag findArea(Area a)
+    {
+        //try local tags
+        for (Map.Entry<Tag, List<Area>> entry : this.entrySet())
+        {
+            if (entry.getValue().contains(a))
+                return entry.getKey();
+        }
+        //include dependencies
+        for (Match sub : subMatches)
+        {
+            final Tag t = sub.findArea(a);
+            if (t != null)
+                return t;
+        }
+        return null;
+    }
+    
+    /**
+     * Checks whether the match or its sub-matches include the given area.
+     * @param a The matched area.
+     * @return {@code true} when this match includes the given area.
+     */
+    public boolean containsArea(Area a)
+    {
+        return (findArea(a) != null);
+    }
+    
 }

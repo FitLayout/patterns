@@ -816,7 +816,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             {
                 Area b = con.getA1();
                 boolean mayUse = srcMany || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
-                if (mayUse && destSet.contains(b))
+                if (mayUse && destSet.contains(b) && !curMatch.containsArea(b))
                 {
                     //create the new candidate match
                     Match nextMatch = new Match(curMatch);
