@@ -16,6 +16,7 @@ import java.util.Set;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
+import org.fit.layout.patterns.AttributeGroupMatcher;
 
 /**
  * A result of matching a single matcher configuration. The result holds the statistics
@@ -92,12 +93,14 @@ public class MatchResult implements Comparable<MatchResult>
     
     private List<Match> matches;
     private Set<Area> matchedAreas;
+    private AttributeGroupMatcher matcher;
     private MatchStatistics stats;
     
-    public MatchResult(List<Match> matches, Set<Area> matchedAreas)
+    public MatchResult(List<Match> matches, Set<Area> matchedAreas, AttributeGroupMatcher matcher)
     {
         this.matches = matches;
         this.matchedAreas = matchedAreas;
+        this.matcher = matcher;
         this.stats = null;
     }
 
@@ -111,6 +114,16 @@ public class MatchResult implements Comparable<MatchResult>
         return matchedAreas;
     }
     
+    public AttributeGroupMatcher getMatcher()
+    {
+        return matcher;
+    }
+
+    public void setMatcher(AttributeGroupMatcher matcher)
+    {
+        this.matcher = matcher;
+    }
+
     public MatchStatistics getStats()
     {
         return stats;

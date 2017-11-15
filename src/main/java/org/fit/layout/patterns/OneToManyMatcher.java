@@ -56,6 +56,12 @@ public class OneToManyMatcher extends BaseMatcher
     }
     
     @Override
+    public boolean isTagMany(Tag tag)
+    {
+        return (tag != null) && tag.equals(srcTag[1]);
+    }
+    
+    @Override
     public List<Match> match(List<Area> areas)
     {
         this.areas = areas;

@@ -236,6 +236,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         return null;
     }
     
+    @Override
     public boolean isTagMany(Tag tag)
     {
         Attribute attr = getAttrForTag(tag);
@@ -778,7 +779,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
             }
         }
-        return new MatchResult(matches, matchedAreas);
+        return new MatchResult(matches, matchedAreas, this);
     }
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
