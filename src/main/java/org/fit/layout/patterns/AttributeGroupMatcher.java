@@ -779,7 +779,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
             }
         }
-        return new MatchResult(matches, matchedAreas, this);
+        return new MatchResult(matches, matchedAreas);
     }
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
@@ -821,7 +821,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     //create the new candidate match
                     Match nextMatch = new Match(curMatch);
                     nextMatch.putSingle(curPair.getA1(), b);
-                    nextMatch.addAreaConnection(con);
+                    nextMatch.addAreaConnection(con, dstMany);
                     
                     anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                             dis, tagAreas, depMatches);

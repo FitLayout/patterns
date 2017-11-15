@@ -6,6 +6,7 @@
 package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,7 +17,6 @@ import java.util.Set;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
-import org.fit.layout.patterns.AttributeGroupMatcher;
 
 /**
  * A result of matching a single matcher configuration. The result holds the statistics
@@ -93,14 +93,15 @@ public class MatchResult implements Comparable<MatchResult>
     
     private List<Match> matches;
     private Set<Area> matchedAreas;
-    private AttributeGroupMatcher matcher;
     private MatchStatistics stats;
+    private Map<Area, List<AreaConnection>> connsM; //map of 1:M connections to their source areas
+    private Map<Area, Float> avgM; //average weights of 1:M connections sharing a single source area
+   
     
-    public MatchResult(List<Match> matches, Set<Area> matchedAreas, AttributeGroupMatcher matcher)
+    public MatchResult(List<Match> matches, Set<Area> matchedAreas)
     {
         this.matches = matches;
         this.matchedAreas = matchedAreas;
-        this.matcher = matcher;
         this.stats = null;
     }
 
@@ -114,16 +115,6 @@ public class MatchResult implements Comparable<MatchResult>
         return matchedAreas;
     }
     
-    public AttributeGroupMatcher getMatcher()
-    {
-        return matcher;
-    }
-
-    public void setMatcher(AttributeGroupMatcher matcher)
-    {
-        this.matcher = matcher;
-    }
-
     public MatchStatistics getStats()
     {
         return stats;
@@ -145,7 +136,7 @@ public class MatchResult implements Comparable<MatchResult>
         {
             float min = 1.0f;
             for (Match match : matches)
-                min = Math.min(match.getAverageConnectionWeight(), min);
+                min = Math.min(getMatchAverage(match), min);
             return min;
         }
         else
@@ -162,7 +153,7 @@ public class MatchResult implements Comparable<MatchResult>
         {
             float max = -1.0f;
             for (Match match : matches)
-                max = Math.max(match.getAverageConnectionWeight(), max);
+                max = Math.max(getMatchAverage(match), max);
             return max;
         }
         else
@@ -179,7 +170,7 @@ public class MatchResult implements Comparable<MatchResult>
         {
             float sum = 0;
             for (Match match : matches)
-                sum += match.getAverageConnectionWeight();
+                sum += getMatchAverage(match);
             return AreaUtils.statRound(sum / matches.size());
         }
         else
@@ -198,7 +189,7 @@ public class MatchResult implements Comparable<MatchResult>
             float sum = 0;
             for (Match match : matches)
             {
-                float dif = match.getAverageConnectionWeight() - e;
+                float dif = getMatchAverage(match) - e;
                 sum += dif * dif;
             }
             return AreaUtils.statRound((float) Math.sqrt(sum / matches.size()));
@@ -228,6 +219,76 @@ public class MatchResult implements Comparable<MatchResult>
                 return comp;
         }
         return 0;
+    }
+    
+    //==================================================================================================
+    
+    private Map<Area, List<AreaConnection>> getConnsM()
+    {
+        if (connsM == null)
+        {
+            connsM = new HashMap<>();
+            for (Match match : matches)
+            {
+                for (AreaConnection con : match.getAreaConnectionsM())
+                {
+                    Area a = con.getA2();
+                    List<AreaConnection> dest = connsM.get(a);
+                    if (dest == null)
+                    {
+                        dest = new ArrayList<>();
+                        connsM.put(a, dest);
+                    }
+                    dest.add(con);
+                }
+            }
+        }
+        return connsM;
+    }
+    
+    private Map<Area, Float> getAvgM()
+    {
+        if (avgM == null)
+        {
+            avgM = new HashMap<>();
+            for (Map.Entry<Area, List<AreaConnection>> entry : getConnsM().entrySet())
+            {
+                float avg = computeAverageWeight(entry.getValue());
+                avgM.put(entry.getKey(), avg);
+            }
+        }
+        return avgM;
+    }
+    
+    private float computeAverageWeight(Collection<AreaConnection> conns)
+    {
+        if (conns.size() > 0)
+        {
+            float sum = 0;
+            for (AreaConnection con : conns)
+                sum += con.getWeight();
+            return AreaUtils.statRound(sum / conns.size());
+        }
+        else
+            return 0;
+    }
+    
+    private float getMatchAverage(Match match)
+    {
+        int cnt = match.getAreaConnections1().size() + match.getAreaConnectionsM().size();
+        if (cnt > 0)
+        {
+            float sum = 0;
+            //1:1 connection counted normally
+            for (AreaConnection con : match.getAreaConnections1())
+                sum += con.getWeight();
+            //1:M connection use the average for all the connections from the same "1" area
+            for (AreaConnection con : match.getAreaConnectionsM())
+                sum += getAvgM().get(con.getA2());
+            return sum / cnt;
+        }
+        else
+            return 0;
     }
     
     //==================================================================================================
