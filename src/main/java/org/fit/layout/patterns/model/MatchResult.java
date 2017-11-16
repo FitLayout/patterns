@@ -232,7 +232,7 @@ public class MatchResult implements Comparable<MatchResult>
             {
                 for (AreaConnection con : match.getAreaConnectionsM())
                 {
-                    Area a = con.getA2();
+                    Area a = con.getA1();
                     List<AreaConnection> dest = connsM.get(a);
                     if (dest == null)
                     {
@@ -284,11 +284,20 @@ public class MatchResult implements Comparable<MatchResult>
                 sum += con.getWeight();
             //1:M connection use the average for all the connections from the same "1" area
             for (AreaConnection con : match.getAreaConnectionsM())
-                sum += getAvgM().get(con.getA2());
+                sum += getAvgM().get(con.getA1());
             return sum / cnt;
         }
         else
             return 0;
+    }
+    
+    public void dumpMatchAverages()
+    {
+        for (Match match : getMatches())
+        {
+            float f = getMatchAverage(match);
+            System.out.println("Match " + match + " avg " + f);
+        }
     }
     
     //==================================================================================================
