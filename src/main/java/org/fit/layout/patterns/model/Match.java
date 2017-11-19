@@ -31,7 +31,8 @@ public class Match extends HashMap<Tag, List<Area>>
     private static final long serialVersionUID = 1L;
     
     private List<AreaConnection> areaConnections1;
-    private List<AreaConnection> areaConnectionsM;
+    private List<AreaConnection> areaConnectionsM1;
+    private List<AreaConnection> areaConnections1M;
     private List<Match> subMatches;
     
     /**
@@ -41,7 +42,8 @@ public class Match extends HashMap<Tag, List<Area>>
     {
         super();
         areaConnections1 = new ArrayList<>();
-        areaConnectionsM = new ArrayList<>();
+        areaConnectionsM1 = new ArrayList<>();
+        areaConnections1M = new ArrayList<>();
         subMatches = new ArrayList<>();
     }
     
@@ -53,7 +55,8 @@ public class Match extends HashMap<Tag, List<Area>>
     {
         super(src);
         areaConnections1 = new ArrayList<>(src.getAreaConnections1());
-        areaConnectionsM = new ArrayList<>(src.getAreaConnectionsM());
+        areaConnectionsM1 = new ArrayList<>(src.getAreaConnectionsM1());
+        areaConnections1M = new ArrayList<>(src.getAreaConnections1M());
         subMatches = new ArrayList<>(src.getSubMatches());
     }
 
@@ -90,10 +93,12 @@ public class Match extends HashMap<Tag, List<Area>>
         }
     }
     
-    public void addAreaConnection(AreaConnection con, boolean isMany)
+    public void addAreaConnection(AreaConnection con, boolean a1Many, boolean a2Many)
     {
-        if (isMany)
-            areaConnectionsM.add(con);
+        if (a1Many)
+            areaConnectionsM1.add(con);
+        else if (a2Many)
+            areaConnections1M.add(con);
         else
             areaConnections1.add(con);
     }
@@ -103,9 +108,14 @@ public class Match extends HashMap<Tag, List<Area>>
         return areaConnections1;
     }
     
-    public List<AreaConnection> getAreaConnectionsM()
+    public List<AreaConnection> getAreaConnectionsM1()
     {
-        return areaConnectionsM;
+        return areaConnectionsM1;
+    }
+    
+    public List<AreaConnection> getAreaConnections1M()
+    {
+        return areaConnections1M;
     }
     
     public List<AreaConnection> getConnectionsForTag(Tag t)
@@ -119,7 +129,12 @@ public class Match extends HashMap<Tag, List<Area>>
                 if (con.getA1().equals(a))
                     ret.add(con);
             }
-            for (AreaConnection con : areaConnectionsM)
+            for (AreaConnection con : areaConnectionsM1)
+            {
+                if (con.getA1().equals(a))
+                    ret.add(con);
+            }
+            for (AreaConnection con : areaConnections1M)
             {
                 if (con.getA1().equals(a))
                     ret.add(con);
@@ -130,14 +145,17 @@ public class Match extends HashMap<Tag, List<Area>>
     
     public float getAverageConnectionWeight()
     {
-        if (areaConnections1.size() + areaConnectionsM.size() > 0)
+        final int cnt = areaConnections1.size() + areaConnectionsM1.size() + areaConnections1M.size();
+        if (cnt > 0)
         {
             float sum = 0;
             for (AreaConnection con : areaConnections1)
                 sum += con.getWeight();
-            for (AreaConnection con : areaConnectionsM)
+            for (AreaConnection con : areaConnectionsM1)
                 sum += con.getWeight();
-            return AreaUtils.statRound(sum / (areaConnections1.size() + areaConnectionsM.size()));
+            for (AreaConnection con : areaConnections1M)
+                sum += con.getWeight();
+            return AreaUtils.statRound(sum / cnt);
         }
         else
             return 0;
@@ -148,7 +166,9 @@ public class Match extends HashMap<Tag, List<Area>>
         System.out.println("Match " + this);
         for (AreaConnection con : areaConnections1)
             System.out.println("  1:1 " + con.getWeight() + " [" + con + "]");
-        for (AreaConnection con : areaConnectionsM)
+        for (AreaConnection con : areaConnectionsM1)
+            System.out.println("  M:1 " + con.getWeight() + " [" + con + "]");
+        for (AreaConnection con : areaConnections1M)
             System.out.println("  1:M " + con.getWeight() + " [" + con + "]");
     }
     
@@ -187,7 +207,8 @@ public class Match extends HashMap<Tag, List<Area>>
         }
         
         areaConnections1.addAll(other.getAreaConnections1());
-        areaConnectionsM.addAll(other.getAreaConnectionsM());
+        areaConnectionsM1.addAll(other.getAreaConnectionsM1());
+        areaConnections1M.addAll(other.getAreaConnections1M());
         subMatches.addAll(other.getSubMatches());
     }
     

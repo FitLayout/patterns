@@ -390,7 +390,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (MatcherConfiguration conf : all)
         {
             /*String s = conf.toString();
-            if (s.contains("session-above-title") && s.contains("persons-below-title") && s.contains("pages-onRight-title"))
+            if (s.contains("title-below-session") && s.contains("fs:24"))
                 System.out.println("jo!");*/
             
             if (tconf != null)
@@ -695,7 +695,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             //recursively scan other connections
             for (TagPair pair : pairs)
             {
-                if (localTags.contains(pair.getO1()) || localTags.contains(pair.getO2())) //exclude unused tags
+                if ((localTags.contains(pair.getO1()) || localTags.contains(pair.getO2())) //one of the tags must be local
+                        && allowedTags.contains(pair.getO1()) && allowedTags.contains(pair.getO2())) //all must be allowed
                 {
                     if (pairBlacklist.contains(pair))
                     {
@@ -821,13 +822,13 @@ public class AttributeGroupMatcher extends BaseMatcher
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
             List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
     {
-        final boolean srcMany = isTagMany(curPair.getA2());
-        final boolean dstMany = isTagMany(curPair.getA1());
+        final boolean a1Many = isTagMany(curPair.getA1());
+        final boolean a2Many = isTagMany(curPair.getA2());
         boolean anyMatched = false;
         List<Match> deps = depMatches.get(curPair.getA1());
-        if (curPair.toString().contains("session"))
-            System.out.println("jo!");
-        List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), dstMany, dis);
+        /*if (curPair.toString().contains("session"))
+            System.out.println("jo!");*/
+        List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), a1Many, dis);
         if (deps != null)
         {
             //look for dependency matches related to the current area
@@ -842,14 +843,14 @@ public class AttributeGroupMatcher extends BaseMatcher
                         if (ref.contains(con.getA1()))
                         {
                             Area b = con.getA1();
-                            boolean mayUse = dstMany || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
+                            boolean mayUse = a1Many || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
                             if (mayUse && !curMatch.containsArea(b))
                             {
                                 //create the new candidate match
                                 Match nextMatch = new Match(curMatch);
                                 //nextMatch.putSingle(curPair.getA1(), b);
                                 nextMatch.addSubMatch(match);
-                                nextMatch.addAreaConnection(con, dstMany);
+                                nextMatch.addAreaConnection(con, a1Many, false);
                                 
                                 anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                                         dis, tagAreas, depMatches);
@@ -865,13 +866,13 @@ public class AttributeGroupMatcher extends BaseMatcher
             for (AreaConnection con : inrel)
             {
                 Area b = con.getA1();
-                boolean mayUse = srcMany || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
+                boolean mayUse = a2Many || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
                 if (mayUse && destSet.contains(b) && !curMatch.containsArea(b))
                 {
                     //create the new candidate match
                     Match nextMatch = new Match(curMatch);
                     nextMatch.putSingle(curPair.getA1(), b);
-                    nextMatch.addAreaConnection(con, srcMany);
+                    nextMatch.addAreaConnection(con, false, a2Many);
                     
                     anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                             dis, tagAreas, depMatches);
