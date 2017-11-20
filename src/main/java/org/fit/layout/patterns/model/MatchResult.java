@@ -264,24 +264,19 @@ public class MatchResult implements Comparable<MatchResult>
             avgM = new HashMap<>();
             for (Map.Entry<Area, List<AreaConnection>> entry : getConnsM().entrySet())
             {
-                float avg = computeAverageWeight(entry.getValue());
+                float avg = computeMinWeight(entry.getValue());
                 avgM.put(entry.getKey(), avg);
             }
         }
         return avgM;
     }
     
-    private float computeAverageWeight(Collection<AreaConnection> conns)
+    private float computeMinWeight(Collection<AreaConnection> conns)
     {
-        if (conns.size() > 0)
-        {
-            float sum = 0;
-            for (AreaConnection con : conns)
-                sum += con.getWeight();
-            return AreaUtils.statRound(sum / conns.size());
-        }
-        else
-            return 0;
+        float min = 0;
+        for (AreaConnection con : conns)
+            min = Math.min(min, con.getWeight());
+        return min;
     }
     
     private float getMatchAverage(Match match)
