@@ -1094,6 +1094,9 @@ public class AttributeGroupMatcher extends BaseMatcher
      */
     private void scanAttributes()
     {
+        //update the tag sets
+        usedTags = findAllTags();
+        
         /* M:1 relationships should be avoided because our matcher only expects 1:1 or 1:M.
          * The M:1 relationships may be expressed as 1:M for swapped tags.
          * We create a blacklist for M:1 tags */
@@ -1110,21 +1113,22 @@ public class AttributeGroupMatcher extends BaseMatcher
         /* M:N relationships should be avoided for the same reason.
          * We create a blacklist for M:N pairs. */
         pairBlacklist = new HashSet<>();
-        for (Attribute a1 : attrs)
+        Set<Tag> allTags = getTagsWithDependencies();
+        for (Tag t1 : allTags)
         {
-            for (Attribute a2 : attrs)
+            for (Tag t2 : allTags)
             {
-                if (a1 != a2)
+                if (t1 != t2)
                 {
-                    if (a1.isSrcMany() && a2.isMany())
+                    if (isTagMany(t1) && isTagMany(t2))
                     {
-                        TagPair pair = new TagPair(a2.getTag(), a1.getTag());
+                        TagPair pair = new TagPair(t2, t1);
                         pairBlacklist.add(pair);
                         log.debug("Blacklisted M:N pair {}", pair);
                     }
-                    else if (a1.isMany())
+                    else if (isTagMany(t1))
                     {
-                        TagPair pair = new TagPair(a2.getTag(), a1.getTag());
+                        TagPair pair = new TagPair(t2, t1);
                         pairBlacklist.add(pair);
                         log.debug("Blacklisted M:* pair {}", pair);
                     }
@@ -1144,9 +1148,6 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.warn("No candidate for key attribute found. The results may be ambiguous.");
         else
             log.info("Using {} as the key attribute", getKeyAttr());
-        
-        //update the tag sets
-        usedTags = findAllTags();
     }
     
     private Set<Tag> findAllTags()
