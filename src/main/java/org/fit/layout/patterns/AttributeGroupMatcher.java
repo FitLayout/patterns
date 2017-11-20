@@ -54,8 +54,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<AttributeGroupMatcher> dependencies; //already configured group matchers
     private Group group; //the group this matcher was created for (for tracking cardinalities etc.)
     
-    private Set<Tag> allTags; //set of all tags assigned to the attributes
-    private Set<Tag> usedTags; //set of tags efficiently for extraction
+    private Set<Tag> usedTags; //set of tags used by the attributes
     private int keyAttr; //key attribute index or -1 if none
     private Set<Tag> tagBlacklist; //tags that should not be the first one in the pairs in order to avoid M:1 connections
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
@@ -99,11 +98,6 @@ public class AttributeGroupMatcher extends BaseMatcher
         this.group = group;
     }
 
-    public Set<Tag> getAllTags()
-    {
-        return allTags;
-    }
-    
     public Set<Tag> getUsedTags()
     {
         return usedTags;
@@ -200,6 +194,21 @@ public class AttributeGroupMatcher extends BaseMatcher
     public Set<Tag> getDependencyTags()
     {
         Set<Tag> ret = new HashSet<>();
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+                ret.addAll(dep.getUsedTags());
+        }
+        return ret;
+    }
+    
+    /**
+     * Obtains all the tags recognized by this tagger and the dependent taggers.
+     * @return the set of tags
+     */
+    public Set<Tag> getTagsWithDependencies()
+    {
+        Set<Tag> ret = new HashSet<>(getUsedTags());
         if (dependencies != null)
         {
             for (AttributeGroupMatcher dep : dependencies)
@@ -574,8 +583,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<ConnectionPattern> generateConnectionPatterns(float minFrequency)
     {
         TagConnectionList all = pa.getTagConnections();
-        Set<Tag> allInclDeps = new HashSet<>(usedTags);
-        allInclDeps.addAll(getDependencyTags());
+        Set<Tag> allInclDeps = getTagsWithDependencies();
         
         Set<TagPattern> patterns = findConnectedTagPatterns(all, usedTags, allInclDeps);
         log.debug("Attribute patterns: {}", patterns.size());
@@ -1138,8 +1146,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.info("Using {} as the key attribute", getKeyAttr());
         
         //update the tag sets
-        allTags = findAllTags();
-        usedTags = new HashSet<>(allTags);
+        usedTags = findAllTags();
     }
     
     private Set<Tag> findAllTags()
