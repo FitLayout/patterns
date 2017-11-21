@@ -27,8 +27,8 @@ public class RelationSameLine extends LineRelation
         //we say that a1 is after a2
         if (isOnSameLine(a2, a1))
         {
-            float dist = Math.max(a2.getBounds().getX1() - a1.getBounds().getX2(),
-                            a1.getBounds().getX1() - a2.getBounds().getX2());
+            float dist = Math.max(a2.getBounds().getX1() - a1.getBounds().getX1(),
+                            a1.getBounds().getX1() - a2.getBounds().getX1());
             if (dist >= 0)
             {
                 int tw = topology.getTopologyPosition().getWidth();
