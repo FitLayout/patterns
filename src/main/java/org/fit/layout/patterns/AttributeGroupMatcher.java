@@ -75,7 +75,6 @@ public class AttributeGroupMatcher extends BaseMatcher
     public AttributeGroupMatcher(List<Attribute> attrs)
     {
         this.attrs = attrs;
-        scanAttributes();
     }
 
     public List<AttributeGroupMatcher> getDependencies()
@@ -320,6 +319,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     public void configure(List<Area> areas)
     {
         this.areas = areas;
+        scanAttributes();
         gatherStatistics();
         
         if (tconf != null)
