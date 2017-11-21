@@ -278,4 +278,14 @@ public class Match extends HashMap<Tag, List<Area>>
         return Collections.disjoint(areas, getAllAreas());
     }
     
+    /**
+     * Checks whether the set of matched areas is disjoint with another match result.
+     * @param areas The match result to compare with.
+     * @return {@code true} when this match does not contain any area from the other match result and vice versa
+     */
+    public boolean isDisjointWith(Match other)
+    {
+        return Collections.disjoint(other.getAllAreas(), getAllAreas());
+    }
+    
 }

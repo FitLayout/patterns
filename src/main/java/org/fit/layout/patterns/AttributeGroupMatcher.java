@@ -842,7 +842,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             //look for dependency matches related to the current area
             for (Match match : deps)
             {
-                if (match.isDisjointWith(matchedAreas))
+                if (match.isDisjointWith(matchedAreas) && match.isDisjointWith(curMatch))
                 {
                     final List<Area> ref = match.get(curPair.getA1());
                     //is some of the referenced areas in the relationship?
