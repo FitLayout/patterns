@@ -273,9 +273,9 @@ public class MatchResult implements Comparable<MatchResult>
     
     private float computeMinWeight(Collection<AreaConnection> conns)
     {
-        float min = 0;
+        float min = -1.0f;
         for (AreaConnection con : conns)
-            min = Math.min(min, con.getWeight());
+            min = (min < 0) ? con.getWeight() : Math.min(min, con.getWeight());
         return min;
     }
     
