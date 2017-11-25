@@ -49,6 +49,10 @@ public class AttributeGroupMatcher extends BaseMatcher
     private static final float MIN_SUPPORT_STYLE = 0.1f;
     /** Minimal support of the relation in the source data for using it in generated configurations */
     private static final float MIN_SUPPORT_RELATIONS = 0.45f;
+    /** Minimal tag support for considering the area to have the given tag -- disambiguation step */
+    private static final float MIN_TAG_SUPPORT_TRAIN = 0.2f;
+    /** Minimal tag support for considering the area to have the given tag -- matching step */
+    private static final float MIN_TAG_SUPPORT_MATCH = 0.09f;
 
     private List<Attribute> attrs; //list of all attributes
     private List<AttributeGroupMatcher> dependencies; //already configured group matchers
@@ -354,7 +358,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, 0.09f);
+            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
             
             List<Match> result = match(areas, dis, tagAreas);
@@ -413,7 +417,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
-            Disambiguator dis = new Disambiguator(sa, null, 0.2f);
+            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
             Map<Tag, List<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
             MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
