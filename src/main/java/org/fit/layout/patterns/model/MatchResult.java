@@ -17,6 +17,8 @@ import java.util.Set;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
+import org.fit.layout.patterns.DefaultRelationProbabilitySource;
+import org.fit.layout.patterns.RelationProbabilitySource;
 
 /**
  * A result of matching a single matcher configuration. The result holds the statistics
@@ -91,6 +93,7 @@ public class MatchResult implements Comparable<MatchResult>
     }
 
     
+    private RelationProbabilitySource probs;
     private List<Match> matches;
     private Set<Area> matchedAreas;
     private MatchStatistics stats;
@@ -100,9 +103,15 @@ public class MatchResult implements Comparable<MatchResult>
     
     public MatchResult(List<Match> matches, Set<Area> matchedAreas)
     {
+        this.probs = new DefaultRelationProbabilitySource();
         this.matches = matches;
         this.matchedAreas = matchedAreas;
         this.stats = null;
+    }
+    
+    public void setRelationProbabilitySource(RelationProbabilitySource src)
+    {
+        probs = src;
     }
 
     public List<Match> getMatches()
@@ -287,12 +296,12 @@ public class MatchResult implements Comparable<MatchResult>
             float sum = 0;
             //1:1 connection counted normally
             for (AreaConnection con : match.getAreaConnections1())
-                sum += con.getWeight();
+                sum += con.getWeight() * probs.get11Probability(con.getRelation());
             //1:M connection use the average for all the connections from the same "1" area
             for (AreaConnection con : match.getAreaConnections1M())
-                sum += getAvgM().get(con.getA1());
+                sum += getAvgM().get(con.getA1()) * probs.get1MProbability(con.getRelation());
             for (AreaConnection con : match.getAreaConnectionsM1())
-                sum += getAvgM().get(con.getA2());
+                sum += getAvgM().get(con.getA2()) * probs.get1MProbability(con.getRelation());
             return sum / cnt;
         }
         else
