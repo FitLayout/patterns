@@ -28,32 +28,37 @@ public class RelationUnderHeading extends Relation
     public float isInRelationship(Area a1, Area a2, AreaTopology topology, Collection<Area> areas)
     {
         //a2 is the heading, a1 should be under the heading
-        float m1 = getMarkedness(a1);
-        float m2 = getMarkedness(a2);
-        if (m2 >= m1) //the heading must have at least the same markedness
+        if (a1.getBounds().getY1() >= a2.getBounds().getY2())
         {
-            //check whether the heading really works as heading
-            List<Area> before = new ArrayList<>();
-            List<Area> after = new ArrayList<>();
-            AreaUtils.findAreasBeforeAfter(a2, areas, topology, before, after);
-            for (Area a : before)
+            float m1 = getMarkedness(a1);
+            float m2 = getMarkedness(a2);
+            if (m2 >= m1) //the heading must have at least the same markedness
             {
-                if (getMarkedness(a) > m2)
-                    return 0; //not a heading
-            }
-            for (Area a : after)
-            {
-                if (getMarkedness(a) > m2)
-                    return 0; //not a heading
-            }
-            //is in relationship, compute the weight
-            float dist = a1.getBounds().getY1() - a2.getBounds().getY2();
-            float em = Math.max(a2.getFontSize(), a1.getFontSize());
-            if (dist >= -0.5f*em)
-            {
-                int tw = topology.getTopologyPosition().getHeight();
-                float w = 1.0f - dist / tw;
-                return w;
+                //check whether the heading really works as heading
+                List<Area> before = new ArrayList<>();
+                List<Area> after = new ArrayList<>();
+                AreaUtils.findAreasBeforeAfter(a2, areas, topology, before, after);
+                for (Area a : before)
+                {
+                    if (getMarkedness(a) > m2)
+                        return 0; //not a heading
+                }
+                for (Area a : after)
+                {
+                    if (getMarkedness(a) > m2)
+                        return 0; //not a heading
+                }
+                //is in relationship, compute the weight
+                float dist = a1.getBounds().getY1() - a2.getBounds().getY2();
+                float em = Math.max(a2.getFontSize(), a1.getFontSize());
+                if (dist >= -0.5f*em)
+                {
+                    int tw = topology.getTopologyPosition().getHeight();
+                    float w = 1.0f - dist / tw;
+                    return w;
+                }
+                else
+                    return 0;
             }
             else
                 return 0;
