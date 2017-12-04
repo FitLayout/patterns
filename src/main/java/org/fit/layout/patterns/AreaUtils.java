@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns;
 
+import java.util.Collection;
+
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Box;
@@ -101,6 +103,30 @@ public class AreaUtils
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Scans a list of areas and finds the areas that are befor or after a given area on the same line.
+     * @param a the given area
+     * @param srcAreas source list of areas
+     * @param topology the topology to be used for comparing the area positions
+     * @param destBefore the destination collection of areas before the given area
+     * @param destAfter the destination collection of areas after the given area
+     */
+    public static void findAreasBeforeAfter(Area a, Collection<Area> srcAreas, AreaTopology topology, Collection<Area> destBefore, Collection<Area> destAfter)
+    {
+        Rectangular gpa = topology.getPosition(a);
+        for (Area cand : srcAreas)
+        {
+            if (cand != a && isOnSameLineRoughly(cand, a))
+            {
+                Rectangular gpc = topology.getPosition(cand);
+                if (gpc.getX1() < gpa.getX1())
+                    destBefore.add(cand);
+                else
+                    destAfter.add(cand);
+            }
+        }
     }
     
     public static float statRound(float value)
