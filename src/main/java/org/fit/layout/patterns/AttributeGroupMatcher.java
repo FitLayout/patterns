@@ -377,8 +377,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             Map<Tag, List<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
             MatchResult result = findMatches(usedConf, dis, tagAreas, depMatches);
-            /*if (getKeyAttr() != null)
-                result.groupByKey(getKeyAttr().getTag());*/
+            if (getKeyAttr() != null)
+                result.groupByKey(getKeyAttr().getTag());
             return result.getMatches();
         }
     }
