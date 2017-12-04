@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns;
 
+import java.util.Collection;
+
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
@@ -29,7 +31,7 @@ public class RelationBelow extends Relation
     }
 
     @Override
-    public float isInRelationship(Area a1, Area a2, AreaTopology topology)
+    public float isInRelationship(Area a1, Area a2, AreaTopology topology, Collection<Area> areas)
     {
         //here a1 is the bottom area, a2 is the top area
         //we say that a1 is below a2

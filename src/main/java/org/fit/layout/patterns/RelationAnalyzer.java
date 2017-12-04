@@ -100,7 +100,7 @@ public class RelationAnalyzer
             {
                 if (a1 != a2)
                 {
-                    float w = relation.isInRelationship(a1, a2, topology);
+                    float w = relation.isInRelationship(a1, a2, topology, areas);
                     if (w >= MIN_RELATION_WEIGHT)
                     {
                         addAreaConnection(new AreaConnection(a1, a2, relation, w));

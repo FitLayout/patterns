@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns;
 
+import java.util.Collection;
+
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 
@@ -28,7 +30,7 @@ public class RelationSide extends LineRelation
     }
 
     @Override
-    public float isInRelationship(Area a1, Area a2, AreaTopology topology)
+    public float isInRelationship(Area a1, Area a2, AreaTopology topology, Collection<Area> areas)
     {
         //here a1 is the right area, a2 is the left area
         //we say that a1 is on side of a2
