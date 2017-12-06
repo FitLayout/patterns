@@ -50,7 +50,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     /** Minimal support of the relation in the source data for using it in generated configurations */
     private static final float MIN_SUPPORT_RELATIONS = 0.45f;
     /** Minimal tag support for considering the area to have the given tag -- disambiguation step */
-    private static final float MIN_TAG_SUPPORT_TRAIN = 0.2f;
+    private static final float MIN_TAG_SUPPORT_TRAIN = 0.09f;
     /** Minimal tag support for considering the area to have the given tag -- matching step */
     private static final float MIN_TAG_SUPPORT_MATCH = 0.09f;
 
@@ -1146,6 +1146,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             Attribute att = attrs.get(i);
             if (att.isRequired() && !att.isSrcMany() && !att.isMany())
+                keyAttr = i;
+        }
+        for (int i = 0; i < attrs.size() && keyAttr == -1; i++) //no required attribute found, try even the optional ones
+        {
+            Attribute att = attrs.get(i);
+            if (!att.isSrcMany() && !att.isMany())
                 keyAttr = i;
         }
         if (keyAttr == -1)
