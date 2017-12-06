@@ -95,15 +95,18 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener
         selectedArea = area;
         if (matcher != null && matcher.getRelationAnalyzer() != null)
         {
-            pa = matcher.getRelationAnalyzer();
-            fillRelations(pa.getAnalyzedRelations());
+            if (pa == null)
+            {
+                pa = matcher.getRelationAnalyzer();
+                fillRelationsCombo(pa.getAnalyzedRelations());
+            }
             updateConnectionList(selectedArea, pa);
         }
         else
             log.info("No matcher");
     }
     
-    private void fillRelations(List<Relation> relations)
+    private void fillRelationsCombo(List<Relation> relations)
     {
         getRelationCombo().setModel(new DefaultComboBoxModel<>(new Vector<Relation>(relations)));
     }
