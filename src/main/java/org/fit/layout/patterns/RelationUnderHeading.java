@@ -27,6 +27,10 @@ public class RelationUnderHeading extends Relation
     @Override
     public float isInRelationship(Area a1, Area a2, AreaTopology topology, Collection<Area> areas)
     {
+        if (a2.getId() == 6 && a1.getId() == 45)
+            System.out.println("jo!");
+        if (a2.getId() == 39 && a1.getId() == 45)
+            System.out.println("jo!");
         //a2 is the heading, a1 should be under the heading
         if (a1.getBounds().getY1() >= a2.getBounds().getY2())
         {
@@ -49,12 +53,16 @@ public class RelationUnderHeading extends Relation
                         return 0; //not a heading
                 }
                 //is in relationship, compute the weight
-                float dist = a1.getBounds().getY1() - a2.getBounds().getY2();
-                float em = Math.max(a2.getFontSize(), a1.getFontSize());
-                if (dist >= -0.5f*em)
+                float distX = a1.getBounds().getX1() - a2.getBounds().getX1();
+                float distY = a1.getBounds().getY1() - a2.getBounds().getY2();
+                float em = a1.getFontSize();
+                if (distY >= -0.5f*em)
                 {
-                    int tw = topology.getTopologyPosition().getHeight();
-                    float w = 1.0f - dist / tw;
+                    int tw = topology.getTopologyPosition().getWidth();
+                    int th = topology.getTopologyPosition().getHeight();
+                    float ww = 1.0f - distX / tw;
+                    float wh = 1.0f - distY / th;
+                    float w = ww * wh;
                     return w;
                 }
                 else
