@@ -273,19 +273,19 @@ public class MatchResult implements Comparable<MatchResult>
             avgM = new HashMap<>();
             for (Map.Entry<Area, List<AreaConnection>> entry : getConnsM().entrySet())
             {
-                float avg = computeMinWeight(entry.getValue());
+                float avg = computeMaxWeight(entry.getValue());
                 avgM.put(entry.getKey(), avg);
             }
         }
         return avgM;
     }
     
-    private float computeMinWeight(Collection<AreaConnection> conns)
+    private float computeMaxWeight(Collection<AreaConnection> conns)
     {
-        float min = -1.0f;
+        float max = 0;
         for (AreaConnection con : conns)
-            min = (min < 0) ? con.getWeight() : Math.min(min, con.getWeight());
-        return min;
+            max = Math.max(max, con.getWeight());
+        return max;
     }
     
     private float getMatchAverage(Match match)
