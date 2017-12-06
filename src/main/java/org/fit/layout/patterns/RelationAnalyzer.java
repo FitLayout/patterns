@@ -145,7 +145,7 @@ public class RelationAnalyzer
         if (r != null)
         {
             Collection<AreaConnection> sub = indexR.get(r);
-            if (sub.size() < all.size())
+            if (sub != null && sub.size() < all.size())
             {
                 all = sub;
                 iused = 2;
@@ -154,7 +154,7 @@ public class RelationAnalyzer
         if (src != null)
         {
             Collection<AreaConnection> sub = indexA2.get(src);
-            if (sub.size() < all.size())
+            if (sub != null && sub.size() < all.size())
             {
                 all = sub;
                 iused = 3;
