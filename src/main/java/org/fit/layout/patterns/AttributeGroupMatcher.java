@@ -298,6 +298,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
     }
     
+    public RelationAnalyzer getRelationAnalyzer()
+    {
+        return pa;
+    }
+    
     /**
      * Sets the configuration used for testing. When set, the configuration lookup will be limited
      * to the given configuration only, other configurations will be skipped.

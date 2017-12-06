@@ -68,6 +68,11 @@ public class RelationAnalyzer
         analyzedRelations.add(rel);
     }
     
+    public List<Relation> getAnalyzedRelations()
+    {
+        return analyzedRelations;
+    }
+
     public List<Area> getAreas()
     {
         return areas;
