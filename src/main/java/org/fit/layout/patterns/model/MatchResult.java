@@ -239,17 +239,6 @@ public class MatchResult implements Comparable<MatchResult>
             connsM = new HashMap<>();
             for (Match match : matches)
             {
-                for (AreaConnection con : match.getAreaConnections1M())
-                {
-                    Area a = con.getA1();
-                    List<AreaConnection> dest = connsM.get(a);
-                    if (dest == null)
-                    {
-                        dest = new ArrayList<>();
-                        connsM.put(a, dest);
-                    }
-                    dest.add(con);
-                }
                 for (AreaConnection con : match.getAreaConnectionsM1())
                 {
                     Area a = con.getA2();
@@ -290,7 +279,7 @@ public class MatchResult implements Comparable<MatchResult>
     
     private float getMatchAverage(Match match)
     {
-        int cnt = match.getAreaConnections1().size() + match.getAreaConnectionsM1().size() + match.getAreaConnections1M().size();
+        int cnt = match.getAreaConnections1().size() + match.getAreaConnectionsM1().size();
         if (cnt > 0)
         {
             float sum = 0;
@@ -298,8 +287,6 @@ public class MatchResult implements Comparable<MatchResult>
             for (AreaConnection con : match.getAreaConnections1())
                 sum += con.getWeight() * probs.get11Probability(con.getRelation());
             //1:M connection use the average for all the connections from the same "1" area
-            for (AreaConnection con : match.getAreaConnections1M())
-                sum += getAvgM().get(con.getA1()) * probs.get1MProbability(con.getRelation());
             for (AreaConnection con : match.getAreaConnectionsM1())
                 sum += getAvgM().get(con.getA2()) * probs.get1MProbability(con.getRelation());
             return sum / cnt;

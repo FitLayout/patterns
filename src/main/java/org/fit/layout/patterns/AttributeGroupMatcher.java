@@ -841,6 +841,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         final boolean a1Many = isTagMany(curPair.getA1());
         final boolean a2Many = isTagMany(curPair.getA2());
+        if (a2Many)
+            log.error("{} is MANY in {}); this should not happen!", curPair.getA2(), curPair);
         boolean anyMatched = false;
         List<Match> deps = depMatches.get(curPair.getA1());
         /*if (curPair.toString().contains("session"))
@@ -867,7 +869,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                                 Match nextMatch = new Match(curMatch);
                                 //nextMatch.putSingle(curPair.getA1(), b);
                                 nextMatch.addSubMatch(match);
-                                nextMatch.addAreaConnection(con, a1Many, false);
+                                nextMatch.addAreaConnection(con, a1Many);
                                 
                                 anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                                         dis, tagAreas, depMatches);
@@ -889,7 +891,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     //create the new candidate match
                     Match nextMatch = new Match(curMatch);
                     nextMatch.putSingle(curPair.getA1(), b);
-                    nextMatch.addAreaConnection(con, false, a2Many);
+                    nextMatch.addAreaConnection(con, false);
                     
                     anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                             dis, tagAreas, depMatches);
