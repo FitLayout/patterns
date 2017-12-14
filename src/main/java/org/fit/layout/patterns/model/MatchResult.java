@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +100,7 @@ public class MatchResult implements Comparable<MatchResult>
     private MatchStatistics stats;
     private Map<Area, List<AreaConnection>> connsM; //map of 1:M connections to their source areas
     private Map<Area, Float> avgM; //average weights of 1:M connections sharing a single source area
+    private Map<TagConnection, ConnectionStats> conStats; //area connection stats for every tag connection
    
     
     public MatchResult(List<Match> matches, Set<Area> matchedAreas)
@@ -306,6 +308,53 @@ public class MatchResult implements Comparable<MatchResult>
     
     //==================================================================================================
     
+    public Map<TagConnection, ConnectionStats> getConnStats()
+    {
+        if (conStats == null)
+        {
+            conStats = new HashMap<>();
+            for (Match match : matches)
+            {
+                //create a local map for the match
+                Map<TagConnection, Set<AreaConnection>> mmap = new HashMap<>();
+                for (Match.ConnectionMatch con : match.getAreaConnections1())
+                {
+                    Set<AreaConnection> cons = mmap.get(con.getTagConnection());
+                    if (cons == null)
+                    {
+                        cons = new HashSet<>(1);
+                        mmap.put(con.getTagConnection(), cons);
+                    }
+                    cons.add(con.getAreaConnection());
+                }
+                for (Match.ConnectionMatch con : match.getAreaConnectionsM1())
+                {
+                    Set<AreaConnection> cons = mmap.get(con.getTagConnection());
+                    if (cons == null)
+                    {
+                        cons = new HashSet<>();
+                        mmap.put(con.getTagConnection(), cons);
+                    }
+                    cons.add(con.getAreaConnection());
+                }
+                //distribute the map to global conStats
+                for (Map.Entry<TagConnection, Set<AreaConnection>> entry : mmap.entrySet())
+                {
+                    ConnectionStats statEntry = conStats.get(entry.getKey());
+                    if (statEntry == null)
+                    {
+                        statEntry = new ConnectionStats();
+                        conStats.put(entry.getKey(), statEntry);
+                    }
+                    statEntry.add(entry.getValue());
+                }
+            }
+        }
+        return conStats;
+    }
+    
+    //==================================================================================================
+    
     /**
      * Groups the matches by the values of the given key tag.
      * @param keyTag the tag to be used as the key.
@@ -334,6 +383,16 @@ public class MatchResult implements Comparable<MatchResult>
     {
         stats.setMaxMatches(Math.max(stats.getMaxMatches(), getMatches().size()));
         stats.setMaxAreas(Math.max(stats.getMaxAreas(), getMatchedAreas().size()));
+    }
+    
+    //==================================================================================================
+    
+    public class ConnectionStats extends HashSet<Set<AreaConnection>>
+    {
+        private static final long serialVersionUID = 1L;
+        
+        
+        
     }
     
 }
