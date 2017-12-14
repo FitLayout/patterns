@@ -239,16 +239,16 @@ public class MatchResult implements Comparable<MatchResult>
             connsM = new HashMap<>();
             for (Match match : matches)
             {
-                for (AreaConnection con : match.getAreaConnectionsM1())
+                for (Match.ConnectionMatch con : match.getAreaConnectionsM1())
                 {
-                    Area a = con.getA2();
+                    Area a = con.getAreaConnection().getA2();
                     List<AreaConnection> dest = connsM.get(a);
                     if (dest == null)
                     {
                         dest = new ArrayList<>();
                         connsM.put(a, dest);
                     }
-                    dest.add(con);
+                    dest.add(con.getAreaConnection());
                 }
             }
         }
@@ -284,11 +284,11 @@ public class MatchResult implements Comparable<MatchResult>
         {
             float sum = 0;
             //1:1 connection counted normally
-            for (AreaConnection con : match.getAreaConnections1())
-                sum += con.getWeight() * probs.get11Probability(con.getRelation());
+            for (Match.ConnectionMatch con : match.getAreaConnections1())
+                sum += con.getAreaConnection().getWeight() * probs.get11Probability(con.getAreaConnection().getRelation());
             //1:M connection use the average for all the connections from the same "1" area
-            for (AreaConnection con : match.getAreaConnectionsM1())
-                sum += getAvgM().get(con.getA2()) * probs.get1MProbability(con.getRelation());
+            for (Match.ConnectionMatch con : match.getAreaConnectionsM1())
+                sum += getAvgM().get(con.getAreaConnection().getA2()) * probs.get1MProbability(con.getAreaConnection().getRelation());
             return sum / cnt;
         }
         else

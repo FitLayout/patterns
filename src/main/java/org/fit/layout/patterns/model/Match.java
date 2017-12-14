@@ -30,8 +30,8 @@ public class Match extends HashMap<Tag, List<Area>>
 {
     private static final long serialVersionUID = 1L;
     
-    private List<AreaConnection> areaConnections1;
-    private List<AreaConnection> areaConnectionsM1;
+    private List<ConnectionMatch> areaConnections1;
+    private List<ConnectionMatch> areaConnectionsM1;
     private List<Match> subMatches;
     
     /**
@@ -90,42 +90,22 @@ public class Match extends HashMap<Tag, List<Area>>
         }
     }
     
-    public void addAreaConnection(AreaConnection con, boolean a1Many)
+    public void addAreaConnection(TagConnection tags, AreaConnection con, boolean a1Many)
     {
         if (a1Many)
-            areaConnectionsM1.add(con);
+            areaConnectionsM1.add(new ConnectionMatch(tags, con));
         else
-            areaConnections1.add(con);
+            areaConnections1.add(new ConnectionMatch(tags, con));
     }
     
-    public List<AreaConnection> getAreaConnections1()
+    public List<ConnectionMatch> getAreaConnections1()
     {
         return areaConnections1;
     }
     
-    public List<AreaConnection> getAreaConnectionsM1()
+    public List<ConnectionMatch> getAreaConnectionsM1()
     {
         return areaConnectionsM1;
-    }
-    
-    public List<AreaConnection> getConnectionsForTag(Tag t)
-    {
-        List<AreaConnection> ret = new ArrayList<>();
-        List<Area> areas = get(t);
-        for (Area a : areas)
-        {
-            for (AreaConnection con : areaConnections1)
-            {
-                if (con.getA1().equals(a))
-                    ret.add(con);
-            }
-            for (AreaConnection con : areaConnectionsM1)
-            {
-                if (con.getA1().equals(a))
-                    ret.add(con);
-            }
-        }
-        return ret;
     }
     
     public float getAverageConnectionWeight()
@@ -134,10 +114,10 @@ public class Match extends HashMap<Tag, List<Area>>
         if (cnt > 0)
         {
             float sum = 0;
-            for (AreaConnection con : areaConnections1)
-                sum += con.getWeight();
-            for (AreaConnection con : areaConnectionsM1)
-                sum += con.getWeight();
+            for (ConnectionMatch con : areaConnections1)
+                sum += con.getAreaConnection().getWeight();
+            for (ConnectionMatch con : areaConnectionsM1)
+                sum += con.getAreaConnection().getWeight();
             return AreaUtils.statRound(sum / cnt);
         }
         else
@@ -147,10 +127,10 @@ public class Match extends HashMap<Tag, List<Area>>
     public void dumpConnectionWeights()
     {
         System.out.println("Match " + this);
-        for (AreaConnection con : areaConnections1)
-            System.out.println("  1:1 " + con.getWeight() + " [" + con + "]");
-        for (AreaConnection con : areaConnectionsM1)
-            System.out.println("  M:1 " + con.getWeight() + " [" + con + "]");
+        for (ConnectionMatch con : areaConnections1)
+            System.out.println("  1:1 " + con.getAreaConnection().getWeight() + " [" + con + "]");
+        for (ConnectionMatch con : areaConnectionsM1)
+            System.out.println("  M:1 " + con.getAreaConnection().getWeight() + " [" + con + "]");
     }
     
     public List<Match> getSubMatches()
@@ -260,12 +240,46 @@ public class Match extends HashMap<Tag, List<Area>>
     
     /**
      * Checks whether the set of matched areas is disjoint with another match result.
-     * @param areas The match result to compare with.
+     * @param areaConnection The match result to compare with.
      * @return {@code true} when this match does not contain any area from the other match result and vice versa
      */
     public boolean isDisjointWith(Match other)
     {
         return Collections.disjoint(other.getAllAreas(), getAllAreas());
     }
-    
+ 
+    //==================================================================================================
+
+    /**
+     * An area connection matched to the given tag connection.
+     * @author burgetr
+     */
+    public class ConnectionMatch
+    {
+        private TagConnection tagConnection;
+        private AreaConnection areaConnection;
+        
+        public ConnectionMatch(TagConnection tags, AreaConnection areas)
+        {
+            this.tagConnection = tags;
+            this.areaConnection = areas;
+        }
+        
+        public TagConnection getTagConnection()
+        {
+            return tagConnection;
+        }
+        
+        public AreaConnection getAreaConnection()
+        {
+            return areaConnection;
+        }
+        
+        @Override
+        public String toString()
+        {
+            return tagConnection.toString() + " : " + areaConnection.toString();
+        }
+    }
+
 }

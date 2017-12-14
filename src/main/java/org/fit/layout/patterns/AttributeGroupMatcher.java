@@ -869,7 +869,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                                 Match nextMatch = new Match(curMatch);
                                 //nextMatch.putSingle(curPair.getA1(), b);
                                 nextMatch.addSubMatch(match);
-                                nextMatch.addAreaConnection(con, a1Many);
+                                nextMatch.addAreaConnection(curPair, con, a1Many);
                                 
                                 anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                                         dis, tagAreas, depMatches);
@@ -891,7 +891,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     //create the new candidate match
                     Match nextMatch = new Match(curMatch);
                     nextMatch.putSingle(curPair.getA1(), b);
-                    nextMatch.addAreaConnection(con, false);
+                    nextMatch.addAreaConnection(curPair, con, false);
                     
                     anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
                             dis, tagAreas, depMatches);
