@@ -57,7 +57,22 @@ public interface Metric
         @Override
         public float compute(Set<AreaConnection> cons)
         {
-            return findMax(cons, c -> c.getA2().getX1());
+            AreaConnection first = cons.iterator().next();
+            int ref = first.getA1().getX1();
+            int minDif = findMin(cons, c -> c.getA2().getX1() - ref);
+            return minDif;
+        }
+    };
+    
+    public static final Metric widthRL = new BaseMetric("widthRL")
+    {
+        @Override
+        public float compute(Set<AreaConnection> cons)
+        {
+            AreaConnection first = cons.iterator().next();
+            int ref = first.getA1().getX2();
+            int minDif = findMin(cons, c -> c.getA2().getX1() - ref);
+            return minDif;
         }
     };
     

@@ -209,12 +209,29 @@ public class MatchResult implements Comparable<MatchResult>
             return 0;
     }
     
+    public float getMinMetric()
+    {
+        int size = getConnStats().keySet().size();
+        if (size > 0)
+        {
+            float sum = 0;
+            for (TagConnection tcon : getConnStats().keySet())
+            {
+                sum += getConnStats().get(tcon).getBestMetricValue();
+            }
+            return sum / size;
+        }
+        else
+            return 0;
+    }
+    
     @Override
     public String toString()
     {
         return matches.size() + " matches, " + matchedAreas.size() + " areas covered"
             + ", w=" + getAverageConnectionWeight() 
             + ", s=" + getConnectionWeightSigma()
+            + ", mm=" + getMinMetric()
             //+ ", min=" + getMinConnectionWeight()
             //+ ", max=" + getMaxConnectionWeight()
             ;
@@ -306,6 +323,14 @@ public class MatchResult implements Comparable<MatchResult>
         }
     }
     
+    public void dumpMinMetric()
+    {
+        for (TagConnection tcon : getConnStats().keySet())
+        {
+            System.out.println(tcon  + " best:" + getConnStats().get(tcon).getBestMetric() + "=" + getConnStats().get(tcon).getBestMetricValue());
+        }
+    }
+    
     //==================================================================================================
     
     public Map<TagConnection, ConnectionStats> getConnStats()
@@ -343,7 +368,7 @@ public class MatchResult implements Comparable<MatchResult>
                     ConnectionStats statEntry = conStats.get(entry.getKey());
                     if (statEntry == null)
                     {
-                        statEntry = new ConnectionStats();
+                        statEntry = new ConnectionStats(entry.getKey());
                         conStats.put(entry.getKey(), statEntry);
                     }
                     statEntry.add(entry.getValue());
@@ -391,7 +416,134 @@ public class MatchResult implements Comparable<MatchResult>
     {
         private static final long serialVersionUID = 1L;
         
+        private TagConnection tcon;
+        private Map<Metric, Float> metricMin;
+        private Map<Metric, Float> metricMax;
+        private Map<Metric, Float> metricAvg;
+        private Map<Metric, Float> metricSigma;
+        private Metric bestMetric;
+        private float bestMetricValue;
+
+        public ConnectionStats(TagConnection tcon)
+        {
+            this.tcon = tcon;
+        }
+
+        public Set<Metric> getMetrics()
+        {
+            return tcon.getRelation().metrics();
+        }
         
+        public float getMetricMin(Metric m)
+        {
+            if (metricMin == null)
+                evaluateMetrics();
+            Float ret = metricMin.get(m);
+            return ret == null ? -1.0f : ret;
+        }
+        
+        public float getMetricMax(Metric m)
+        {
+            if (metricMax == null)
+                evaluateMetrics();
+            Float ret = metricMax.get(m);
+            return ret == null ? -1.0f : ret;
+        }
+        
+        public float getMetricAvg(Metric m)
+        {
+            if (metricAvg == null)
+                evaluateMetrics();
+            Float ret = metricAvg.get(m);
+            return ret == null ? -1.0f : ret;
+        }
+        
+        public float getMetricSigma(Metric m)
+        {
+            if (metricSigma == null)
+                evaluateMetrics();
+            Float ret = metricSigma.get(m);
+            return ret == null ? -1.0f : ret;
+        }
+
+        public Metric getBestMetric()
+        {
+            if (bestMetric == null)
+                evaluateMetrics();
+            return bestMetric;
+        }
+        
+        public float getBestMetricValue()
+        {
+            if (bestMetric == null)
+                evaluateMetrics();
+            return bestMetricValue;
+        }
+        
+        //==================================================================================================
+        
+        private void evaluateMetrics()
+        {
+            metricMin = new HashMap<>();
+            metricMax = new HashMap<>();
+            metricAvg = new HashMap<>();
+            metricSigma = new HashMap<>();
+            
+            if (size() > 0)
+            {
+                for (Metric m : getMetrics())
+                {
+                    float[] values = computeMetricValues(m);
+                    //compute statistics
+                    float min, max, sum;
+                    min = max = sum = values[0];
+                    for (int i = 1; i < values.length; i++)
+                    {
+                        if (values[i] < min)
+                            min = values[i];
+                        if (values[i] > max)
+                            max = values[i];
+                        sum += values[i];
+                    }
+                    float avg = sum / values.length;
+                    //sigma
+                    float difsum = 0;
+                    for (int i = 0; i < values.length; i++)
+                    {
+                        float dif = values[i] - avg;
+                        difsum += dif * dif;
+                    }
+                    float sigma = (float) Math.sqrt(difsum / values.length);
+                    //save the results
+                    metricMin.put(m, AreaUtils.statRound(min));
+                    metricMax.put(m, AreaUtils.statRound(max));
+                    metricAvg.put(m, AreaUtils.statRound(avg));
+                    metricSigma.put(m, AreaUtils.statRound(sigma));
+                }
+                //find the metric the best value
+                bestMetricValue = 0;
+                bestMetric = null;
+                for (Metric m : getMetrics())
+                {
+                    float val = metricSigma.get(m);
+                    if (bestMetric == null || val < bestMetricValue)
+                    {
+                        bestMetric = m;
+                        bestMetricValue = val;
+                    }
+                }
+            }
+            
+        }
+        
+        private float[] computeMetricValues(Metric m)
+        {
+            float[] ret = new float[this.size()];
+            int i = 0;
+            for (Set<AreaConnection> con : this)
+                ret[i++] = m.compute(con);
+            return ret;
+        }
         
     }
     

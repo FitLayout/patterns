@@ -6,9 +6,14 @@
 package org.fit.layout.patterns;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
+import org.fit.layout.patterns.model.Metric;
 
 /**
  * 
@@ -39,6 +44,19 @@ public abstract class Relation
      */
     public abstract float isInRelationship(Area a1, Area a2, AreaTopology topology, Collection<Area> areas);
 
+    /**
+     * The set of metrics that should be used for evaluating this relation.
+     * @return the set of metrics
+     */
+    public Set<Metric> metrics()
+    {
+        //TODO testing only; move this to the particular relations
+        return Collections.unmodifiableSet(Stream.of(
+                Metric.widthLL,
+                Metric.widthRL
+                ).collect(Collectors.toSet()));
+    }
+    
     @Override
     public int hashCode()
     {

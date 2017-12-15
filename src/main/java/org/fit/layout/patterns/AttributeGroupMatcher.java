@@ -137,7 +137,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         if (best != null && index >= 0 && index < best.size())
         {
             usedConf = best.get(index);
-            usedConf.getResult().dumpMatchAverages();
+            //usedConf.getResult().dumpMatchAverages();
+            usedConf.getResult().dumpMinMetric();
         }
         else
             log.error("Cannot use non-existing configuration index {}", index);
