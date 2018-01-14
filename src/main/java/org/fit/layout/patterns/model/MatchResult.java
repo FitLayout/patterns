@@ -49,7 +49,20 @@ public class MatchResult implements Comparable<MatchResult>
                     return 0; //cannot compare, use next comparators
             }
         });
-        cclist.add(new Comparator<MatchResult>() //connection weight standard deviation (lower is better)
+        cclist.add(new Comparator<MatchResult>() //minimal metric standard deviation value (lower is better)
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getMinMetric() < o2.getMinMetric())
+                    return 1;
+                else if (o1.getMinMetric() > o2.getMinMetric())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
+        /*cclist.add(new Comparator<MatchResult>() //connection weight standard deviation (lower is better)
         {
             @Override
             public int compare(MatchResult o1, MatchResult o2)
@@ -61,8 +74,8 @@ public class MatchResult implements Comparable<MatchResult>
                 else
                     return 0;
             }
-        });
-        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
+        });*/
+        /*cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
         {
             @Override
             public int compare(MatchResult o1, MatchResult o2)
@@ -74,7 +87,7 @@ public class MatchResult implements Comparable<MatchResult>
                 else
                     return 0;
             }
-        });
+        });*/
         cclist.add(new Comparator<MatchResult>() //number of matched areas
         {
             @Override
