@@ -76,6 +76,18 @@ public interface Metric
         }
     };
     
+    public static final Metric widthBB = new BaseMetric("widthBB")
+    {
+        @Override
+        public float compute(Set<AreaConnection> cons)
+        {
+            AreaConnection first = cons.iterator().next();
+            int ref = first.getA1().getY2();
+            int minDif = findMin(cons, c -> c.getA2().getY2() - ref);
+            return minDif;
+        }
+    };
+    
    
 
 }

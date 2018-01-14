@@ -53,7 +53,8 @@ public abstract class Relation
         //TODO testing only; move this to the particular relations
         return Collections.unmodifiableSet(Stream.of(
                 Metric.widthLL,
-                Metric.widthRL
+                Metric.widthRL,
+                Metric.widthBB
                 ).collect(Collectors.toSet()));
     }
     
