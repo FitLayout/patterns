@@ -54,7 +54,7 @@ public abstract class Relation
         return Collections.unmodifiableSet(Stream.of(
                 Metric.widthLL,
                 Metric.widthRL,
-                Metric.widthBB
+                Metric.heightBB
                 ).collect(Collectors.toSet()));
     }
     
