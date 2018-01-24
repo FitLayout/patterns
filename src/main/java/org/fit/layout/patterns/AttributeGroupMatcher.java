@@ -804,7 +804,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
-        List<Match> matches = new ArrayList<>();
+        Set<Match> matches = new HashSet<>();
         TagConnection curPair = pairs.remove(0);
         Collection<Match> deps = depMatches.get(curPair.getA2());
         if (deps != null)
@@ -838,7 +838,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
-            List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
+            Collection<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         final boolean a1Many = isTagMany(curPair.getA1());
         final boolean a2Many = isTagMany(curPair.getA2());
@@ -903,7 +903,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
 
     private boolean tryNewMatch(Match nextMatch,
-            List<TagConnection> pairs, ConnectionPattern constraints, List<Match> matches,
+            List<TagConnection> pairs, ConnectionPattern constraints, Collection<Match> matches,
             Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         //test if the match is complete

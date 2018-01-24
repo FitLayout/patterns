@@ -32,7 +32,7 @@ public class Match extends HashMap<Tag, List<Area>>
     
     private List<ConnectionMatch> areaConnections1;
     private List<ConnectionMatch> areaConnectionsM1;
-    private List<Match> subMatches;
+    private Set<Match> subMatches;
     
     /**
      * Creates a new empty match.
@@ -42,7 +42,7 @@ public class Match extends HashMap<Tag, List<Area>>
         super();
         areaConnections1 = new ArrayList<>();
         areaConnectionsM1 = new ArrayList<>();
-        subMatches = new ArrayList<>();
+        subMatches = new HashSet<>();
     }
     
     /**
@@ -54,7 +54,7 @@ public class Match extends HashMap<Tag, List<Area>>
         super(src);
         areaConnections1 = new ArrayList<>(src.getAreaConnections1());
         areaConnectionsM1 = new ArrayList<>(src.getAreaConnectionsM1());
-        subMatches = new ArrayList<>(src.getSubMatches());
+        subMatches = new HashSet<>(src.getSubMatches());
     }
 
     /**
@@ -133,7 +133,7 @@ public class Match extends HashMap<Tag, List<Area>>
             System.out.println("  M:1 " + con.getAreaConnection().getWeight() + " [" + con + "]");
     }
     
-    public List<Match> getSubMatches()
+    public Set<Match> getSubMatches()
     {
         return subMatches;
     }
@@ -248,6 +248,31 @@ public class Match extends HashMap<Tag, List<Area>>
         return Collections.disjoint(other.getAllAreas(), getAllAreas());
     }
  
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result
+                + ((subMatches == null) ? 0 : subMatches.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
+        Match other = (Match) obj;
+        if (subMatches == null)
+        {
+            if (other.subMatches != null) return false;
+        }
+        else if (!subMatches.equals(other.subMatches)) return false;
+        return true;
+    }
+
     //==================================================================================================
 
     /**
