@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -142,7 +143,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         findLeaves(areaTree.getRoot(), leaves);
         
         AttributeGroupMatcher matcher = getMatchers().get(getMatchers().size() - 1);
-        List<Match> matches = matcher.match(leaves);
+        Collection<Match> matches = matcher.match(leaves);
         if (matches == null)
             matches = Collections.emptyList();
         
@@ -154,7 +155,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         return ret;
     }
 
-    protected void addLogicalAreas(List<Match> matches, AttributeGroupMatcher matcher, LogicalArea destNode, Tag superAreaTag)
+    protected void addLogicalAreas(Collection<Match> matches, AttributeGroupMatcher matcher, LogicalArea destNode, Tag superAreaTag)
     {
         for (Match match : matches)
         {

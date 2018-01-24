@@ -108,7 +108,7 @@ public class MatchResult implements Comparable<MatchResult>
 
     
     private RelationProbabilitySource probs;
-    private List<Match> matches;
+    private Collection<Match> matches;
     private Set<Area> matchedAreas;
     private MatchStatistics stats;
     private Map<Area, List<AreaConnection>> connsM; //map of 1:M connections to their source areas
@@ -116,7 +116,7 @@ public class MatchResult implements Comparable<MatchResult>
     private Map<TagConnection, ConnectionStats> conStats; //area connection stats for every tag connection
    
     
-    public MatchResult(List<Match> matches, Set<Area> matchedAreas)
+    public MatchResult(Collection<Match> matches, Set<Area> matchedAreas)
     {
         this.probs = new DefaultRelationProbabilitySource();
         this.matches = matches;
@@ -129,7 +129,7 @@ public class MatchResult implements Comparable<MatchResult>
         probs = src;
     }
 
-    public List<Match> getMatches()
+    public Collection<Match> getMatches()
     {
         return matches;
     }

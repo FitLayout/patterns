@@ -221,14 +221,14 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    public Map<Tag, List<Match>> getDependencyMatches(List<Area> areas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    public Map<Tag, Collection<Match>> getDependencyMatches(List<Area> areas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
-        Map<Tag, List<Match>> ret = new HashMap<>();
+        Map<Tag, Collection<Match>> ret = new HashMap<>();
         if (dependencies != null)
         {
             for (AttributeGroupMatcher dep : dependencies)
             {
-                List<Match> result = dep.match(areas/*, dis, tagAreas*/); //TODO this should work but it does not
+                Collection<Match> result = dep.match(areas/*, dis, tagAreas*/); //TODO this should work but it does not
                 for (Tag t : dep.getUsedTags())
                     ret.put(t, result);
             }
@@ -348,7 +348,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     @Override
-    public List<Match> match(List<Area> areas)
+    public Collection<Match> match(List<Area> areas)
     {
         if (best == null)
         {
@@ -367,12 +367,12 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
             
-            List<Match> result = match(areas, dis, tagAreas);
+            Collection<Match> result = match(areas, dis, tagAreas);
             return result;
         }
     }
     
-    protected List<Match>  match(List<Area> areas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    protected Collection<Match> match(List<Area> areas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         if (usedConf == null)
         {
@@ -381,7 +381,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         else
         {
-            Map<Tag, List<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
+            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
             MatchResult result = findMatches(usedConf, dis, tagAreas, depMatches);
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
@@ -425,7 +425,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
-            Map<Tag, List<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
+            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
             MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
             //check whether the match is consistent
             ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
@@ -800,13 +800,13 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
+    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
         List<Match> matches = new ArrayList<>();
         TagConnection curPair = pairs.remove(0);
-        List<Match> deps = depMatches.get(curPair.getA2());
+        Collection<Match> deps = depMatches.get(curPair.getA2());
         if (deps != null)
         {
             for (Match dmatch : deps)
@@ -838,14 +838,14 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
-            List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
+            List<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         final boolean a1Many = isTagMany(curPair.getA1());
         final boolean a2Many = isTagMany(curPair.getA2());
         if (a2Many)
             log.error("{} is MANY in {}); this should not happen!", curPair.getA2(), curPair);
         boolean anyMatched = false;
-        List<Match> deps = depMatches.get(curPair.getA1());
+        Collection<Match> deps = depMatches.get(curPair.getA1());
         /*if (curPair.toString().contains("session"))
             System.out.println("jo!");*/
         List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), a1Many, dis);
@@ -904,7 +904,7 @@ public class AttributeGroupMatcher extends BaseMatcher
 
     private boolean tryNewMatch(Match nextMatch,
             List<TagConnection> pairs, ConnectionPattern constraints, List<Match> matches,
-            Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, List<Match>> depMatches)
+            Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         //test if the match is complete
         boolean matched = false;
