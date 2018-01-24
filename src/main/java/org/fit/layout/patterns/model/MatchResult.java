@@ -75,19 +75,6 @@ public class MatchResult implements Comparable<MatchResult>
                     return 0;
             }
         });*/
-        /*cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
-                    return 1;
-                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
-                    return -1;
-                else
-                    return 0;
-            }
-        });*/
         cclist.add(new Comparator<MatchResult>() //number of matched areas
         {
             @Override
@@ -102,6 +89,19 @@ public class MatchResult implements Comparable<MatchResult>
             public int compare(MatchResult o1, MatchResult o2)
             {
                 return o1.getMatches().size() - o2.getMatches().size();
+            }
+        });
+        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
+                    return 1;
+                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
+                    return -1;
+                else
+                    return 0;
             }
         });
     }
