@@ -6,9 +6,12 @@
 package org.fit.layout.patterns;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
+import org.fit.layout.patterns.model.DefaultMetrics;
+import org.fit.layout.patterns.model.Metric;
 
 /**
  * 
@@ -49,5 +52,9 @@ public class RelationSide extends LineRelation
             return 0.0f;
     }
 
+    public Set<Metric> metrics()
+    {
+        return DefaultMetrics.heightMetrics;
+    }
     
 }

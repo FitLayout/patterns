@@ -5,11 +5,8 @@
  */
 package org.fit.layout.patterns.model;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.function.ToIntFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * AreaConnection metrics.
@@ -99,20 +96,6 @@ public interface Metric
             return findMin(cons, mapper);
         }
     }
-    
-    //==================================================================================================
-    
-    public static final Set<Metric> widthMetrics = Collections.unmodifiableSet(Stream.of(
-            Metric.widthLL,
-            Metric.widthLC,
-            Metric.widthLR,
-            Metric.widthCL,
-            Metric.widthCC,
-            Metric.widthCR,
-            Metric.widthRL,
-            Metric.widthRC,
-            Metric.widthRR
-            ).collect(Collectors.toSet()));
     
     //==================================================================================================
     

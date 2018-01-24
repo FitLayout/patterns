@@ -6,10 +6,7 @@
 package org.fit.layout.patterns;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
@@ -48,15 +45,7 @@ public abstract class Relation
      * The set of metrics that should be used for evaluating this relation.
      * @return the set of metrics
      */
-    public Set<Metric> metrics()
-    {
-        //TODO testing only; move this to the particular relations
-        return Collections.unmodifiableSet(Stream.of(
-                Metric.widthLL,
-                Metric.widthRL,
-                Metric.heightBB
-                ).collect(Collectors.toSet()));
-    }
+    public abstract Set<Metric> metrics();
     
     @Override
     public int hashCode()

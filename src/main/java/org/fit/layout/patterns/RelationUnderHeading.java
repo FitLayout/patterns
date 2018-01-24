@@ -8,9 +8,12 @@ package org.fit.layout.patterns;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
+import org.fit.layout.patterns.model.DefaultMetrics;
+import org.fit.layout.patterns.model.Metric;
 
 /**
  * 
@@ -73,6 +76,11 @@ public class RelationUnderHeading extends Relation
         }
         else
             return 0;
+    }
+    
+    public Set<Metric> metrics()
+    {
+        return DefaultMetrics.widthMetrics;
     }
     
     private float getMarkedness(Area a)
