@@ -76,49 +76,6 @@ public class AreaListGridTopology implements AreaTopology
     }
 
     @Override
-    public int getWidth()
-    {
-        
-        return 0;
-    }
-
-    @Override
-    public int getHeight()
-    {
-        return 0;
-    }
-
-    @Override
-    public Rectangular getPosition()
-    {
-        return null;
-    }
-
-    @Override
-    public Area getPreviousOnLine()
-    {
-        return null;
-    }
-
-    @Override
-    public Area getNextOnLine()
-    {
-        return null;
-    }
-
-    @Override
-    public int getMinIndent()
-    {
-        return 0;
-    }
-
-    @Override
-    public int getMaxIndent()
-    {
-        return 0;
-    }
-
-    @Override
     public void drawLayout(OutputDisplay disp)
     {
         Graphics ig = disp.getGraphics();
