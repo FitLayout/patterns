@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fit.layout.impl.AreaListGridTopology;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Tag;
