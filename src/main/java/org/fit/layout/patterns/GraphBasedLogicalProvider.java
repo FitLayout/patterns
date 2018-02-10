@@ -222,7 +222,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         else
         {
             for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildArea(i), dest);
+                findLeaves(root.getChildAt(i), dest);
         }
     }
     
@@ -256,7 +256,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         else
         {
             for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildArea(i), dest, tags);
+                findLeaves(root.getChildAt(i), dest, tags);
         }
     }
 

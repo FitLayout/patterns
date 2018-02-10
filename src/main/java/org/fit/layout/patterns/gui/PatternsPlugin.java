@@ -180,7 +180,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         else
         {
             for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildArea(i), dest);
+                findLeaves(root.getChildAt(i), dest);
         }
     }
 

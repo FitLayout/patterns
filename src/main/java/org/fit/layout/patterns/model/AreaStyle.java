@@ -197,7 +197,7 @@ public class AreaStyle
             dest.addAll(a.getBoxes());
         else
         {
-            for (Area sub : a.getChildAreas())
+            for (Area sub : a.getChildren())
                 getLeafBoxes(sub, dest);
         }
     }
