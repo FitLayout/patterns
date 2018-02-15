@@ -12,7 +12,7 @@ import org.fit.layout.model.Rectangular;
  * A common parent class for the relations operating on a single line (before/after) 
  * @author burgetr
  */
-public abstract class LineRelation extends Relation
+public abstract class LineRelation extends BaseRelation
 {
 
     public LineRelation(String name)

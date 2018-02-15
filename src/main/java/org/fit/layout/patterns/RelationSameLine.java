@@ -17,7 +17,7 @@ import org.fit.layout.patterns.model.Metric;
  * 
  * @author burgetr
  */
-public class RelationSameLine extends LineRelation
+public class RelationSameLine extends LineRelation implements SimpleRelation
 {
 
     public RelationSameLine()

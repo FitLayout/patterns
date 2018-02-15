@@ -93,12 +93,17 @@ public class RelationAnalyzer
             indexA2 = new HashMap<>();
             indexR = new HashMap<>();
             for (Relation r : analyzedRelations)
-                addConnectionsForRelation(areas, r);
+            {
+                if (r instanceof BulkRelation)
+                    addConnectionsForBulkRelation(areas, (BulkRelation) r);
+                else if (r instanceof SimpleRelation)
+                    addConnectionsForSimpleRelation(areas, (SimpleRelation) r);
+            }
         }
         return areaConnections;
     }
     
-    private void addConnectionsForRelation(List<Area> areas, Relation relation)
+    private void addConnectionsForSimpleRelation(List<Area> areas, SimpleRelation relation)
     {
         for (Area a1 : areas)
         {
@@ -116,6 +121,13 @@ public class RelationAnalyzer
         }
     }
 
+    private void addConnectionsForBulkRelation(List<Area> areas, BulkRelation relation)
+    {
+        Set<AreaConnection> cons = relation.findRelations(topology, areas);
+        for (AreaConnection con : cons)
+            addAreaConnection(con);
+    }
+    
     private void addAreaConnection(AreaConnection con)
     {
         //add to the list

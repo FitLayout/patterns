@@ -17,7 +17,7 @@ import org.fit.layout.patterns.model.Metric;
  * 
  * @author burgetr
  */
-public class RelationSide extends LineRelation
+public class RelationSide extends LineRelation implements SimpleRelation
 {
     private boolean inverse;
 

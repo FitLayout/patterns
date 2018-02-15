@@ -18,7 +18,7 @@ import org.fit.layout.patterns.model.Metric;
  * 
  * @author burgetr
  */
-public class RelationUnder extends Relation
+public class RelationUnder extends BaseRelation implements SimpleRelation
 {
 
     public RelationUnder()

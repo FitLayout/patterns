@@ -19,7 +19,7 @@ import org.fit.layout.patterns.model.Metric;
  * 
  * @author burgetr
  */
-public class RelationUnderHeading extends Relation
+public class RelationUnderHeading extends BaseRelation implements SimpleRelation
 {
 
     public RelationUnderHeading()
