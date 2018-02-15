@@ -7,11 +7,13 @@ package org.fit.layout.patterns;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
+import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.DefaultMetrics;
 import org.fit.layout.patterns.model.Metric;
 
@@ -19,8 +21,9 @@ import org.fit.layout.patterns.model.Metric;
  * 
  * @author burgetr
  */
-public class RelationUnderHeading extends BaseRelation implements SimpleRelation
+public class RelationUnderHeading extends BaseRelation implements SimpleRelation, BulkRelation
 {
+    private final int HEADING_SIZE = 100; //percent
 
     public RelationUnderHeading()
     {
@@ -78,6 +81,17 @@ public class RelationUnderHeading extends BaseRelation implements SimpleRelation
             return 0;
     }
     
+    @Override
+    public Set<AreaConnection> findRelations(AreaTopology topology, Collection<Area> areas)
+    {
+        List<Area> hdrs = findHeadings(new ArrayList<>(areas));
+        System.out.println("Headers:");
+        for (Area h : hdrs)
+           System.out.println("    " + h);
+        //TODO
+        return Collections.emptySet();
+    }
+    
     public Set<Metric> metrics()
     {
         return DefaultMetrics.widthMetrics;
@@ -89,6 +103,53 @@ public class RelationUnderHeading extends BaseRelation implements SimpleRelation
         return a.getFontSize() * 10 + a.getFontWeight();
     }
     
+    /**
+     * Locates the areas with the font size greater than HEADING_SIZE percent. These
+     * areas are considered to be headings.
+     */
+    public List<Area> findHeadings(List<Area> areas)
+    {
+        List<Area> ret = new ArrayList<>();
+        if (!areas.isEmpty())
+        {
+            float norm = getMarkedness(areas.get(0).getRoot());
+            double min = norm * (HEADING_SIZE / 100.0);
+            System.out.println("norm="+norm+" min="+min);
+            
+            for (Area a : areas)
+            {
+                if (getMarkedness(a) >= min)
+                    ret.add(a);
+            }
+            
+        }
+        return ret;
+    }
     
+    /*private void recursiveFindHeadings(AreaNode root, double minsize, Vector<AreaNode> result)
+    {
+        if (root.getChildCount() == 0)
+        {
+            if (root.getArea().getAverageFontSize() >= minsize)
+            {
+                AreaNode top = root;
+                while (top.getGridPosition().getX1() == 0 && top.getParentArea() != null
+                        && top.getParentArea().getArea().getAverageFontSize() == root.getArea().getAverageFontSize())
+                    top = top.getParentArea();
+                
+                //the importance corresponds to the font size
+                top.setImportance(top.getArea().getAverageFontSize());
+                
+                if (!result.contains(top))
+                    result.add(top);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < root.getChildCount(); i++)
+                recursiveFindHeadings(root.getChildArea(i), minsize, result);
+        }
+    }*/
     
+ 
 }
