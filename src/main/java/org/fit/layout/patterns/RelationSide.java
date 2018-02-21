@@ -28,7 +28,7 @@ public class RelationSide extends LineRelation implements SimpleRelation
 
     public RelationSide(boolean inverse)
     {
-        super(inverse ? "onRight" : "onLeft");
+        super(inverse ? "onLeft" : "onRight");
         this.inverse = inverse;
     }
 
