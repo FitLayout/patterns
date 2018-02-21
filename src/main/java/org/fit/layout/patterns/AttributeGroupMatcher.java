@@ -48,7 +48,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     /** Minimal support of a style in the source data for using it in generated configurations */
     private static final float MIN_SUPPORT_STYLE = 0.1f;
     /** Minimal support of the relation in the source data for using it in generated configurations */
-    private static final float MIN_SUPPORT_RELATIONS = 0.45f;
+    private static final float MIN_SUPPORT_RELATIONS = 0.001f;
     /** Minimal tag support for considering the area to have the given tag -- disambiguation step */
     private static final float MIN_TAG_SUPPORT_TRAIN = 0.09f;
     /** Minimal tag support for considering the area to have the given tag -- matching step */
