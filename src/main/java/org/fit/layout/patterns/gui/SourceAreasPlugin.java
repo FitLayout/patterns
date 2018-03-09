@@ -34,7 +34,6 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
     
     private Browser browser;
     private PatternBasedLogicalProvider provider;
-    private AttributeGroupMatcher matcher;
     private List<Area> currentAreas;
 
     private JPanel sourceAreasPanel;
@@ -55,15 +54,12 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
         if (provider != null)
         {
             log.info("Found logical provider: {}", provider);
-            if (provider.getMatchers().size() > 0)
-                matcher = provider.getMatchers().get(provider.getMatchers().size() - 1);
-            
             pp = ServiceManager.findByClass(ServiceManager.findBrowserPlugins(), PatternsPlugin.class);
             if (pp != null)
                 pp.registerGUIUpdateListener(this);
         }
         
-        return (provider != null && matcher != null && pp != null);
+        return (provider != null && pp != null);
     }
     
     private void initGui()
