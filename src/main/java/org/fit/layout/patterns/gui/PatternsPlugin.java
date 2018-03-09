@@ -8,11 +8,9 @@ package org.fit.layout.patterns.gui;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JPanel;
 
-import org.fit.layout.api.LogicalTreeProvider;
 import org.fit.layout.api.ServiceManager;
 import org.fit.layout.gui.Browser;
 import org.fit.layout.gui.BrowserPlugin;
@@ -77,18 +75,15 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         this.browser.addTreeListener(this);
         updateListeners = new ArrayList<GUIUpdateListener>();
         
-        Map<String, LogicalTreeProvider> providers = ServiceManager.findLogicalTreeProviders();
-        for (LogicalTreeProvider p : providers.values())
+        provider = ServiceManager.findByClass(ServiceManager.findLogicalTreeProviders().values(), PatternBasedLogicalProvider.class);
+        if (provider != null)
         {
-            if (p instanceof PatternBasedLogicalProvider)
-            {
-                provider = (PatternBasedLogicalProvider) p;
-                log.info("Found logical provider: {}", p);
-                selectMatcher(0);
-            }
+            log.info("Found logical provider: {}", provider);
+            selectMatcher(0);
+            return true;
         }
-        
-        return true;
+        else
+            return false;
     }
     
     @Override

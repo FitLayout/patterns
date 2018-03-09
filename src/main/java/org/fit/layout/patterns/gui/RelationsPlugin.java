@@ -11,12 +11,10 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.JPanel;
 
-import org.fit.layout.api.LogicalTreeProvider;
 import org.fit.layout.api.ServiceManager;
 import org.fit.layout.gui.AreaSelectionListener;
 import org.fit.layout.gui.Browser;
@@ -74,19 +72,16 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener
         this.browser.addToolPanel("Relations", getPnl_main());
         this.browser.addAreaSelectionListener(this);
         
-        Map<String, LogicalTreeProvider> providers = ServiceManager.findLogicalTreeProviders();
-        for (LogicalTreeProvider p : providers.values())
+        provider = ServiceManager.findByClass(ServiceManager.findLogicalTreeProviders().values(), PatternBasedLogicalProvider.class);
+        if (provider != null)
         {
-            if (p instanceof PatternBasedLogicalProvider)
-            {
-                provider = (PatternBasedLogicalProvider) p;
-                log.info("Found logical provider: {}", p);
-                if (provider.getMatchers().size() > 0)
-                    matcher = provider.getMatchers().get(provider.getMatchers().size() - 1);
-            }
+            log.info("Found logical provider: {}", provider);
+            if (provider.getMatchers().size() > 0)
+                matcher = provider.getMatchers().get(provider.getMatchers().size() - 1);
+            return true;
         }
-        
-        return true;
+        else
+            return false;
     }
 
     @Override
