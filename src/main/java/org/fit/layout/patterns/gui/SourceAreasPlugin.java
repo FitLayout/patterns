@@ -102,7 +102,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
     private void showArea(Area a)
     {
         browser.getOutputDisplay().drawExtent(a);
-        browser.getOutputDisplay().colorizeByTags(a, a.getSupportedTags(0.1f));
+        browser.getOutputDisplay().colorizeByTags(a, a.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT));
     }
     
     //========================================================================================

@@ -21,7 +21,9 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTree;
 import org.fit.layout.model.LogicalAreaTree;
 import org.fit.layout.model.Page;
+import org.fit.layout.patterns.AreaListSource;
 import org.fit.layout.patterns.AttributeGroupMatcher;
+import org.fit.layout.patterns.LeafAreaSource;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +48,10 @@ import javax.swing.JLabel;
  */
 public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListener
 {
-    private static Logger log = LoggerFactory.getLogger(PatternsPlugin.class);
+    public static final float MIN_TAG_SUPPORT = 0.25f;
     
+    private static Logger log = LoggerFactory.getLogger(PatternsPlugin.class);
+        
     private Browser browser;
     private List<GUIUpdateListener> updateListeners;
     private PatternBasedLogicalProvider provider;
@@ -138,8 +142,8 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         if (provider != null)
         {
             AreaTree areaTree = browser.getAreaTree();
-            List<Area> leaves = new ArrayList<Area>();
-            findLeaves(areaTree.getRoot(), leaves);
+            AreaListSource asrc = new LeafAreaSource(areaTree.getRoot());
+            List<Area> leaves = asrc.getAreas();
             
             provider.configureMatcher(provider.getMatchers().get(currentMatcher), leaves);
             
@@ -171,21 +175,6 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         else
             getConfigList().setSelectedIndex(0);
     }
-    
-    private void findLeaves(Area root, List<Area> dest)
-    {
-        if (root.isLeaf())
-        {
-            if (!root.isSeparator())
-                dest.add(root);
-        }
-        else
-        {
-            for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildAt(i), dest);
-        }
-    }
-
     
     //==============================================================================================
     
