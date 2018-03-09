@@ -107,6 +107,12 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         updateListeners.add(listener);
     }
     
+    private void notifyGUIListeners()
+    {
+        for (GUIUpdateListener listener : updateListeners)
+            listener.updateGUI();
+    }
+    
     public void selectMatcher(int index)
     {
         if (index < 0)
@@ -142,6 +148,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
                 public void run()
                 {
                     updateConfigList();
+                    notifyGUIListeners();
                 }
             });
         }

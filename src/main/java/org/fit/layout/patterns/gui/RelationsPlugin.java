@@ -77,7 +77,7 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener
         {
             log.info("Found logical provider: {}", provider);
             if (provider.getMatchers().size() > 0)
-                matcher = provider.getMatchers().get(provider.getMatchers().size() - 1);
+                matcher = provider.getMatchers().get(0);
             return true;
         }
         else

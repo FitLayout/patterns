@@ -304,6 +304,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         return pa;
     }
     
+    public List<Area> getSourceAreas()
+    {
+        return areas;
+    }
+    
     /**
      * Sets the configuration used for testing. When set, the configuration lookup will be limited
      * to the given configuration only, other configurations will be skipped.
