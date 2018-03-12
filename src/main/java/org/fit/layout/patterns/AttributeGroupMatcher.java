@@ -888,20 +888,30 @@ public class AttributeGroupMatcher extends BaseMatcher
         else
         {
             Set<Area> destSet = tagAreas.get(curPair.getA1());
+            List<Area> addedMatches = new ArrayList<>();
+            List<AreaConnection> addedConnections = new ArrayList<>();
             for (AreaConnection con : inrel)
             {
                 Area b = con.getA1();
                 boolean mayUse = a2Many || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
                 if (mayUse && destSet.contains(b) && !curMatch.containsArea(b))
                 {
-                    //create the new candidate match
-                    Match nextMatch = new Match(curMatch);
-                    nextMatch.putSingle(curPair.getA1(), b);
-                    nextMatch.addAreaConnection(curPair, con, false);
-                    
-                    anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
-                            dis, tagAreas, depMatches);
+                    addedMatches.add(b);
+                    addedConnections.add(con);
+                    if (!a1Many)
+                        break; //only a single match allowed
                 }
+            }
+            if (!addedMatches.isEmpty())
+            {
+                //create the new candidate match
+                Match nextMatch = new Match(curMatch);
+                nextMatch.put(curPair.getA1(), addedMatches);
+                for (AreaConnection con : addedConnections)
+                    nextMatch.addAreaConnection(curPair, con, false);
+                
+                anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
+                        dis, tagAreas, depMatches);
             }
         }
         return anyMatched;
@@ -1008,8 +1018,8 @@ public class AttributeGroupMatcher extends BaseMatcher
                 if (!foundBetter)
                 {
                     ret.add(cand); //a1 has no "better" source area, use it
-                    if (!allowMany)
-                        break; //we have found the best one
+                    /*if (!allowMany)
+                        break;*/ //we have found the best one but we return all; they will be filtered later
                 }
             }
         }
