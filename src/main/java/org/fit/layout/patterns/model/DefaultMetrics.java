@@ -27,5 +27,13 @@ public class DefaultMetrics
     
     public static final Set<Metric> heightMetrics = Collections.unmodifiableSet(
             Stream.of(Metric.heightBB).collect(Collectors.toSet()));
+    
+    public static final Set<Metric> allMetrics = Collections
+            .unmodifiableSet(Stream
+                    .of(Metric.widthLL, Metric.widthLC, Metric.widthLR,
+                            Metric.widthCL, Metric.widthCC, Metric.widthCR,
+                            Metric.widthRL, Metric.widthRC, Metric.widthRR,
+                            Metric.heightBB)
+                    .collect(Collectors.toSet()));
 
 }

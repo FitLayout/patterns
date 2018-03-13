@@ -41,7 +41,7 @@ public class RelationUnderHeading extends BaseRelation implements BulkRelation
     
     public Set<Metric> metrics()
     {
-        return DefaultMetrics.widthMetrics;
+        return DefaultMetrics.allMetrics;
     }
     
     private float getMarkedness(Area a)
