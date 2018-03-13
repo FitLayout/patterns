@@ -58,21 +58,24 @@ public class RelationLineBelow extends LineRelation implements BulkRelation
             }
         }
         //find all on the same line
-        for (Area cand : areas)
+        if (closest != null)
         {
-            if (cand == closest || isOnSameLine(cand, closest))
+            for (Area cand : areas)
             {
-                float w = computeWeight(cand, a, t);
-                AreaConnection con = new AreaConnection(cand, a, this, w);
-                dest.add(con);
-            }   
+                if (cand == closest || isOnSameLine(cand, closest))
+                {
+                    float w = computeWeight(cand, a, t);
+                    AreaConnection con = new AreaConnection(cand, a, this, w);
+                    dest.add(con);
+                }   
+            }
         }
     }
     
     private float computeWeight(Area a1, Area a2, AreaTopology topology)
     {
         //a2 is the heading, a1 should be under the heading
-        float distX = a1.getBounds().getX1() - a2.getBounds().getX1();
+        float distX = Math.abs(a1.getBounds().getX1() - a2.getBounds().getX1());
         float distY = a1.getBounds().getY1() - a2.getBounds().getY2();
         float em = a1.getFontSize();
         if (distY >= -0.5f*em)
