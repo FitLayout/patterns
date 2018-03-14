@@ -341,6 +341,12 @@ public class MatchResult implements Comparable<MatchResult>
         for (TagConnection tcon : getConnStats().keySet())
         {
             System.out.println(tcon  + " best:" + getConnStats().get(tcon).getBestMetric() + "=" + getConnStats().get(tcon).getBestMetricValue());
+            /*for (Set<AreaConnection> con : getConnStats().get(tcon))
+            {
+                Metric m = getConnStats().get(tcon).getBestMetric();
+                float val = m.compute(con);
+                System.out.println("  con: " + con + " = " + val);
+            }*/
         }
     }
     

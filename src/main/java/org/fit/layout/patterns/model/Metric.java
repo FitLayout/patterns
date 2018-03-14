@@ -39,6 +39,17 @@ public interface Metric
             return getName();
         }
         
+        /**
+         * Rounds the pixel distance value to multiples of two for avoiding one-pxel errors
+         * that may be caused by rendering.  
+         * @param val the value to be rounded
+         * @return the rounded result
+         */
+        protected int pixelRound(int val)
+        {
+            return val - val % 2;
+        }
+        
         protected int findMax(Set<AreaConnection> cons, ToIntFunction<AreaConnection> mapper)
         {
             return cons.stream().mapToInt(mapper).max().orElse(0); 
@@ -82,13 +93,13 @@ public interface Metric
             switch (d2)
             {
                 case LEFT:
-                    mapper = c -> c.getA2().getX1() - ref;
+                    mapper = c -> pixelRound(c.getA2().getX1() - ref);
                     break;
                 case CENTER:
-                    mapper = c -> ((c.getA2().getX1() + c.getA2().getX2()) / 2) - ref;
+                    mapper = c -> pixelRound(((c.getA2().getX1() + c.getA2().getX2()) / 2) - ref);
                     break;
                 case RIGHT:
-                    mapper = c -> c.getA2().getX2() - ref;
+                    mapper = c -> pixelRound(c.getA2().getX2() - ref);
                     break;
                 default:
                     mapper = null;
@@ -187,7 +198,7 @@ public interface Metric
         {
             AreaConnection first = cons.iterator().next();
             int ref = first.getA1().getY2();
-            int minDif = findMin(cons, c -> c.getA2().getY2() - ref);
+            int minDif = findMin(cons, c -> pixelRound(c.getA2().getY2() - ref));
             return minDif;
         }
     };
