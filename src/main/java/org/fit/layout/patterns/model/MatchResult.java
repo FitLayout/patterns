@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
@@ -114,6 +115,7 @@ public class MatchResult implements Comparable<MatchResult>
     private Map<Area, List<AreaConnection>> connsM; //map of 1:M connections to their source areas
     private Map<Area, Float> avgM; //average weights of 1:M connections sharing a single source area
     private Map<TagConnection, ConnectionStats> conStats; //area connection stats for every tag connection
+    private Map<Tag, StyleCounter<AreaStyle>> styleStats; //different style statistics for the individual tags
    
     
     public MatchResult(Collection<Match> matches, Set<Area> matchedAreas)
@@ -238,12 +240,37 @@ public class MatchResult implements Comparable<MatchResult>
             return 0;
     }
     
+    public Map<Tag, StyleCounter<AreaStyle>> getStyleStats()
+    {
+        if (styleStats == null)
+            styleStats = computeStyleStats();
+        return styleStats;
+    }
+    
+    /**
+     * The style consistency is computed as the average of the percentages of the most frequent style
+     * for each matched tag.
+     * @return style consistency value
+     */
+    public float getStyleConsistency()
+    {
+        int cnt = 0;
+        float sum = 0;
+        for (StyleCounter<AreaStyle> style : getStyleStats().values())
+        {
+            sum += style.getPercentage(style.getMostFrequent());
+            cnt++;
+        }
+        return sum / cnt;
+    }
+    
     @Override
     public String toString()
     {
         return matches.size() + " matches, " + matchedAreas.size() + " areas covered"
             + ", w=" + getAverageConnectionWeight() 
             + ", s=" + getConnectionWeightSigma()
+            + ", sc=" + getStyleConsistency()
             + ", mm=" + getMinMetric()
             //+ ", min=" + getMinConnectionWeight()
             //+ ", max=" + getMaxConnectionWeight()
@@ -350,6 +377,16 @@ public class MatchResult implements Comparable<MatchResult>
         }
     }
     
+    public void dumpStyleStats()
+    {
+        Map<Tag, StyleCounter<AreaStyle>> styles = computeStyleStats();
+        for (Tag t : styles.keySet())
+        {
+            StyleCounter<AreaStyle> style = styles.get(t);
+            System.out.println(t + " style: " + style.getPercentage(style.getMostFrequent()));
+        }
+    }
+    
     //==================================================================================================
     
     public Map<TagConnection, ConnectionStats> getConnStats()
@@ -419,6 +456,31 @@ public class MatchResult implements Comparable<MatchResult>
                 it.remove();
             }
         }
+    }
+    
+    //==================================================================================================
+    
+    private Map<Tag, StyleCounter<AreaStyle>> computeStyleStats()
+    {
+        Map<Tag, StyleCounter<AreaStyle>> styles = new HashMap<>();
+        
+        for (Match match : matches)
+        {
+            for (Map.Entry<Tag, List<Area>> entry : match.entrySet())
+            {
+                //get or create a style counter for each tag
+                StyleCounter<AreaStyle> counter = styles.get(entry.getKey());
+                if (counter == null)
+                {
+                    counter = new StyleCounter<>();
+                    styles.put(entry.getKey(), counter);
+                }
+                //add the styles of all areas assigned to the tag to the counter
+                for (Area a : entry.getValue())
+                    counter.add(new AreaStyle(a));
+            }
+        }
+        return styles;
     }
     
     //==================================================================================================
