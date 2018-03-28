@@ -76,7 +76,20 @@ public class MatchResult implements Comparable<MatchResult>
                     return 0;
             }
         });*/
-        cclist.add(new Comparator<MatchResult>() //number of matched areas
+        cclist.add(new Comparator<MatchResult>() //overall score
+        {
+            @Override
+            public int compare(MatchResult o1, MatchResult o2)
+            {
+                if (o1.getOverallScore() > o2.getOverallScore())
+                    return 1;
+                else if (o1.getOverallScore() < o2.getOverallScore())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
+        /*cclist.add(new Comparator<MatchResult>() //number of matched areas
         {
             @Override
             public int compare(MatchResult o1, MatchResult o2)
@@ -104,7 +117,7 @@ public class MatchResult implements Comparable<MatchResult>
                 else
                     return 0;
             }
-        });
+        });*/
     }
 
     
@@ -264,10 +277,36 @@ public class MatchResult implements Comparable<MatchResult>
         return sum / cnt;
     }
     
+    public float getCoveredAreas()
+    {
+        if (getStats() != null)
+            return matchedAreas.size() / (float) getStats().getMaxAreas();
+        else
+            return 0.0f;
+    }
+    
+    public float getCoveredMatches()
+    {
+        if (getStats() != null)
+            return matches.size() / (float) getStats().getMaxMatches();
+        else
+            return 0.0f;
+    }
+    
+    public float getOverallScore()
+    {
+        return (1 * (1.0f - getMinMetric())
+                + 1 * getStyleConsistency()
+                + 1 * getCoveredAreas()
+                + 0.5f * getAverageConnectionWeight()) / 3.5f;
+    }
+    
     @Override
     public String toString()
     {
-        return matches.size() + " matches, " + matchedAreas.size() + " areas covered"
+        return matches.size() + " matches (" + getCoveredMatches() + ")"
+            + ", " + matchedAreas.size() + " areas covered (" + getCoveredAreas() + ")"
+            + ", S=" + getOverallScore()
             + ", w=" + getAverageConnectionWeight() 
             + ", s=" + getConnectionWeightSigma()
             + ", sc=" + getStyleConsistency()
