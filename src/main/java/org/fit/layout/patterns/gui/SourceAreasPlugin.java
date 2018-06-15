@@ -103,6 +103,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
     {
         browser.getOutputDisplay().drawExtent(a);
         browser.getOutputDisplay().colorizeByTags(a, a.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT));
+        browser.displayAreaDetails(a);
     }
     
     //========================================================================================
