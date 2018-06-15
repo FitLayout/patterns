@@ -18,6 +18,7 @@ import javax.swing.JToolBar;
 import org.fit.layout.api.ServiceManager;
 import org.fit.layout.gui.Browser;
 import org.fit.layout.gui.BrowserPlugin;
+import org.fit.layout.gui.CanvasClickListener;
 import org.fit.layout.gui.GUIUpdateListener;
 import org.fit.layout.model.Area;
 import org.fit.layout.patterns.AttributeGroupMatcher;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * Shows the list of source areas in a browser panel 
  * @author burgetr
  */
-public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
+public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, CanvasClickListener
 {
     private static Logger log = LoggerFactory.getLogger(SourceAreasPlugin.class);
     
@@ -66,7 +67,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
     {
         browser.addStructurePanel("Chunks", getSourceAreasPanel());
         browser.addToolBar(getShowToolBar());
-        //browser.addAreaSelectionListener(this);
+        browser.addCanvasClickListener("Chunks", this, false);
     }
     
     //========================================================================================
@@ -185,4 +186,19 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener
         return showSepButton;
     }
 
+    //========================================================================================
+
+    @Override
+    public void canvasClicked(int x, int y)
+    {
+        for (Area a : currentAreas)
+        {
+            if (a.getBounds().contains(x, y))
+            {
+                getAreaList().setSelectedValue(a, true);
+                break;
+            }
+        }
+    }
+    
 }
