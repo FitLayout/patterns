@@ -5,9 +5,13 @@
  */
 package org.fit.layout.patterns.gui;
 
-import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -20,10 +24,18 @@ import org.fit.layout.gui.Browser;
 import org.fit.layout.gui.BrowserPlugin;
 import org.fit.layout.gui.CanvasClickListener;
 import org.fit.layout.gui.GUIUpdateListener;
+import org.fit.layout.impl.DefaultTag;
 import org.fit.layout.model.Area;
+import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.JComboBox;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  * Shows the list of source areas in a browser panel 
@@ -36,12 +48,16 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     private Browser browser;
     private PatternBasedLogicalProvider provider;
     private List<Area> currentAreas;
+    private List<Area> filteredAreas;
+    private Tag tagAll = new DefaultTag("FitLayout", "ALL"); //the tag used for selecting all
 
     private JPanel sourceAreasPanel;
     private JScrollPane mainScroll;
     private JList<Area> areaList;
     private JToolBar showToolBar;
     private JButton showSepButton;
+    private JPanel toolPanel;
+    private JComboBox<Tag> tagCombo;
     
 
     @Override
@@ -79,14 +95,54 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
         {
             if (m.getSourceAreas() != null)
             {
-                currentAreas = m.getSourceAreas();
-                showAreas(currentAreas);
+                setAreas(m.getSourceAreas());
                 return;
             }
         }
         clearAreas();
     }
 
+    private void setAreas(List<Area> areas)
+    {
+        currentAreas = areas;
+        fillTagCombo(areas);
+        showFilteredAreas();
+    }
+    
+    private void fillTagCombo(List<Area> areas)
+    {
+        Set<Tag> tags = new HashSet<>();
+        for (Area a : areas)
+        {
+            for (Tag t : a.getTags().keySet())
+                tags.add(t);
+        }
+        Vector<Tag> tagsv = new Vector<Tag>(tags);
+        tagsv.insertElementAt(tagAll, 0);
+        getTagCombo().setModel(new DefaultComboBoxModel<>(tagsv));
+    }
+    
+    private void showFilteredAreas()
+    {
+        Tag filter = (Tag) getTagCombo().getSelectedItem();
+        if (filter == null || filter.equals(tagAll))
+            filteredAreas = currentAreas;
+        else
+            filteredAreas = filterAreas(currentAreas, filter);
+        showAreas(filteredAreas);
+    }
+    
+    public List<Area> filterAreas(List<Area> areas, Tag tag)
+    {
+        List<Area> ret = new ArrayList<>();
+        for (Area a : areas)
+        {
+            if (a.hasTag(tag))
+                ret.add(a);
+        }
+        return ret;
+    }
+    
     private void showAreas(List<Area> areas)
     {
         DefaultListModel<Area> ml = new DefaultListModel<>();
@@ -109,16 +165,30 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     
     //========================================================================================
     
+    /**
+     * @wbp.parser.entryPoint
+     */
     private JPanel getSourceAreasPanel()
     {
         if (sourceAreasPanel == null)
         {
-            GridLayout gl = new GridLayout();
-            gl.setRows(1);
-            gl.setColumns(1);
             sourceAreasPanel = new JPanel();
-            sourceAreasPanel.setLayout(gl);
-            sourceAreasPanel.add(getMainScroll(), null);
+            GridBagLayout gbl_sourceAreasPanel = new GridBagLayout();
+            gbl_sourceAreasPanel.columnWeights = new double[]{1.0};
+            gbl_sourceAreasPanel.rowWeights = new double[]{0.0, 1.0};
+            sourceAreasPanel.setLayout(gbl_sourceAreasPanel);
+            GridBagConstraints gbc_toolPanel = new GridBagConstraints();
+            gbc_toolPanel.insets = new Insets(0, 0, 5, 0);
+            gbc_toolPanel.fill = GridBagConstraints.BOTH;
+            gbc_toolPanel.gridx = 0;
+            gbc_toolPanel.gridy = 0;
+            sourceAreasPanel.add(getToolPanel(), gbc_toolPanel);
+            GridBagConstraints gbc_mainScroll = new GridBagConstraints();
+            gbc_mainScroll.weighty = 1.0;
+            gbc_mainScroll.fill = GridBagConstraints.BOTH;
+            gbc_mainScroll.gridx = 0;
+            gbc_mainScroll.gridy = 1;
+            sourceAreasPanel.add(getMainScroll(), gbc_mainScroll);
         }
         return sourceAreasPanel;
     }
@@ -131,6 +201,30 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
             mainScroll.setViewportView(getAreaList());
         }
         return mainScroll;
+    }
+    
+    private JPanel getToolPanel()
+    {
+        if (toolPanel == null)
+        {
+            toolPanel = new JPanel();
+            toolPanel.add(getTagCombo());
+        }
+        return toolPanel;
+    }
+
+    private JComboBox<Tag> getTagCombo()
+    {
+        if (tagCombo == null)
+        {
+            tagCombo = new JComboBox<>();
+            tagCombo.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    showFilteredAreas();
+                }
+            });
+        }
+        return tagCombo;
     }
 
     private JList<Area> getAreaList()
@@ -174,9 +268,9 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
             {
                 public void actionPerformed(java.awt.event.ActionEvent e)
                 {
-                    if (currentAreas != null)
+                    if (currentAreas != null && filteredAreas != null)
                     {
-                        for (Area a : currentAreas)
+                        for (Area a : filteredAreas)
                             showArea(a);
                         browser.updateDisplay();
                     }
