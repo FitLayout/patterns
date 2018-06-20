@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.graph.Group;
@@ -65,7 +64,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     //areas and statistics used for configuration
     private List<Area> areas;
-    private List<StyleCounter<AreaStyle>> styleStats;
+    private StyleGenerator styleGenerator;
     private RelationAnalyzer pa;
     
     //list of best configurations obtained by configure()
@@ -344,7 +343,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         log.debug("Styles:");
         for (int i = 0; i < attrs.size(); i++)
         {
-            log.debug("Styles {}: {}", attrs.get(i).getTag(), styleStats.get(i));
+            log.debug("Styles {}: {}", attrs.get(i).getTag(), styleGenerator.getStyleStats().get(i));
         }
         
         best = scanDisambiguations();
@@ -495,7 +494,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<MatcherConfiguration> generateConfigurations()
     {
         List<MatcherConfiguration> ret = new ArrayList<>();
-        List<Map<Tag, AreaStyle>> styleMaps = generateStyleMaps(MIN_SUPPORT_STYLE);
+        List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
         Set<ConnectionPattern> patterns = generateConnectionPatterns(MIN_SUPPORT_RELATIONS);
         for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
         {
@@ -503,89 +502,6 @@ public class AttributeGroupMatcher extends BaseMatcher
             {
                 MatcherConfiguration conf = new MatcherConfiguration(styles, conns, null);
                 ret.add(conf);
-            }
-        }
-        return ret;
-    }
-    
-    /**
-     * Generates all possible mappings from tags to styles for the given minimal frequency of tag instances with the given style.
-     * @param minFrequency the minimal frequency of tags required to consider the style for that tag
-     * @return A list of style mappings.
-     */
-    private List<Map<Tag, AreaStyle>> generateStyleMaps(float minFrequency)
-    {
-        //lists of used styles for the individual tags
-        int totalStyles = 1;
-        AreaStyle styles[][] = new AreaStyle[attrs.size()][];
-        for (int i = 0; i < attrs.size(); i++)
-        {
-            final Attribute attr = attrs.get(i);
-            
-            List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(minFrequency));
-            if (getUseStyleWildcards() > 0)
-                variants.addAll(createStyleCombinations(variants, getUseStyleWildcards()));
-            if (variants.isEmpty())
-            {
-                log.error("No styles found for {}", attr.getTag());
-                return new ArrayList<>();
-            }
-            log.debug("Trying for {}: {}", attr.getTag(), variants);
-            styles[i] = variants.toArray(new AreaStyle[0]);
-            totalStyles = totalStyles * styles[i].length;
-        }
-        //generate style combinations
-        List<Map<Tag, AreaStyle>> styleMaps = new ArrayList<>(totalStyles);
-        int indices[] = new int[attrs.size()];
-        Arrays.fill(indices, 0);
-        while (indices[indices.length - 1] < styles[indices.length - 1].length)
-        {
-            //create the style map for this iteration
-            Map<Tag, AreaStyle> curStyles = new HashMap<Tag, AreaStyle>(attrs.size());
-            for (int i = 0; i < attrs.size(); i++)
-                curStyles.put(attrs.get(i).getTag(), styles[i][indices[i]]);
-            styleMaps.add(curStyles);
-            
-            //increment the indices
-            indices[0]++;
-            for (int i = 0; i < indices.length - 1; i++)
-            {
-                if (indices[i] >= styles[i].length)
-                {
-                    indices[i] = 0;
-                    indices[i+1]++;
-                }
-            }
-        }
-        log.debug("{} style combinations", totalStyles);
-        return styleMaps;
-    }
-    
-    /**
-     * Takes all pairs from the given list of styles and creates a set of generalized styles 
-     * corresponding to the pairs using at most {@code maxWildcards} wildcards.
-     * @param styles the list of styles
-     * @param maxWildcards maximal number of wildcards used
-     * @return a set of generalized styles containing at most {@code maxWildcards} wildcards
-     */
-    private Set<AreaStyle> createStyleCombinations(List<AreaStyle> styles, int maxWildcards)
-    {
-        Set<AreaStyle> ret = new HashSet<>();
-        for (int i = 0; i < styles.size(); i++)
-        {
-            AreaStyle s1 = styles.get(i);
-            for (int j = 0; j < styles.size(); j++)
-            {
-                if (i != j)
-                {
-                    AreaStyle s2 = styles.get(j);
-                    if (s1.getEditingDistance(s2) <= maxWildcards)
-                    {
-                        AreaStyle gen = new AreaStyle(s1);
-                        gen.generalizeToFit(s2);
-                        ret.add(gen);
-                    }
-                }
             }
         }
         return ret;
@@ -1194,18 +1110,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private void gatherStatistics()
     {
-        //count styles
-        styleStats = new ArrayList<>(attrs.size());
-        for (int i = 0; i < attrs.size(); i++)
-            styleStats.add(new StyleCounter<AreaStyle>());
-        for (Area a : areas)
-        {
-            for (int i = 0; i < attrs.size(); i++)
-            {
-                if (a.hasTag(attrs.get(i).getTag(), attrs.get(i).getMinSupport()))
-                    styleStats.get(i).add(new AreaStyle(a));
-            }
-        }
+        //create style generator
+        styleGenerator = new StyleGenerator(attrs, areas, getUseStyleWildcards());
         //create pattern analyzer
         //pa = new RelationAnalyzer(areas);
         pa = new RelationAnalyzerSymmetric(areas);
