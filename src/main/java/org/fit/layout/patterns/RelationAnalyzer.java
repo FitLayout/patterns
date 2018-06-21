@@ -175,28 +175,31 @@ public class RelationAnalyzer
         }
         
         List<AreaConnection> ret = new ArrayList<AreaConnection>();
-        if (minWeight >= 0)
+        if (all != null)
         {
-            for (AreaConnection con : all)
+            if (minWeight >= 0)
             {
-                if (con.getWeight() > minWeight
-                        && (iused == 1 || dest == null || con.getA1().equals(dest))
-                        && (iused == 2 || r == null || con.getRelation().equals(r))
-                        && (iused == 3 || src == null || con.getA2().equals(src)))
+                for (AreaConnection con : all)
                 {
-                    ret.add(con);
+                    if (con.getWeight() > minWeight
+                            && (iused == 1 || dest == null || con.getA1().equals(dest))
+                            && (iused == 2 || r == null || con.getRelation().equals(r))
+                            && (iused == 3 || src == null || con.getA2().equals(src)))
+                    {
+                        ret.add(con);
+                    }
                 }
             }
-        }
-        else
-        {
-            for (AreaConnection con : all)
+            else
             {
-                if ((iused == 1 || dest == null || con.getA1().equals(dest))
-                        && (iused == 2 || r == null || con.getRelation().equals(r))
-                        && (iused == 3 || src == null || con.getA2().equals(src)))
+                for (AreaConnection con : all)
                 {
-                    ret.add(con);
+                    if ((iused == 1 || dest == null || con.getA1().equals(dest))
+                            && (iused == 2 || r == null || con.getRelation().equals(r))
+                            && (iused == 3 || src == null || con.getA2().equals(src)))
+                    {
+                        ret.add(con);
+                    }
                 }
             }
         }

@@ -43,7 +43,7 @@ import java.awt.event.ActionEvent;
  * 
  * @author burgetr
  */
-public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener
+public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, ChunkSelectionListener
 {
     private static Logger log = LoggerFactory.getLogger(RelationsPlugin.class);
     
@@ -78,14 +78,41 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener
             log.info("Found logical provider: {}", provider);
             if (provider.getMatchers().size() > 0)
                 matcher = provider.getMatchers().get(provider.getMatchers().size() - 1);
-            return true;
         }
         else
             return false;
+        
+        SourceAreasPlugin sources = ServiceManager.findByClass(ServiceManager.findBrowserPlugins(), SourceAreasPlugin.class);
+        if (sources != null)
+        {
+            log.info("Found source areas plugin: {}", sources);
+            sources.addChunkSelectionListener(this);
+        }
+        else
+            return false;
+        
+        return true;
     }
 
     @Override
     public void areaSelected(Area area)
+    {
+        selectedArea = area;
+        if (matcher != null && matcher.getRelationAnalyzer() != null)
+        {
+            //if (pa == null)
+            //{
+                pa = matcher.getRelationAnalyzer();
+                fillRelationsCombo(pa.getAnalyzedRelations());
+            //}
+            updateConnectionList(selectedArea, pa);
+        }
+        else
+            log.info("No matcher");
+    }
+    
+    @Override
+    public void chunkSelected(Area area)
     {
         selectedArea = area;
         if (matcher != null && matcher.getRelationAnalyzer() != null)

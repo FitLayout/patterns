@@ -143,8 +143,8 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         if (provider != null)
         {
             AreaTree areaTree = browser.getAreaTree();
-            AreaListSource asrc = new LeafAreaSource(areaTree.getRoot());
-            //AreaListSource asrc = new TaggedChunksSource(areaTree.getRoot());
+            //AreaListSource asrc = new LeafAreaSource(areaTree.getRoot());
+            AreaListSource asrc = new TaggedChunksSource(areaTree.getRoot());
             List<Area> leaves = asrc.getAreas();
             
             provider.configureMatcher(provider.getMatchers().get(currentMatcher), leaves);
