@@ -78,7 +78,7 @@ public class TaggedChunksSource extends AreaListSource
                 {
                     Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
                     DefaultArea newArea = new DefaultArea(r);
-                    newArea.setName("<chunk:" + t.getValue() + ">");
+                    newArea.setName("<chunk:" + t.getValue() + "> " + occ);
                     newArea.addTag(t, a.getTagSupport(t));
                     newArea.setPage(a.getPage());
 
