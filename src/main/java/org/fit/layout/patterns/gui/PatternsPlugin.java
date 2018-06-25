@@ -58,6 +58,9 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     private PatternBasedLogicalProvider provider;
     private int currentMatcher;
     
+    private AreaTree usedAreaTree;
+    private AreaListSource source;
+    
     private JPanel pnl_main;
     private JButton btnAutoConfig;
     private JList<MatcherConfiguration> configList;
@@ -138,14 +141,23 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     
     //==============================================================================================
 
+    public AreaListSource getSource()
+    {
+        AreaTree areaTree = browser.getAreaTree();
+        if (source == null || usedAreaTree != areaTree)
+        {
+            //source = new LeafAreaSource(areaTree.getRoot());
+            source = new TaggedChunksSource(areaTree.getRoot());
+            usedAreaTree = areaTree;
+        }
+        return source;
+    }
+    
     private void autoConfig()
     {
         if (provider != null)
         {
-            AreaTree areaTree = browser.getAreaTree();
-            //AreaListSource asrc = new LeafAreaSource(areaTree.getRoot());
-            AreaListSource asrc = new TaggedChunksSource(areaTree.getRoot());
-            List<Area> leaves = asrc.getAreas();
+            List<Area> leaves = getSource().getAreas();
             
             provider.configureMatcher(provider.getMatchers().get(currentMatcher), leaves);
             

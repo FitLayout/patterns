@@ -24,6 +24,7 @@ import org.fit.layout.patterns.gui.PatternsPlugin;
 public class TaggedChunksSource extends AreaListSource
 {
     private Area root;
+    private List<Area> areas;
     
     public TaggedChunksSource(Area root)
     {
@@ -33,9 +34,12 @@ public class TaggedChunksSource extends AreaListSource
     @Override
     public List<Area> getAreas()
     {
-        List<Area> ret = new ArrayList<Area>();
-        recursiveScan(root, ret);
-        return ret;
+        if (areas == null)
+        {
+            areas = new ArrayList<Area>();
+            recursiveScan(root, areas);
+        }
+        return areas;
     }
 
     private void recursiveScan(Area root, List<Area> dest)
