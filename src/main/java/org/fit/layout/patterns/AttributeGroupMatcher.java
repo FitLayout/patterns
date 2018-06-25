@@ -910,12 +910,12 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private void gatherStatistics()
     {
-        //create style generator
-        styleGenerator = new StyleGenerator(attrs, areas, getUseStyleWildcards());
-        
         //create pattern analyzer
         //pa = new RelationAnalyzer(areas);
         pa = new RelationAnalyzerSymmetric(areas);
+        
+        //create style generator
+        styleGenerator = new StyleGenerator(attrs, areas, pa, getUseStyleWildcards());
         
         //create pattern generator
         patternGenerator = new PatternGenerator(this);

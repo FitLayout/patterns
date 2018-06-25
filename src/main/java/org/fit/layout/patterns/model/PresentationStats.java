@@ -5,6 +5,12 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.fit.layout.classify.StyleCounter;
+import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.Relation;
 import org.fit.layout.patterns.RelationAnalyzer;
@@ -21,16 +27,50 @@ public class PresentationStats
     private static Logger log = LoggerFactory.getLogger(PresentationStats.class);
 
     private Tag tag;
-    private Relation rel;
     private RelationAnalyzer ra;
     
-    public PresentationStats(Tag tag, Relation rel, RelationAnalyzer ra)
+    private List<Area> areas;
+    
+    private StyleCounter<Relation> relCounts;
+    
+    
+    public PresentationStats(Tag tag, RelationAnalyzer ra)
     {
         this.tag = tag;
-        this.rel = rel;
         this.ra = ra;
+        areas = new ArrayList<>();
+    }
+    
+    public void addArea(Area a)
+    {
+        areas.add(a);
+    }
+    
+    public void getPresentationStyles()
+    {
+        analyzePairs();
+        //TODO
+        System.out.println(tag + ": " + relCounts);
+    }
+
+    //========================================================================
+    
+    private void analyzePairs()
+    {
+        relCounts = new StyleCounter<>();
+        for (Area a1 : areas)
+        {
+            for (Area a2 : areas)
+            {
+                if (a1 != a2)
+                {
+                    Set<Relation> rels = ra.getRelationsFor(a1, a2, -1.0f);
+                    for (Relation r : rels)
+                        relCounts.add(r);
+                }
+            }
+        }
     }
     
     
-
 }
