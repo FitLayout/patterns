@@ -130,7 +130,10 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
     
     private void fillRelationsCombo(List<Relation> relations)
     {
+        Object sel = getRelationCombo().getSelectedItem();
         getRelationCombo().setModel(new DefaultComboBoxModel<>(new Vector<Relation>(relations)));
+        if (sel != null)
+            getRelationCombo().setSelectedItem(sel);
     }
     
     private void updateConnectionList(Area a, RelationAnalyzer pa)
