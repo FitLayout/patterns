@@ -48,9 +48,8 @@ public class PresentationStats
     
     public void getPresentationStyles()
     {
-        analyzePairs();
-        //TODO
-        System.out.println(tag + ": " + relCounts);
+        AttrSameLine sameLine = new AttrSameLine();
+        sameLine.findOccurences(tag, ra);
     }
 
     //========================================================================
