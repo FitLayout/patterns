@@ -7,6 +7,7 @@ package org.fit.layout.patterns;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.classify.Tagger;
 import org.fit.layout.classify.TextTag;
@@ -46,16 +47,29 @@ public class TaggedChunksSource extends AreaListSource
     {
         if (root.isLeaf())
         {
-            for (Tag t : root.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT))
+            Set<Tag> supportedTags = root.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT);
+            if (!supportedTags.isEmpty())
             {
-                if (t instanceof TextTag)
+                for (Tag t : supportedTags)
                 {
-                    List<Area> newAreas = createAreasFromTag(root, (TextTag) t);
-                    System.out.println(root + " : " + t + " : " + newAreas);
-                    for (Area a : newAreas)
+                    if (t instanceof TextTag)
                     {
-                        dest.add(a);
+                        List<Area> newAreas = createAreasFromTag(root, (TextTag) t);
+                        //System.out.println(root + " : " + t + " : " + newAreas);
+                        for (Area a : newAreas)
+                        {
+                            dest.add(a);
+                        }
                     }
+                }
+            }
+            else
+            {
+                //no tags, create untagged chunks
+                List<Area> newAreas = createUntaggedAreas(root);
+                for (Area a : newAreas)
+                {
+                    dest.add(a);
                 }
             }
         }
@@ -80,19 +94,58 @@ public class TaggedChunksSource extends AreaListSource
                 int pos = text.indexOf(occ, last);
                 if (pos != -1)
                 {
-                    Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
-                    TextChunkArea newArea = new TextChunkArea(r);
-                    newArea.setName("<chunk:" + t.getValue() + "> " + occ);
-                    newArea.setText(occ);
-                    newArea.addTag(t, a.getTagSupport(t));
-                    newArea.setPage(a.getPage());
-
+                    if (pos > last) //some substring between, create a chunk with no tag
+                    {
+                        Area sepArea = createSubstringArea(a, box, null, text.substring(last, pos), last);
+                        ret.add(sepArea);
+                    }
+                    Area newArea = createSubstringArea(a, box, t, occ, pos);
                     ret.add(newArea);
                     last = pos + occ.length();
                 }
+            }
+            if (text.length() > last)
+            {
+                Area sepArea = createSubstringArea(a, box, null, text.substring(last), last);
+                ret.add(sepArea);
             }
         }
         return ret;
     }
 
+    private List<Area> createUntaggedAreas(Area a)
+    {
+        List<Area> ret = new ArrayList<>();
+        for (Box box : a.getBoxes())
+        {
+            String text = box.getOwnText();
+            if (text != null && text.length() > 0)
+            {
+                Area sepArea = createSubstringArea(a, box, null, text, 0);
+                ret.add(sepArea);
+            }
+        }
+        return ret;
+    }
+    
+    private Area createSubstringArea(Area a, Box box, TextTag tag, String occ, int pos)
+    {
+        Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
+        TextChunkArea newArea = new TextChunkArea(r);
+        newArea.setText(occ);
+        if (tag != null)
+        {
+            newArea.setName("<chunk:" + tag.getValue() + "> " + occ);
+            newArea.addTag(tag, a.getTagSupport(tag));
+        }
+        else
+        {
+            newArea.setName("<---> " + occ);
+        }
+        newArea.setPage(a.getPage());
+        return newArea;
+    }
+
+    
+    
 }
