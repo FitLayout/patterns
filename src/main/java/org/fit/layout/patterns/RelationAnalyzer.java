@@ -79,6 +79,36 @@ public class RelationAnalyzer
         return areas;
     }
     
+    /**
+     * Returns all the areas that have another area in some relation (e.g. the area has something above it)
+     * @return A set of source areas
+     */
+    public Set<Area> getSourceAreas()
+    {
+        getAreaConnections();
+        return indexA2.keySet();
+    }
+    
+    /**
+     * Returns all the areas that are in some relation with another area (e.g. the area is above something)
+     * @return A set of destination areas
+     */
+    public Set<Area> getDestinationAreas()
+    {
+        getAreaConnections();
+        return indexA1.keySet();
+    }
+    
+    /**
+     * Returns all relations that really occur among the areas.
+     * @return the set of areas
+     */
+    public Set<Relation> getDistinctRelations()
+    {
+        getAreaConnections();
+        return indexR.keySet();
+    }
+    
     public AreaTopology getTopology()
     {
         return topology;
