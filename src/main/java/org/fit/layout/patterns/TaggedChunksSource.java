@@ -10,12 +10,12 @@ import java.util.List;
 
 import org.fit.layout.classify.Tagger;
 import org.fit.layout.classify.TextTag;
-import org.fit.layout.impl.DefaultArea;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.gui.PatternsPlugin;
+import org.fit.layout.patterns.model.TextChunkArea;
 
 /**
  * An area list source that creates artificial areas by extracting tagged chunks from leaf areas.
@@ -81,8 +81,9 @@ public class TaggedChunksSource extends AreaListSource
                 if (pos != -1)
                 {
                     Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
-                    DefaultArea newArea = new DefaultArea(r);
+                    TextChunkArea newArea = new TextChunkArea(r);
                     newArea.setName("<chunk:" + t.getValue() + "> " + occ);
+                    newArea.setText(occ);
                     newArea.addTag(t, a.getTagSupport(t));
                     newArea.setPage(a.getPage());
 
