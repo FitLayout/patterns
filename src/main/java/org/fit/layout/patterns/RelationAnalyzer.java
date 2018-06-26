@@ -139,7 +139,7 @@ public class RelationAnalyzer
         {
             for (Area a2 : areas)
             {
-                if (a1 != a2)
+                if (a1 != a2 && !a1.getBounds().intersects(a2.getBounds()))
                 {
                     float w = relation.isInRelationship(a1, a2, topology, areas);
                     if (w >= MIN_RELATION_WEIGHT)
