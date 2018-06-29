@@ -18,6 +18,7 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher.Attribute;
 import org.fit.layout.patterns.model.AreaStyle;
+import org.fit.layout.patterns.model.PresentationHint;
 import org.fit.layout.patterns.model.PresentationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,7 +185,8 @@ public class StyleGenerator
         }
         for (PresentationStats pres : presStats)
         {
-            pres.getPresentationStyles();
+            List<PresentationHint> hints = pres.getPresentationHints();
+            log.info("Hints: {}", hints);
         }
     }
     

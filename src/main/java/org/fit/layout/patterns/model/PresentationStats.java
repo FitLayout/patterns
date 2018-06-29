@@ -46,10 +46,15 @@ public class PresentationStats
         areas.add(a);
     }
     
-    public void getPresentationStyles()
+    public List<PresentationHint> getPresentationHints()
     {
+        List<PresentationHint> ret = new ArrayList<>();
+        
+        //TODO add more attributes
         AttrSameLine sameLine = new AttrSameLine();
-        sameLine.findOccurences(tag, ra);
+        ret.addAll(sameLine.inferHints(tag, ra));
+        
+        return ret;
     }
 
     //========================================================================

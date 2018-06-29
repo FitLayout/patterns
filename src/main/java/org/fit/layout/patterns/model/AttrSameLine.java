@@ -27,12 +27,18 @@ public class AttrSameLine implements PresentationAttribute
     private static Relation rel = new RelationSameLine();
     
 
-    public void findOccurences(Tag tag, RelationAnalyzer ra)
+    public List<PresentationHint> inferHints(Tag tag, RelationAnalyzer ra)
     {
-        scanOccurences(tag, ra);
+        StyleCounter<String> separators = scanOccurences(tag, ra);
+        List<PresentationHint> hints = new ArrayList<>();
+        for (String separator : separators.getFrequentSyles(0.7f))
+        {
+            hints.add(new HintSeparator(tag, separator));
+        }
+        return hints;
     }
     
-    private void scanOccurences(Tag tag, RelationAnalyzer ra)
+    private StyleCounter<String> scanOccurences(Tag tag, RelationAnalyzer ra)
     {
         StyleCounter<String> separators = new StyleCounter<>(); 
         Set<Area> src = ra.getSourceAreas();
@@ -58,7 +64,8 @@ public class AttrSameLine implements PresentationAttribute
                 }
             }
         }
-        System.out.println("Separators " + tag + ": " + separators);
+        //System.out.println("Separators " + tag + ": " + separators);
+        return separators;
     }
     
     private String getStringBetween(Area a1, Area a2, RelationAnalyzer ra)
