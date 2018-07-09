@@ -24,6 +24,7 @@ import org.fit.layout.model.Page;
 import org.fit.layout.patterns.AreaListSource;
 import org.fit.layout.patterns.AttributeGroupMatcher;
 import org.fit.layout.patterns.LeafAreaSource;
+import org.fit.layout.patterns.PresentationBasedChunksSource;
 import org.fit.layout.patterns.TaggedChunksSource;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.slf4j.Logger;
@@ -147,7 +148,8 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         if (source == null || usedAreaTree != areaTree)
         {
             //source = new LeafAreaSource(areaTree.getRoot());
-            source = new TaggedChunksSource(areaTree.getRoot());
+            //source = new TaggedChunksSource(areaTree.getRoot());
+            source = new PresentationBasedChunksSource(areaTree.getRoot());
             usedAreaTree = areaTree;
         }
         return source;

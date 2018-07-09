@@ -1,5 +1,5 @@
 /**
- * LearningChunksSource.java
+ * PresentationBasedChunksSource.java
  *
  * Created on 29. 6. 2018, 15:16:19 by burgetr
  */
@@ -29,8 +29,8 @@ import org.fit.layout.patterns.model.TextChunkArea;
 public class PresentationBasedChunksSource extends AreaListSource
 {
     private Area root;
-    private List<Area> areas;
-    
+
+    private Map<Tag, List<Area>> areas;
     private Map<Tag, List<PresentationHint>> hints;
     
     public PresentationBasedChunksSource(Area root)
@@ -44,10 +44,22 @@ public class PresentationBasedChunksSource extends AreaListSource
     {
         if (areas == null)
         {
-            areas = new ArrayList<Area>();
-            recursiveScan(root, areas);
+            areas = new HashMap<>();
+            Set<Tag> supportedTags = root.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT);
+            if (!supportedTags.isEmpty())
+            {
+                for (Tag t : supportedTags)
+                {
+                    if (t instanceof TextTag)
+                    {
+                        List<Area> dest = new ArrayList<>();
+                        recursiveScan(root, (TextTag) t, dest);
+                    }
+                }
+            }
         }
-        return areas;
+        //TODO apply hints on the lists
+        return disambiguateAreas(areas);
     }
     
     public void addHint(Tag tag, PresentationHint hint)
@@ -63,40 +75,29 @@ public class PresentationBasedChunksSource extends AreaListSource
 
     //==============================================================================================
     
-    private void recursiveScan(Area root, List<Area> dest)
+    private List<Area> disambiguateAreas(Map<Tag, List<Area>> areas)
+    {
+        //TODO implement merging the individual lists to a single list of tagged areas
+        return null;
+    }
+    
+    //==============================================================================================
+    
+    private void recursiveScan(Area root, TextTag tag, List<Area> dest)
     {
         if (root.isLeaf())
         {
-            Set<Tag> supportedTags = root.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT);
-            if (!supportedTags.isEmpty())
+            List<Area> newAreas = createAreasFromTag(root, tag);
+            //System.out.println(root + " : " + t + " : " + newAreas);
+            for (Area a : newAreas)
             {
-                for (Tag t : supportedTags)
-                {
-                    if (t instanceof TextTag)
-                    {
-                        List<Area> newAreas = createAreasFromTag(root, (TextTag) t);
-                        //System.out.println(root + " : " + t + " : " + newAreas);
-                        for (Area a : newAreas)
-                        {
-                            dest.add(a);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                //no tags, create untagged chunks
-                List<Area> newAreas = createUntaggedAreas(root);
-                for (Area a : newAreas)
-                {
-                    dest.add(a);
-                }
+                dest.add(a);
             }
         }
         else
         {
             for (Area child : root.getChildren())
-                recursiveScan(child, dest);
+                recursiveScan(child, tag, dest);
         }
     }
 
