@@ -17,15 +17,11 @@ import org.fit.layout.gui.BrowserPlugin;
 import org.fit.layout.gui.GUIUpdateListener;
 import org.fit.layout.gui.GUIUpdateSource;
 import org.fit.layout.gui.TreeListener;
-import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTree;
 import org.fit.layout.model.LogicalAreaTree;
 import org.fit.layout.model.Page;
-import org.fit.layout.patterns.AreaListSource;
 import org.fit.layout.patterns.AttributeGroupMatcher;
-import org.fit.layout.patterns.LeafAreaSource;
 import org.fit.layout.patterns.PresentationBasedChunksSource;
-import org.fit.layout.patterns.TaggedChunksSource;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +56,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     private int currentMatcher;
     
     private AreaTree usedAreaTree;
-    private AreaListSource source;
+    private PresentationBasedChunksSource source;
     
     private JPanel pnl_main;
     private JButton btnAutoConfig;
@@ -142,13 +138,11 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     
     //==============================================================================================
 
-    public AreaListSource getSource()
+    public PresentationBasedChunksSource getSource()
     {
         AreaTree areaTree = browser.getAreaTree();
         if (source == null || usedAreaTree != areaTree)
         {
-            //source = new LeafAreaSource(areaTree.getRoot());
-            //source = new TaggedChunksSource(areaTree.getRoot());
             source = new PresentationBasedChunksSource(areaTree.getRoot());
             usedAreaTree = areaTree;
         }
@@ -159,9 +153,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     {
         if (provider != null)
         {
-            List<Area> leaves = getSource().getAreas();
-            
-            provider.configureMatcher(provider.getMatchers().get(currentMatcher), leaves);
+            provider.configureMatcher(provider.getMatchers().get(currentMatcher), getSource());
             
             SwingUtilities.invokeLater(new Runnable()
             {

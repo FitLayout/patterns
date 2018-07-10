@@ -40,7 +40,17 @@ public class PresentationBasedChunksSource extends AreaListSource
         this.root = root;
         hints = new HashMap<>();
     }
+    
+    public PresentationBasedChunksSource(PresentationBasedChunksSource parent)
+    {
+        this(parent.getRoot());
+    }
 
+    public Area getRoot()
+    {
+        return root;
+    }
+    
     @Override
     public List<Area> getAreas()
     {

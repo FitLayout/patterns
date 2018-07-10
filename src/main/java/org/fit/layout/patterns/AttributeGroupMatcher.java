@@ -59,7 +59,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
     
     //areas and statistics used for configuration
-    private List<Area> areas;
+    private PresentationBasedChunksSource parentSource;
+    private PresentationBasedChunksSource currentSource;
     private StyleGenerator styleGenerator;
     private PatternGenerator patternGenerator;
     private RelationAnalyzer pa;
@@ -303,7 +304,12 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     public List<Area> getSourceAreas()
     {
-        return areas;
+        if (currentSource != null)
+            return currentSource.getAreas();
+        else if (parentSource != null)
+            return currentSource.getAreas();
+        else
+            return null;
     }
     
     public Set<Tag> getTagBlacklist()
@@ -338,9 +344,9 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Checks the possible configurations on a list of areas and chooses the best ones. 
      * @param areas
      */
-    public void configure(List<Area> areas)
+    public void configure(PresentationBasedChunksSource source)
     {
-        this.areas = areas;
+        parentSource = source;
         scanAttributes();
         gatherStatistics();
         
@@ -436,8 +442,10 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
-            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
+            currentSource = new PresentationBasedChunksSource(parentSource);
+            //TODO add hints
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(currentSource.getAreas(), dis);
+            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(currentSource.getAreas(), dis, tagAreas);
             MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
             //check whether the match is consistent
             ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
@@ -912,10 +920,10 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         //create pattern analyzer
         //pa = new RelationAnalyzer(areas);
-        pa = new RelationAnalyzerSymmetric(areas);
+        pa = new RelationAnalyzerSymmetric(parentSource.getAreas());
         
         //create style generator
-        styleGenerator = new StyleGenerator(attrs, areas, pa, getUseStyleWildcards());
+        styleGenerator = new StyleGenerator(attrs, parentSource.getAreas(), pa, getUseStyleWildcards());
         
         //create pattern generator
         patternGenerator = new PatternGenerator(this);
