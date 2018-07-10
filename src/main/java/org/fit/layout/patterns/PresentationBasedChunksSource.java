@@ -7,6 +7,7 @@ package org.fit.layout.patterns;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,8 @@ public class PresentationBasedChunksSource extends AreaListSource
 {
     private Area root;
 
-    private Map<Tag, List<Area>> areas;
+    private List<Area> areas;
+    private Map<Tag, List<Area>> tagAreas;
     private Map<Tag, List<PresentationHint>> hints;
     
     public PresentationBasedChunksSource(Area root)
@@ -44,22 +46,21 @@ public class PresentationBasedChunksSource extends AreaListSource
     {
         if (areas == null)
         {
-            areas = new HashMap<>();
-            Set<Tag> supportedTags = root.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT);
+            tagAreas = new HashMap<>();
+            Set<TextTag> supportedTags = findLeafTags(root);
             if (!supportedTags.isEmpty())
             {
-                for (Tag t : supportedTags)
+                for (TextTag t : supportedTags)
                 {
-                    if (t instanceof TextTag)
-                    {
-                        List<Area> dest = new ArrayList<>();
-                        recursiveScan(root, (TextTag) t, dest);
-                    }
+                    List<Area> dest = new ArrayList<>();
+                    recursiveScan(root, (TextTag) t, dest);
+                    tagAreas.put(t, dest);
                 }
             }
+            //TODO apply hints on the lists
+            areas = disambiguateAreas(tagAreas);
         }
-        //TODO apply hints on the lists
-        return disambiguateAreas(areas);
+        return areas;
     }
     
     public void addHint(Tag tag, PresentationHint hint)
@@ -78,7 +79,10 @@ public class PresentationBasedChunksSource extends AreaListSource
     private List<Area> disambiguateAreas(Map<Tag, List<Area>> areas)
     {
         //TODO implement merging the individual lists to a single list of tagged areas
-        return null;
+        List<Area> ret = new ArrayList<>();
+        for (List<Area> sub : areas.values())
+            ret.addAll(sub);
+        return ret;
     }
     
     //==============================================================================================
@@ -87,11 +91,14 @@ public class PresentationBasedChunksSource extends AreaListSource
     {
         if (root.isLeaf())
         {
-            List<Area> newAreas = createAreasFromTag(root, tag);
-            //System.out.println(root + " : " + t + " : " + newAreas);
-            for (Area a : newAreas)
+            if (root.hasTag(tag))
             {
-                dest.add(a);
+                List<Area> newAreas = createAreasFromTag(root, tag);
+                //System.out.println(root + " : " + t + " : " + newAreas);
+                for (Area a : newAreas)
+                {
+                    dest.add(a);
+                }
             }
         }
         else
@@ -115,26 +122,26 @@ public class PresentationBasedChunksSource extends AreaListSource
                 int pos = text.indexOf(occ, last);
                 if (pos != -1)
                 {
-                    if (pos > last) //some substring between, create a chunk with no tag
+                    /*if (pos > last) //some substring between, create a chunk with no tag
                     {
-                        Area sepArea = createSubstringArea(a, box, null, text.substring(last, pos), last);
+                        Area sepArea = createSubstringArea(a, box, t, false, text.substring(last, pos), last);
                         ret.add(sepArea);
-                    }
-                    Area newArea = createSubstringArea(a, box, t, occ, pos);
+                    }*/
+                    Area newArea = createSubstringArea(a, box, t, true, occ, pos);
                     ret.add(newArea);
                     last = pos + occ.length();
                 }
             }
-            if (text.length() > last)
+            /*if (text.length() > last)
             {
-                Area sepArea = createSubstringArea(a, box, null, text.substring(last), last);
+                Area sepArea = createSubstringArea(a, box, t, false, text.substring(last), last);
                 ret.add(sepArea);
-            }
+            }*/
         }
         return ret;
     }
 
-    private List<Area> createUntaggedAreas(Area a)
+    private List<Area> createUntaggedAreas(Area a, TextTag t)
     {
         List<Area> ret = new ArrayList<>();
         for (Box box : a.getBoxes())
@@ -142,29 +149,56 @@ public class PresentationBasedChunksSource extends AreaListSource
             String text = box.getOwnText();
             if (text != null && text.length() > 0)
             {
-                Area sepArea = createSubstringArea(a, box, null, text, 0);
+                Area sepArea = createSubstringArea(a, box, t, false, text, 0);
                 ret.add(sepArea);
             }
         }
         return ret;
     }
     
-    private Area createSubstringArea(Area a, Box box, TextTag tag, String occ, int pos)
+    private Area createSubstringArea(Area a, Box box, TextTag tag, boolean present, String occ, int pos)
     {
         Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
         TextChunkArea newArea = new TextChunkArea(r);
         newArea.setText(occ);
-        if (tag != null)
+        if (present)
         {
             newArea.setName("<chunk:" + tag.getValue() + "> " + occ);
             newArea.addTag(tag, a.getTagSupport(tag));
         }
         else
         {
-            newArea.setName("<---> " + occ);
+            newArea.setName("<chunk:!" + tag.getValue() + "> " + occ);
         }
         newArea.setPage(a.getPage());
         return newArea;
     }
+    
+    //==============================================================================================
+    
+    private Set<TextTag> findLeafTags(Area root)
+    {
+        Set<TextTag> ret = new HashSet<>();
+        recursiveCollectTags(root, ret);
+        return ret;
+    }
 
+    private void recursiveCollectTags(Area root, Set<TextTag> dest)
+    {
+        if (root.isLeaf())
+        {
+            Set<Tag> all = root.getSupportedTags(PatternsPlugin.MIN_TAG_SUPPORT);
+            for (Tag t : all)
+            {
+                if (t instanceof TextTag)
+                    dest.add((TextTag) t);
+            }
+        }
+        else
+        {
+            for (Area child : root.getChildren())
+                recursiveCollectTags(child, dest);
+        }
+    }
+    
 }
