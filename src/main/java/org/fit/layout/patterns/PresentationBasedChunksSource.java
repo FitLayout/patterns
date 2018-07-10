@@ -54,10 +54,11 @@ public class PresentationBasedChunksSource extends AreaListSource
                 {
                     List<Area> dest = new ArrayList<>();
                     recursiveScan(root, (TextTag) t, dest);
+                    if (hints.get(t) != null)
+                        applyHints(dest, hints.get(t));
                     tagAreas.put(t, dest);
                 }
             }
-            //TODO apply hints on the lists
             areas = disambiguateAreas(tagAreas);
         }
         return areas;
@@ -83,6 +84,12 @@ public class PresentationBasedChunksSource extends AreaListSource
         for (List<Area> sub : areas.values())
             ret.addAll(sub);
         return ret;
+    }
+    
+    private void applyHints(List<Area> areas, List<PresentationHint> hints)
+    {
+        for (PresentationHint hint : hints)
+            hint.apply(areas);
     }
     
     //==============================================================================================
@@ -159,7 +166,7 @@ public class PresentationBasedChunksSource extends AreaListSource
     private Area createSubstringArea(Area a, Box box, TextTag tag, boolean present, String occ, int pos)
     {
         Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
-        TextChunkArea newArea = new TextChunkArea(r);
+        TextChunkArea newArea = new TextChunkArea(r, a, box);
         newArea.setText(occ);
         if (present)
         {

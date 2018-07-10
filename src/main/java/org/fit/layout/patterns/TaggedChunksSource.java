@@ -131,7 +131,7 @@ public class TaggedChunksSource extends AreaListSource
     private Area createSubstringArea(Area a, Box box, TextTag tag, String occ, int pos)
     {
         Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
-        TextChunkArea newArea = new TextChunkArea(r);
+        TextChunkArea newArea = new TextChunkArea(r, a, box);
         newArea.setText(occ);
         if (tag != null)
         {
