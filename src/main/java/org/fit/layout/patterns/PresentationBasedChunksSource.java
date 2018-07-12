@@ -85,6 +85,12 @@ public class PresentationBasedChunksSource extends AreaListSource
         list.add(hint);
     }
 
+    @Override
+    public String toString()
+    {
+        return "ChunkSource" + hints.toString();
+    }
+    
     //==============================================================================================
     
     private List<Area> disambiguateAreas(Map<Tag, List<Area>> areas)

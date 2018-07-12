@@ -32,6 +32,11 @@ public class StyleAnalyzerFixed implements StyleAnalyzer
     {
         this.styles = styles;
     }
+    
+    public AreaStyle getStyleForTag(Tag tag)
+    {
+        return styles.get(tag);
+    }
 
     @Override
     public Set<Tag> inferTags(Area a)

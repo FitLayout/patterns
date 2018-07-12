@@ -10,6 +10,7 @@ import java.util.List;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.Disambiguator;
+import org.fit.layout.patterns.StyleAnalyzerFixed;
 
 /**
  * This hint forces the chunk source to use only the specific styles for the given tag.
@@ -53,4 +54,15 @@ public class HintStyle implements PresentationHint
         return areas;
     }
     
+    @Override
+    public String toString()
+    {
+        String style = "";
+        if (dis.getStyleAnalyzer() instanceof StyleAnalyzerFixed)
+            style = ((StyleAnalyzerFixed) dis.getStyleAnalyzer()).getStyleForTag(tag).toString();
+        else
+            style = dis.getStyleAnalyzer().toString();
+            
+        return "Style:" + style;
+    }
 }

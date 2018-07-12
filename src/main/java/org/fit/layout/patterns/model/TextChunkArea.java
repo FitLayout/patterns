@@ -5,6 +5,8 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.awt.Color;
+
 import org.fit.layout.impl.DefaultArea;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Box;
@@ -27,6 +29,7 @@ public class TextChunkArea extends DefaultArea
         text = "";
         this.sourceArea = sourceArea;
         this.sourceBox = sourceBox;
+        copyStyle(sourceBox);
     }
 
     public void setText(String text)
@@ -56,4 +59,13 @@ public class TextChunkArea extends DefaultArea
         return sourceBox;
     }
     
+    protected void copyStyle(Box src)
+    {
+        setBackgroundColor((src.getBackgroundColor() == null) ? null : new Color(src.getBackgroundColor().getRed(), src.getBackgroundColor().getGreen(), src.getBackgroundColor().getBlue()));
+        setUnderline(src.getUnderline());
+        setLineThrough(src.getLineThrough());
+        setFontSize(src.getFontSize());
+        setFontWeight(src.getFontWeight());
+        setBackgroundSeparated(src.isBackgroundSeparated());
+    }
 }

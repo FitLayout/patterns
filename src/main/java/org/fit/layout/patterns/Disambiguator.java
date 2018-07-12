@@ -40,6 +40,11 @@ public class Disambiguator
         this.allowNewTags = allowNewTags;
     }
 
+    public StyleAnalyzer getStyleAnalyzer()
+    {
+        return styles;
+    }
+
     public Tag getAreaTag(Area a)
     {
         //if (a.getId() == 119)
