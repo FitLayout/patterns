@@ -21,6 +21,7 @@ import org.fit.layout.patterns.graph.Group;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionPattern;
+import org.fit.layout.patterns.model.HintStyle;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
 import org.fit.layout.patterns.model.MatchStatistics;
@@ -137,6 +138,12 @@ public class AttributeGroupMatcher extends BaseMatcher
             //usedConf.getResult().dumpMatchAverages();
             usedConf.getResult().dumpMinMetric();
             usedConf.getResult().dumpStyleStats();
+            
+            //set current chunk source for displaying the source chunks in the GUI
+            StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
+            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
+            currentSource = createChunkSource(usedConf, dis);
+            log.debug("Current source: {}", currentSource);
         }
         else
             log.error("Cannot use non-existing configuration index {}", index);
@@ -442,8 +449,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-            currentSource = new PresentationBasedChunksSource(parentSource);
-            //TODO add hints
+            currentSource = createChunkSource(conf, dis);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(currentSource.getAreas(), dis);
             Map<Tag, Collection<Match>> depMatches = getDependencyMatches(currentSource.getAreas(), dis, tagAreas);
             MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
@@ -498,6 +504,16 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         return best;
+    }
+    
+    private PresentationBasedChunksSource createChunkSource(MatcherConfiguration conf, Disambiguator dis)
+    {
+        PresentationBasedChunksSource ret = new PresentationBasedChunksSource(parentSource);
+        //Add style hints
+        for (Tag tag : getUsedTags())
+            ret.addHint(tag, new HintStyle(tag, dis));
+        //TODO add more hints
+        return ret;
     }
     
     /**

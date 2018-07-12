@@ -46,7 +46,7 @@ public class HintStyle implements PresentationHint
             if (a instanceof TextChunkArea)
             {
                 Tag dtag = dis.getAreaTag(((TextChunkArea) a).getSourceArea());
-                if (a.hasTag(tag) && !dtag.equals(tag))
+                if (a.hasTag(tag) && dtag != null && !dtag.equals(tag))
                     a.removeTag(tag);
             }
         }
