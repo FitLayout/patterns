@@ -8,7 +8,7 @@ package org.fit.layout.patterns.gui;
 import java.util.List;
 
 import org.fit.layout.patterns.AttributeGroupMatcher;
-import org.fit.layout.patterns.PresentationBasedChunksSource;
+import org.fit.layout.patterns.ChunksSource;
 
 /**
  * A logical provider that is based on the pattern discovery.
@@ -23,7 +23,7 @@ public interface PatternBasedLogicalProvider
      * @param matcher The matcher to be trained. It must be one of the matchers obtained by {@link #getMatchers()}.
      * @param source The used area source
      */
-    public void configureMatcher(AttributeGroupMatcher matcher, PresentationBasedChunksSource source);
+    public void configureMatcher(AttributeGroupMatcher matcher, ChunksSource source);
     
     /**
      * Obtains the matchers used by the logical provider.

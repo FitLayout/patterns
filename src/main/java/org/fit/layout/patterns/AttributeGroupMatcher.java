@@ -60,8 +60,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
     
     //areas and statistics used for configuration
-    private PresentationBasedChunksSource parentSource;
-    private PresentationBasedChunksSource currentSource;
+    private ChunksSource parentSource;
+    private ChunksSource currentSource;
     private StyleGenerator styleGenerator;
     private PatternGenerator patternGenerator;
     private RelationAnalyzer pa;
@@ -351,7 +351,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Checks the possible configurations on a list of areas and chooses the best ones. 
      * @param areas
      */
-    public void configure(PresentationBasedChunksSource source)
+    public void configure(ChunksSource source)
     {
         parentSource = source;
         scanAttributes();
@@ -506,9 +506,9 @@ public class AttributeGroupMatcher extends BaseMatcher
         return best;
     }
     
-    private PresentationBasedChunksSource createChunkSource(MatcherConfiguration conf, Disambiguator dis)
+    private ChunksSource createChunkSource(MatcherConfiguration conf, Disambiguator dis)
     {
-        PresentationBasedChunksSource ret = new PresentationBasedChunksSource(parentSource);
+        ChunksSource ret = new PresentationBasedChunksSource(parentSource);
         //Add style hints
         for (Tag tag : getUsedTags())
             ret.addHint(tag, new HintStyle(tag, dis));

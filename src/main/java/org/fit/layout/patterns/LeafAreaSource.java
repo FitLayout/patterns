@@ -17,18 +17,17 @@ import org.fit.layout.model.Area;
  */
 public class LeafAreaSource extends ChunksSource
 {
-    private Area root;
     
     public LeafAreaSource(Area root)
     {
-        this.root = root;
+        super(root);
     }
 
     @Override
     public List<Area> getAreas()
     {
         List<Area> leaves = new ArrayList<Area>();
-        findLeaves(root, leaves);
+        findLeaves(getRoot(), leaves);
         return leaves;
     }
 

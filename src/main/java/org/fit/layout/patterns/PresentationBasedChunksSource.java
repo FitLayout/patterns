@@ -29,41 +29,34 @@ import org.fit.layout.patterns.model.TextChunkArea;
  */
 public class PresentationBasedChunksSource extends ChunksSource
 {
-    private Area root;
-
     private List<Area> areas;
     private Map<Tag, List<Area>> tagAreas;
     private Map<Tag, List<PresentationHint>> hints;
     
     public PresentationBasedChunksSource(Area root)
     {
-        this.root = root;
+        super(root);
         hints = new HashMap<>();
     }
     
-    public PresentationBasedChunksSource(PresentationBasedChunksSource parent)
+    public PresentationBasedChunksSource(ChunksSource parent)
     {
         this(parent.getRoot());
     }
 
-    public Area getRoot()
-    {
-        return root;
-    }
-    
     @Override
     public List<Area> getAreas()
     {
         if (areas == null)
         {
             tagAreas = new HashMap<>();
-            Set<TextTag> supportedTags = findLeafTags(root);
+            Set<TextTag> supportedTags = findLeafTags(getRoot());
             if (!supportedTags.isEmpty())
             {
                 for (TextTag t : supportedTags)
                 {
                     List<Area> dest = new ArrayList<>();
-                    recursiveScan(root, (TextTag) t, dest);
+                    recursiveScan(getRoot(), (TextTag) t, dest);
                     if (hints.get(t) != null)
                         applyHints(dest, hints.get(t));
                     tagAreas.put(t, dest);
@@ -74,6 +67,7 @@ public class PresentationBasedChunksSource extends ChunksSource
         return areas;
     }
     
+    @Override
     public void addHint(Tag tag, PresentationHint hint)
     {
         List<PresentationHint> list = hints.get(tag);

@@ -24,12 +24,11 @@ import org.fit.layout.patterns.model.TextChunkArea;
  */
 public class TaggedChunksSource extends ChunksSource
 {
-    private Area root;
     private List<Area> areas;
     
     public TaggedChunksSource(Area root)
     {
-        this.root = root;
+        super(root);
     }
 
     @Override
@@ -38,7 +37,7 @@ public class TaggedChunksSource extends ChunksSource
         if (areas == null)
         {
             areas = new ArrayList<Area>();
-            recursiveScan(root, areas);
+            recursiveScan(getRoot(), areas);
         }
         return areas;
     }

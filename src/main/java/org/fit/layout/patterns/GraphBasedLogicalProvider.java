@@ -92,7 +92,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     }
 
     @Override
-    public void configureMatcher(AttributeGroupMatcher matcher, PresentationBasedChunksSource source)
+    public void configureMatcher(AttributeGroupMatcher matcher, ChunksSource source)
     {
         //autoconfigure the matcher
         matcher.configure(source);
