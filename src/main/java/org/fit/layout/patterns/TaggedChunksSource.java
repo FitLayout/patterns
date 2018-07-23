@@ -22,7 +22,7 @@ import org.fit.layout.patterns.model.TextChunkArea;
  * An area list source that creates artificial areas by extracting tagged chunks from leaf areas.
  * @author burgetr
  */
-public class TaggedChunksSource extends AreaListSource
+public class TaggedChunksSource extends ChunksSource
 {
     private Area root;
     private List<Area> areas;

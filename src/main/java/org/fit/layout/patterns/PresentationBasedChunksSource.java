@@ -27,7 +27,7 @@ import org.fit.layout.patterns.model.TextChunkArea;
  * 
  * @author burgetr
  */
-public class PresentationBasedChunksSource extends AreaListSource
+public class PresentationBasedChunksSource extends ChunksSource
 {
     private Area root;
 

@@ -15,7 +15,7 @@ import org.fit.layout.model.Area;
  * 
  * @author burgetr
  */
-public class LeafAreaSource extends AreaListSource
+public class LeafAreaSource extends ChunksSource
 {
     private Area root;
     

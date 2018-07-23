@@ -14,7 +14,7 @@ import org.fit.layout.model.Area;
  * 
  * @author burgetr
  */
-public abstract class AreaListSource
+public abstract class ChunksSource
 {
 
     public abstract List<Area> getAreas();
