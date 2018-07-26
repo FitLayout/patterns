@@ -60,15 +60,15 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
     
     //areas and statistics used for configuration
-    private ChunksSource parentSource;
-    private ChunksSource currentSource;
+    private Area root; //the root of the subtree used for the matcher configuration
     private StyleGenerator styleGenerator;
     private PatternGenerator patternGenerator;
-    private RelationAnalyzer pa;
+    //private RelationAnalyzer pa; //TODO must be separate for each configuration
     
     //list of best configurations obtained by configure()
     private List<MatcherConfiguration> best;
-    private MatcherConfiguration usedConf;
+    private MatcherConfiguration usedConf; //current configuration
+    private ChunksSource currentSource;
     
     //testing configuration
     private MatcherConfiguration tconf;
@@ -140,9 +140,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             usedConf.getResult().dumpStyleStats();
             
             //set current chunk source for displaying the source chunks in the GUI
-            StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
-            currentSource = createChunkSource(usedConf, dis);
+            currentSource = usedConf.getSource();
             log.debug("Current source: {}", currentSource);
         }
         else
@@ -226,14 +224,14 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    public Map<Tag, Collection<Match>> getDependencyMatches(List<Area> areas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    public Map<Tag, Collection<Match>> getDependencyMatches(ChunksSource source, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         Map<Tag, Collection<Match>> ret = new HashMap<>();
         if (dependencies != null)
         {
             for (AttributeGroupMatcher dep : dependencies)
             {
-                Collection<Match> result = dep.match(areas/*, dis, tagAreas*/); //TODO this should work but it does not
+                Collection<Match> result = dep.match(source.getRoot()/*, dis, tagAreas*/); //TODO this should work but it does not
                 for (Tag t : dep.getUsedTags())
                     ret.put(t, result);
             }
@@ -304,16 +302,9 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
     }
     
-    public RelationAnalyzer getRelationAnalyzer()
-    {
-        return pa;
-    }
-    
     public List<Area> getSourceAreas()
     {
         if (currentSource != null)
-            return currentSource.getAreas();
-        else if (parentSource != null)
             return currentSource.getAreas();
         else
             return null;
@@ -351,11 +342,12 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Checks the possible configurations on a list of areas and chooses the best ones. 
      * @param areas
      */
-    public void configure(ChunksSource source)
+    public void configure(Area root)
     {
-        parentSource = source;
+        this.root = root;
+        ChunksSource source = createBaseChunksSource(root);
         scanAttributes();
-        gatherStatistics();
+        gatherStatistics(source);
         
         if (tconf != null)
             log.debug("TC: {}", tconf);
@@ -373,7 +365,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     @Override
-    public Collection<Match> match(List<Area> areas)
+    public Collection<Match> match(Area root)
     {
         if (best == null)
         {
@@ -390,14 +382,15 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
-            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(areas, dis);
+            ChunksSource source = createSpecificChunksSource(root, usedConf, dis);
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(source.getAreas(), dis);
             
-            Collection<Match> result = match(areas, dis, tagAreas);
+            Collection<Match> result = match(source, dis, tagAreas);
             return result;
         }
     }
     
-    protected Collection<Match> match(List<Area> areas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    protected Collection<Match> match(ChunksSource source, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
     {
         if (usedConf == null)
         {
@@ -406,7 +399,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         else
         {
-            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(areas, dis, tagAreas);
+            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(source, dis, tagAreas);
             MatchResult result = findMatches(usedConf, dis, tagAreas, depMatches);
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
@@ -449,9 +442,10 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-            currentSource = createChunkSource(conf, dis);
+            currentSource = createSpecificChunksSource(root, conf, dis);
+            conf.setSource(currentSource);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(currentSource.getAreas(), dis);
-            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(currentSource.getAreas(), dis, tagAreas);
+            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(currentSource, dis, tagAreas);
             MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
             //check whether the match is consistent
             ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
@@ -505,10 +499,16 @@ public class AttributeGroupMatcher extends BaseMatcher
         
         return best;
     }
-    
-    private ChunksSource createChunkSource(MatcherConfiguration conf, Disambiguator dis)
+
+    private ChunksSource createBaseChunksSource(Area root)
     {
-        ChunksSource ret = new PresentationBasedChunksSource(parentSource);
+        ChunksSource ret = new PresentationBasedChunksSource(root);
+        return ret;
+    }
+    
+    private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis)
+    {
+        ChunksSource ret = new PresentationBasedChunksSource(root);
         //Add style hints
         for (Tag tag : getUsedTags())
             ret.addHint(tag, new HintStyle(tag, dis));
@@ -719,7 +719,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      */
     private List<AreaConnection> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, boolean allowMany, Disambiguator dis)
     {
-        Collection<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
+        Collection<AreaConnection> all = currentSource.getPA().getConnections(null, r, a, -1.0f);
         //if only a single match is allowed, sort the matches in order to start with the best candidates
         if (!allowMany)
         {
@@ -746,7 +746,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (destTag.equals(dis.getAreaTag(cand.getA1())))
             {
                 //find the source nodes that are closer
-                Collection<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
+                Collection<AreaConnection> better = currentSource.getPA().getConnections(cand.getA1(), r, null, cand.getWeight());
                 boolean foundBetter = false;
                 for (AreaConnection betterCand : better)
                 {
@@ -850,7 +850,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         Area a1 = match.getSingle(t1);
         Area a2 = match.getSingle(t2);
         if (a1 != null && a2 != null)
-            return pa.getRelationsFor(a1, a2, -1.0f);
+            return currentSource.getPA().getRelationsFor(a1, a2, -1.0f);
         else
             return Collections.emptySet();
     }
@@ -932,17 +932,16 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    private void gatherStatistics()
+    private void gatherStatistics(ChunksSource parentSource)
     {
-        //create pattern analyzer
-        //pa = new RelationAnalyzer(areas);
-        pa = new RelationAnalyzerSymmetric(parentSource.getAreas());
+        //create initial pattern analyzer
+        RelationAnalyzer pa = parentSource.getPA();
         
         //create style generator
         styleGenerator = new StyleGenerator(attrs, parentSource.getAreas(), pa, getUseStyleWildcards());
         
         //create pattern generator
-        patternGenerator = new PatternGenerator(this);
+        patternGenerator = new PatternGenerator(this, pa);
         
         //discover tag chains used for disambiguation
         /*ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, getTags(), attrs.get(0).getMinSupport());

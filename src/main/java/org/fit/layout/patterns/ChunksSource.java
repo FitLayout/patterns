@@ -23,6 +23,7 @@ public abstract class ChunksSource
     private static Logger log = LoggerFactory.getLogger(ChunksSource.class);
     
     private Area root;
+    private RelationAnalyzer pa;
     
     public ChunksSource(Area root)
     {
@@ -41,5 +42,18 @@ public abstract class ChunksSource
     
     public abstract List<Area> getAreas();
 
-
+    /**
+     * Obtains the relation analyzer for this source.
+     * @return the corresponding relation analyzer
+     */
+    public RelationAnalyzer getPA()
+    {
+        if (pa == null)
+        {
+            //pa = new RelationAnalyzer(getAreas());
+            pa = new RelationAnalyzerSymmetric(getAreas());
+        }
+        return pa;
+    }
+    
 }

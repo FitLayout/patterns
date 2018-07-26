@@ -6,7 +6,6 @@
 package org.fit.layout.patterns;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
@@ -29,7 +28,7 @@ public interface Matcher
      * @param areas The list of areas to be matched.
      * @return A list of discovered matches (data records) that assign the areas to the individual tags. 
      */
-    public Collection<Match> match(List<Area> areas);
+    public Collection<Match> match(Area root);
 
     /**
      * Checks if the tag corresponds to an extracted attribute with the cardinality M (many).

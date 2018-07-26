@@ -21,8 +21,6 @@ import org.fit.layout.model.AreaTree;
 import org.fit.layout.model.LogicalAreaTree;
 import org.fit.layout.model.Page;
 import org.fit.layout.patterns.AttributeGroupMatcher;
-import org.fit.layout.patterns.ChunksSource;
-import org.fit.layout.patterns.PresentationBasedChunksSource;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +53,6 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     private List<GUIUpdateListener> updateListeners;
     private PatternBasedLogicalProvider provider;
     private int currentMatcher;
-    
-    private AreaTree usedAreaTree;
-    private PresentationBasedChunksSource source;
     
     private JPanel pnl_main;
     private JButton btnAutoConfig;
@@ -139,22 +134,11 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
     
     //==============================================================================================
 
-    public ChunksSource getSource()
-    {
-        AreaTree areaTree = browser.getAreaTree();
-        if (source == null || usedAreaTree != areaTree)
-        {
-            source = new PresentationBasedChunksSource(areaTree.getRoot());
-            usedAreaTree = areaTree;
-        }
-        return source;
-    }
-    
     private void autoConfig()
     {
-        if (provider != null)
+        if (provider != null && browser.getAreaTree() != null)
         {
-            provider.configureMatcher(provider.getMatchers().get(currentMatcher), getSource());
+            provider.configureMatcher(provider.getMatchers().get(currentMatcher), browser.getAreaTree().getRoot());
             
             SwingUtilities.invokeLater(new Runnable()
             {

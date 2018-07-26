@@ -8,12 +8,9 @@ package org.fit.layout.patterns;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.fit.layout.impl.BaseLogicalTreeProvider;
 import org.fit.layout.impl.DefaultLogicalArea;
@@ -92,10 +89,10 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     }
 
     @Override
-    public void configureMatcher(AttributeGroupMatcher matcher, ChunksSource source)
+    public void configureMatcher(AttributeGroupMatcher matcher, Area root)
     {
         //autoconfigure the matcher
-        matcher.configure(source);
+        matcher.configure(root);
     }
 
     @Override
@@ -139,11 +136,8 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     @Override
     public LogicalAreaTree createLogicalTree(AreaTree areaTree)
     {
-        List<Area> leaves = new ArrayList<Area>();
-        findLeaves(areaTree.getRoot(), leaves);
-        
         AttributeGroupMatcher matcher = getMatchers().get(getMatchers().size() - 1);
-        Collection<Match> matches = matcher.match(leaves);
+        Collection<Match> matches = matcher.match(areaTree.getRoot());
         if (matches == null)
             matches = Collections.emptyList();
         
@@ -208,56 +202,6 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         }
         else
             return mainTag;
-    }
-    
-    //========================================================================================
-    
-    protected void findLeaves(Area root, List<Area> dest)
-    {
-        if (root.isLeaf())
-        {
-            if (!root.isSeparator())
-                dest.add(root);
-        }
-        else
-        {
-            for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildAt(i), dest);
-        }
-    }
-    
-    protected void findLeaves(Area root, Tag[] tags, List<Area> dest)
-    {
-        if (tags != null)
-        {
-            Set<Tag> tagSet = new HashSet<>(tags.length);
-            for (Tag t : tags)
-                tagSet.add(t);
-            findLeaves(root, dest, tagSet);
-        }
-        else
-            findLeaves(root, dest, null);
-    }
-    
-    protected void findLeaves(Area root, List<Area> dest, Set<Tag> tags)
-    {
-        boolean tagfound = false;
-        if (tags != null)
-        {
-            Set<Tag> atags = root.getSupportedTags(0.2f);
-            atags.retainAll(tags);
-            tagfound = !atags.isEmpty();
-        }
-        if (tagfound || root.isLeaf())
-        {
-            if (!root.isSeparator())
-                dest.add(root);
-        }
-        else
-        {
-            for (int i = 0; i < root.getChildCount(); i++)
-                findLeaves(root.getChildAt(i), dest, tags);
-        }
     }
 
 }

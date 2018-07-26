@@ -98,11 +98,11 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
     public void areaSelected(Area area)
     {
         selectedArea = area;
-        if (matcher != null && matcher.getRelationAnalyzer() != null)
+        if (matcher != null && matcher.getUsedConf() != null)
         {
             //if (pa == null)
             //{
-                pa = matcher.getRelationAnalyzer();
+                pa = matcher.getUsedConf().getSource().getPA();
                 fillRelationsCombo(pa.getAnalyzedRelations());
             //}
             updateConnectionList(selectedArea, pa);
@@ -115,11 +115,11 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
     public void chunkSelected(Area area)
     {
         selectedArea = area;
-        if (matcher != null && matcher.getRelationAnalyzer() != null)
+        if (matcher != null && matcher.getUsedConf() != null)
         {
             if (pa == null)
             {
-                pa = matcher.getRelationAnalyzer();
+                pa = matcher.getUsedConf().getSource().getPA();
                 fillRelationsCombo(pa.getAnalyzedRelations());
             }
             updateConnectionList(selectedArea, pa);

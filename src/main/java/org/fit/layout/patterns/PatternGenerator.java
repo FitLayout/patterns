@@ -32,11 +32,13 @@ public class PatternGenerator
     private static Logger log = LoggerFactory.getLogger(PatternGenerator.class);
 
     private AttributeGroupMatcher matcher;
+    private RelationAnalyzer pa;
     
     
-    public PatternGenerator(AttributeGroupMatcher matcher)
+    public PatternGenerator(AttributeGroupMatcher matcher, RelationAnalyzer pa)
     {
         this.matcher = matcher;
+        this.pa = pa;
     }
 
     //===========================================================================================
@@ -48,7 +50,7 @@ public class PatternGenerator
      */
     public Set<ConnectionPattern> generateConnectionPatterns(float minFrequency)
     {
-        TagConnectionList all = matcher.getRelationAnalyzer().getTagConnections();
+        TagConnectionList all = pa.getTagConnections();
         
         Set<TagPattern> patterns = findConnectedTagPatterns(all, matcher.getUsedTags(), matcher.getTagsWithDependencies());
         log.debug("Attribute patterns: {}", patterns.size());
