@@ -63,7 +63,6 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Area root; //the root of the subtree used for the matcher configuration
     private StyleGenerator styleGenerator;
     private PatternGenerator patternGenerator;
-    //private RelationAnalyzer pa; //TODO must be separate for each configuration
     
     //list of best configurations obtained by configure()
     private List<MatcherConfiguration> best;

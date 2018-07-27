@@ -28,6 +28,7 @@ import org.fit.layout.impl.DefaultTag;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher;
+import org.fit.layout.patterns.ChunksSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.awt.GridBagLayout;
@@ -47,6 +48,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     
     private Browser browser;
     private PatternBasedLogicalProvider provider;
+    private PatternsPlugin pp;
     private List<ChunkSelectionListener> chunkSelectionListeners;
     private List<Area> currentAreas;
     private List<Area> filteredAreas;
@@ -73,7 +75,6 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
         this.browser = browser;
         initGui();
         
-        PatternsPlugin pp = null;
         provider = ServiceManager.findByClass(ServiceManager.findLogicalTreeProviders().values(), PatternBasedLogicalProvider.class);
         if (provider != null)
         {
@@ -103,13 +104,11 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     @Override
     public void updateGUI()
     {
-        for (AttributeGroupMatcher m : provider.getMatchers())
+        AttributeGroupMatcher m = provider.getMatchers().get(pp.getCurrentMatcher());
+        if (m != null)
         {
-            if (m.getSourceAreas() != null)
-            {
-                setAreas(m.getSourceAreas());
-                return;
-            }
+            ChunksSource source = m.getUsedConf().getSource();
+            setAreas(source.getAreas());
         }
         clearAreas();
     }

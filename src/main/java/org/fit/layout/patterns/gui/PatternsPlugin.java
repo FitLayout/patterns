@@ -132,6 +132,11 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
             getLblMatcherlabel().setText("---");
     }
     
+    public int getCurrentMatcher()
+    {
+        return currentMatcher;
+    }
+    
     //==============================================================================================
 
     private void autoConfig()
@@ -224,6 +229,7 @@ public class PatternsPlugin implements BrowserPlugin, GUIUpdateSource, TreeListe
         	    public void valueChanged(ListSelectionEvent arg0) {
         	        int index = configList.getSelectedIndex();
         	        provider.getMatchers().get(currentMatcher).setUsedConf(index);
+        	        notifyGUIListeners();
         	    }
         	});
         }
