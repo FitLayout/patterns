@@ -110,12 +110,13 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
             ChunksSource source = m.getUsedConf().getSource();
             setAreas(source.getAreas());
         }
-        clearAreas();
+        else
+            clearAreas();
     }
 
     private void setAreas(List<Area> areas)
     {
-        currentAreas = areas;
+        currentAreas = new ArrayList<>(areas);
         fillTagCombo(areas);
         showFilteredAreas();
     }
@@ -130,7 +131,10 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
         }
         Vector<Tag> tagsv = new Vector<Tag>(tags);
         tagsv.insertElementAt(tagAll, 0);
+        Tag current = (Tag) getTagCombo().getSelectedItem();
         getTagCombo().setModel(new DefaultComboBoxModel<>(tagsv));
+        if (current != null)
+            getTagCombo().setSelectedItem(current);
     }
     
     private void showFilteredAreas()
