@@ -105,7 +105,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     public void updateGUI()
     {
         AttributeGroupMatcher m = provider.getMatchers().get(pp.getCurrentMatcher());
-        if (m != null)
+        if (m != null && m.getUsedConf() != null)
         {
             ChunksSource source = m.getUsedConf().getSource();
             setAreas(source.getAreas());
