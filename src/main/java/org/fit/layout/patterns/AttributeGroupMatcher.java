@@ -419,9 +419,16 @@ public class AttributeGroupMatcher extends BaseMatcher
         log.debug("{} total configurations", all.size());
         //System.out.println(all.get(0));
         
+        //working data structures dependent on the current source
+        StyleAnalyzer sa = null;
+        Disambiguator dis = null;
+        Map<Tag, Set<Area>> tagAreas = null;
+        Map<Tag, Collection<Match>> depMatches = null;
+        
         //find the best coverage
         MatchStatistics stats = new MatchStatistics();
         MatchResult bestMatch = null;
+        MatcherConfiguration prevConf = null;
         int i = 0;
         for (MatcherConfiguration conf : all)
         {
@@ -439,12 +446,15 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
             
-            StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
-            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-            currentSource = createSpecificChunksSource(root, conf, dis);
+            if (prevConf == null || !hasCompatibleSource(conf, prevConf))
+            {
+                sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
+                dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
+                currentSource = createSpecificChunksSource(root, conf, dis);
+                tagAreas = createAttrTagMap(currentSource.getAreas(), dis);
+                depMatches = getDependencyMatches(currentSource, dis, tagAreas);
+            }
             conf.setSource(currentSource);
-            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(currentSource.getAreas(), dis);
-            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(currentSource, dis, tagAreas);
             MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
             //check whether the match is consistent
             ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
@@ -460,6 +470,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 bestMatch = match;
             
             log.debug("Result {}", match);
+            prevConf = conf;
             //if (i > 100) break;
         }
         
@@ -513,6 +524,11 @@ public class AttributeGroupMatcher extends BaseMatcher
             ret.addHint(tag, new HintStyle(tag, dis));
         //TODO add more hints
         return ret;
+    }
+    
+    private boolean hasCompatibleSource(MatcherConfiguration c1, MatcherConfiguration c2)
+    {
+        return c1.getStyleMap().equals(c2.getStyleMap());
     }
     
     /**
