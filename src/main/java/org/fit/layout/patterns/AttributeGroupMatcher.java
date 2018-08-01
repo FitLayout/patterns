@@ -520,7 +520,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         ChunksSource ret = new PresentationBasedChunksSource(root);
         //Add style hints
-        for (Tag tag : getUsedTags())
+        for (Tag tag : getTagsWithDependencies())
             ret.addHint(tag, new HintStyle(tag, dis));
         //TODO add more hints
         return ret;
