@@ -21,6 +21,7 @@ public class TextChunkArea extends DefaultArea
     private String text;
     private Area sourceArea;
     private Box sourceBox;
+    private Color effectiveBackgroundColor;
     
 
     public TextChunkArea(Rectangular r, Area sourceArea, Box sourceBox)
@@ -29,7 +30,8 @@ public class TextChunkArea extends DefaultArea
         text = "";
         this.sourceArea = sourceArea;
         this.sourceBox = sourceBox;
-        copyStyle(sourceBox);
+        addBox(sourceBox); //the box is used for computing the text color of the are (e.g. in AreaStyle)
+        copyStyle(sourceArea);
     }
 
     public void setText(String text)
@@ -59,13 +61,27 @@ public class TextChunkArea extends DefaultArea
         return sourceBox;
     }
     
-    protected void copyStyle(Box src)
+    @Override
+    public Color getEffectiveBackgroundColor()
+    {
+        return effectiveBackgroundColor;
+    }
+
+    public void setEffectiveBackgroundColor(Color effectiveBackgroundColor)
+    {
+        this.effectiveBackgroundColor = effectiveBackgroundColor;
+    }
+
+    protected void copyStyle(Area src)
     {
         setBackgroundColor((src.getBackgroundColor() == null) ? null : new Color(src.getBackgroundColor().getRed(), src.getBackgroundColor().getGreen(), src.getBackgroundColor().getBlue()));
+        setEffectiveBackgroundColor(src.getEffectiveBackgroundColor());
+        setBackgroundSeparated(src.isBackgroundSeparated());
         setUnderline(src.getUnderline());
         setLineThrough(src.getLineThrough());
         setFontSize(src.getFontSize());
         setFontWeight(src.getFontWeight());
+        setFontStyle(src.getFontStyle());
         setBackgroundSeparated(src.isBackgroundSeparated());
     }
 }
