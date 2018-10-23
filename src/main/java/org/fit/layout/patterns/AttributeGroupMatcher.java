@@ -67,7 +67,6 @@ public class AttributeGroupMatcher extends BaseMatcher
     //list of best configurations obtained by configure()
     private List<MatcherConfiguration> best;
     private MatcherConfiguration usedConf; //current configuration
-    private ChunksSource currentSource;
     
     //testing configuration
     private MatcherConfiguration tconf;
@@ -137,10 +136,6 @@ public class AttributeGroupMatcher extends BaseMatcher
             //usedConf.getResult().dumpMatchAverages();
             usedConf.getResult().dumpMinMetric();
             usedConf.getResult().dumpStyleStats();
-            
-            //set current chunk source for displaying the source chunks in the GUI
-            currentSource = usedConf.getSource();
-            log.debug("Current source: {}", currentSource);
         }
         else
             log.error("Cannot use non-existing configuration index {}", index);
@@ -230,7 +225,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             for (AttributeGroupMatcher dep : dependencies)
             {
-                Collection<Match> result = dep.match(source.getRoot()/*, dis, tagAreas*/); //TODO this should work but it does not
+                Collection<Match> result = dep.match(source, dis, tagAreas);
                 for (Tag t : dep.getUsedTags())
                     ret.put(t, result);
             }
@@ -299,14 +294,6 @@ public class AttributeGroupMatcher extends BaseMatcher
             else
                 return false;
         }
-    }
-    
-    public List<Area> getSourceAreas()
-    {
-        if (currentSource != null)
-            return currentSource.getAreas();
-        else
-            return null;
     }
     
     public Set<Tag> getTagBlacklist()
@@ -399,7 +386,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         else
         {
             Map<Tag, Collection<Match>> depMatches = getDependencyMatches(source, dis, tagAreas);
-            MatchResult result = findMatches(usedConf, dis, tagAreas, depMatches);
+            MatchResult result = findMatches(usedConf, source.getPA(), dis, tagAreas, depMatches);
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
             return result.getMatches();
@@ -429,6 +416,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         MatchStatistics stats = new MatchStatistics();
         MatchResult bestMatch = null;
         MatcherConfiguration prevConf = null;
+        ChunksSource currentSource = null;
         int i = 0;
         for (MatcherConfiguration conf : all)
         {
@@ -455,14 +443,14 @@ public class AttributeGroupMatcher extends BaseMatcher
                 depMatches = getDependencyMatches(currentSource, dis, tagAreas);
             }
             conf.setSource(currentSource);
-            MatchResult match = findMatches(conf, dis, tagAreas, depMatches);
+            MatchResult match = findMatches(conf, currentSource.getPA(), dis, tagAreas, depMatches);
             //check whether the match is consistent
-            ConnectionPattern constraints = inferConsistencyConstraints(conf, match);
+            ConnectionPattern constraints = inferConsistencyConstraints(currentSource.getPA(), conf, match);
             if (constraints.size() > 0)
             {
                 //some more constraints are necessary for ensuring the match consistency
                 conf.setConstraints(constraints);
-                match = findMatches(conf, dis, tagAreas, depMatches);
+                match = findMatches(conf, currentSource.getPA(), dis, tagAreas, depMatches);
             }
             match.setStats(stats);
             conf.setResult(match);
@@ -561,7 +549,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private MatchResult findMatches(MatcherConfiguration conf, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
+    private MatchResult findMatches(MatcherConfiguration conf, RelationAnalyzer pa, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
@@ -579,7 +567,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                         Match match = new Match(); 
                         //match.putSingle(curPair.getA2(), a);
                         match.addSubMatch(dmatch);
-                        recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                        recursiveFindMatchesFor(pa, a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
                     }
                 }
             }
@@ -592,13 +580,13 @@ public class AttributeGroupMatcher extends BaseMatcher
             {
                 Match match = new Match(); 
                 match.putSingle(curPair.getA2(), a);
-                recursiveFindMatchesFor(a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                recursiveFindMatchesFor(pa, a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
             }
         }
         return new MatchResult(matches, matchedAreas);
     }
     
-    private boolean recursiveFindMatchesFor(Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
+    private boolean recursiveFindMatchesFor(RelationAnalyzer pa, Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
             Collection<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         final boolean a1Many = isTagMany(curPair.getA1());
@@ -609,7 +597,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         Collection<Match> deps = depMatches.get(curPair.getA1());
         /*if (curPair.toString().contains("session"))
             System.out.println("jo!");*/
-        List<AreaConnection> inrel = getAreasInBestRelation(a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), a1Many, dis);
+        List<AreaConnection> inrel = getAreasInBestRelation(pa, a, curPair.getRelation(), curPair.getA2(), curPair.getA1(), a1Many, dis);
         if (deps != null)
         {
             //look for dependency matches related to the current area
@@ -633,7 +621,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                                 nextMatch.addSubMatch(match);
                                 nextMatch.addAreaConnection(curPair, con, a1Many);
                                 
-                                anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
+                                anyMatched |= tryNewMatch(pa, nextMatch, pairs, constraints, matches, matchedAreas,
                                         dis, tagAreas, depMatches);
                             }
                         }
@@ -666,14 +654,14 @@ public class AttributeGroupMatcher extends BaseMatcher
                 for (AreaConnection con : addedConnections)
                     nextMatch.addAreaConnection(curPair, con, false);
                 
-                anyMatched |= tryNewMatch(nextMatch, pairs, constraints, matches, matchedAreas,
+                anyMatched |= tryNewMatch(pa, nextMatch, pairs, constraints, matches, matchedAreas,
                         dis, tagAreas, depMatches);
             }
         }
         return anyMatched;
     }
 
-    private boolean tryNewMatch(Match nextMatch,
+    private boolean tryNewMatch(RelationAnalyzer pa, Match nextMatch,
             List<TagConnection> pairs, ConnectionPattern constraints, Collection<Match> matches,
             Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
@@ -693,7 +681,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (nextPair != null)
             {
                 Area seed = nextMatch.getSingle(nextPair.getA2());
-                matched = recursiveFindMatchesFor(seed, nextPair, nextPairs, nextMatch, constraints, matches, matchedAreas, dis, tagAreas, depMatches);
+                matched = recursiveFindMatchesFor(pa, seed, nextPair, nextPairs, nextMatch, constraints, matches, matchedAreas, dis, tagAreas, depMatches);
             }
             else
             {
@@ -704,7 +692,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         else //no pairs remaining -- a complete match
         {
             matched = true;
-            if (constraints == null || matchesConstraints(nextMatch, constraints))
+            if (constraints == null || matchesConstraints(pa, nextMatch, constraints))
             {
                 //log.debug("Adding: {}", nextMatch);
                 matches.add(nextMatch);
@@ -724,6 +712,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * E.g. all areas below {@code a}.
      * Only the areas with specified tags are taken into account, the tags are inferred using
      * a disambiguator.
+     * @param pa The relation analyzer used for finding the relations
      * @param a the area to be used as {@code A2} in the area connections.
      * @param r the relation to be uses.
      * @param srcTag the tag required for the source areas (incl. {@code a})
@@ -732,9 +721,9 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis the disambiguator used for assigning the tags to areas
      * @return the list of best area connections that correspond to the above criteria
      */
-    private List<AreaConnection> getAreasInBestRelation(Area a, Relation r, Tag srcTag, Tag destTag, boolean allowMany, Disambiguator dis)
+    private List<AreaConnection> getAreasInBestRelation(RelationAnalyzer pa, Area a, Relation r, Tag srcTag, Tag destTag, boolean allowMany, Disambiguator dis)
     {
-        Collection<AreaConnection> all = currentSource.getPA().getConnections(null, r, a, -1.0f);
+        Collection<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
         //if only a single match is allowed, sort the matches in order to start with the best candidates
         if (!allowMany)
         {
@@ -761,7 +750,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (destTag.equals(dis.getAreaTag(cand.getA1())))
             {
                 //find the source nodes that are closer
-                Collection<AreaConnection> better = currentSource.getPA().getConnections(cand.getA1(), r, null, cand.getWeight());
+                Collection<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
                 boolean foundBetter = false;
                 for (AreaConnection betterCand : better)
                 {
@@ -788,12 +777,13 @@ public class AttributeGroupMatcher extends BaseMatcher
      * different relations used for the same pair of tags accross the matches), a set of constraints
      * (additional matching rules) is generated in order to preserve the most supported matches and
      * remove the inconsistent ones.
+     * @param pa The relation analyzer used for finding the relations
      * @param conf the matcher configuration used for obtaining the matching result
      * @param result the matching result to be checked
      * @return An additional connection pattern to be used to make the match result consistent. Empty
      * for fully consistnt match results.
      */
-    private ConnectionPattern inferConsistencyConstraints(MatcherConfiguration conf, MatchResult result)
+    private ConnectionPattern inferConsistencyConstraints(RelationAnalyzer pa, MatcherConfiguration conf, MatchResult result)
     {
         Tag[] tags = conf.getTags().toArray(new Tag[0]);
         Set<TagPair> mainPairs = conf.getPattern().getPairs();
@@ -820,7 +810,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             PatternCounter<Relation> stats = new PatternCounter<>();
             for (Match match : result.getMatches())
             {
-                Set<Relation> rels = getMatchRelations(match, pair.getO1(), pair.getO2());
+                Set<Relation> rels = getMatchRelations(pa, match, pair.getO1(), pair.getO2());
                 stats.addAll(rels, 1.0f);
             }
             //retain only the most supported matches
@@ -836,15 +826,16 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     /**
      * Checks whether the given match complies with the given constraints.
+     * @param pa The relation analyzer used for finding the relations
      * @param match the match to be checked
      * @param constraints the constraints
      * @return {@code true} when the match complies with the constraints, {@code false} otherwise. 
      */
-    private boolean matchesConstraints(Match match, ConnectionPattern constraints)
+    private boolean matchesConstraints(RelationAnalyzer pa, Match match, ConnectionPattern constraints)
     {
         for (TagConnection con : constraints)
         {
-            Set<Relation> found = getMatchRelations(match, con.getA1(), con.getA2());
+            Set<Relation> found = getMatchRelations(pa, match, con.getA1(), con.getA2());
             if (!found.contains(con.getRelation()))
                 return false;
         }
@@ -854,18 +845,19 @@ public class AttributeGroupMatcher extends BaseMatcher
     /**
      * Finds all different relations among two areas in the page that are specified with a particular
      * match and their tags.
+     * @param pa The relation analyzer used for finding the relations
      * @param match The match to be used.
      * @param t1 The tag of the first area.
      * @param t2 The tag of the second area.
      * @return A set of relationships among the first and second area that are mapped to {@code t1} and
      * {@code t2} in the {@code match}.
      */
-    private Set<Relation> getMatchRelations(Match match, Tag t1, Tag t2)
+    private Set<Relation> getMatchRelations(RelationAnalyzer pa, Match match, Tag t1, Tag t2)
     {
         Area a1 = match.getSingle(t1);
         Area a2 = match.getSingle(t2);
         if (a1 != null && a2 != null)
-            return currentSource.getPA().getRelationsFor(a1, a2, -1.0f);
+            return pa.getRelationsFor(a1, a2, -1.0f);
         else
             return Collections.emptySet();
     }
