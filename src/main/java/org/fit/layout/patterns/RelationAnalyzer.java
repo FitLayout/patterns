@@ -182,8 +182,12 @@ public class RelationAnalyzer
         int iused = 0;
         if (dest != null)
         {
-            all = indexA1.get(dest);
-            iused = 1;
+            Collection<AreaConnection> sub = indexA1.get(dest);
+            if (sub != null)
+            {
+                all = sub;
+                iused = 1;
+            }
         }
         if (r != null)
         {
