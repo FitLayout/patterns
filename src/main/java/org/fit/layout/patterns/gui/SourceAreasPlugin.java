@@ -306,8 +306,11 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
         {
             if (a.getBounds().contains(x, y))
             {
-                getAreaList().setSelectedValue(a, true);
-                break;
+                if (filteredAreas == null || filteredAreas.contains(a))
+                {
+                    getAreaList().setSelectedValue(a, true);
+                    break;
+                }
             }
         }
     }
