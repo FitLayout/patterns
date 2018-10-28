@@ -102,20 +102,30 @@ public class RelationUnderHeading extends BaseRelation implements BulkRelation
             int x = gp.getX1();
             while (x <= gp.getX2())
             {
-                Area cand = t.findAreaAt(x, nextY);
-                if (cand != null)
+                Collection<Area> cands = t.findAllAreasAt(x, nextY);
+                if (!cands.isEmpty())
                 {
-                    if (getMarkedness(cand) < m1) //acceptable candidate
+                    Rectangular cgp = null;
+                    for (Area cand : cands)
                     {
-                        found = true;
-                        destAreas.add(cand);
-                        Rectangular cgp = t.getPosition(cand);
+                        if (getMarkedness(cand) < m1) //acceptable candidate
+                        {
+                            found = true;
+                            destAreas.add(cand);
+                            if (cgp == null)
+                                cgp = t.getPosition(cand);
+                            else
+                                cgp.expandToEnclose(t.getPosition(cand));
+                        }
+                        else
+                        {
+                            return false; //unacceptable candidate found - cannot expand
+                        }
+                    }
+                    if (cgp != null)
+                    {
                         gp.expandToEnclose(cgp);
                         x += cgp.getWidth();
-                    }
-                    else
-                    {
-                        return false; //unacceptable candidate found - cannot expand
                     }
                 }
                 else
