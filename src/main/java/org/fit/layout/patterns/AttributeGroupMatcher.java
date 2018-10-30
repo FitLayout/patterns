@@ -42,7 +42,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     /** Maximal number of best performing configurations returned */
     private static final int BEST_CANDIDATE_LIMIT = 200;
     /** Minimal support of a style in the source data for using it in generated configurations */
-    private static final float MIN_SUPPORT_STYLE = 0.1f;
+    private static final float MIN_SUPPORT_STYLE = 0.001f;
     /** Minimal support of the relation in the source data for using it in generated configurations */
     private static final float MIN_SUPPORT_RELATIONS = 0.001f;
     /** Minimal tag support for considering the area to have the given tag -- disambiguation step */
@@ -500,13 +500,13 @@ public class AttributeGroupMatcher extends BaseMatcher
 
     private ChunksSource createBaseChunksSource(Area root)
     {
-        ChunksSource ret = new PresentationBasedChunksSource(root);
+        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
         return ret;
     }
     
     private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis)
     {
-        ChunksSource ret = new PresentationBasedChunksSource(root);
+        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
         //Add style hints
         for (Tag tag : getTagsWithDependencies())
             ret.addHint(tag, new HintStyle(tag, dis));

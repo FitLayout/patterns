@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.classify.Tagger;
 import org.fit.layout.classify.TextTag;
 import org.fit.layout.model.Area;
@@ -29,21 +30,18 @@ import org.fit.layout.patterns.model.TextChunkArea;
  */
 public class PresentationBasedChunksSource extends ChunksSource
 {
+    private float minTagSupport;
     private List<Area> areas;
     private Map<Tag, List<Area>> tagAreas;
     private Map<Tag, List<PresentationHint>> hints;
     
-    public PresentationBasedChunksSource(Area root)
+    public PresentationBasedChunksSource(Area root, float minTagSupport)
     {
         super(root);
+        this.minTagSupport = minTagSupport;
         hints = new HashMap<>();
     }
     
-    public PresentationBasedChunksSource(ChunksSource parent)
-    {
-        this(parent.getRoot());
-    }
-
     @Override
     public List<Area> getAreas()
     {
@@ -108,7 +106,7 @@ public class PresentationBasedChunksSource extends ChunksSource
     {
         if (root.isLeaf())
         {
-            if (root.hasTag(tag))
+            if (root.hasTag(tag, minTagSupport))
             {
                 List<Area> newAreas = createAreasFromTag(root, tag);
                 //System.out.println(root + " : " + t + " : " + newAreas);
@@ -132,22 +130,19 @@ public class PresentationBasedChunksSource extends ChunksSource
         for (Box box : a.getBoxes())
         {
             String text = box.getOwnText();
-            List<String> occurences = tg.extract(text);
+            List<TagOccurrence> occurences = tg.extract(text);
             int last = 0;
-            for (String occ : occurences)
+            for (TagOccurrence occ : occurences)
             {
-                int pos = text.indexOf(occ, last);
-                if (pos != -1)
+                int pos = occ.getPosition();
+                /*if (pos > last) //some substring between, create a chunk with no tag
                 {
-                    /*if (pos > last) //some substring between, create a chunk with no tag
-                    {
-                        Area sepArea = createSubstringArea(a, box, t, false, text.substring(last, pos), last);
-                        ret.add(sepArea);
-                    }*/
-                    Area newArea = createSubstringArea(a, box, t, true, occ, pos);
-                    ret.add(newArea);
-                    last = pos + occ.length();
-                }
+                    Area sepArea = createSubstringArea(a, box, t, false, text.substring(last, pos), last);
+                    ret.add(sepArea);
+                }*/
+                Area newArea = createSubstringArea(a, box, t, true, occ.getText(), pos);
+                ret.add(newArea);
+                last = pos + occ.getLength();
             }
             /*if (text.length() > last)
             {
