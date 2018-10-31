@@ -48,19 +48,19 @@ public class AreaUtils
      */
     public static boolean isOnSameLine(Area a1, Area a2)
     {
-        final int THRESHOLD = 1;
-        final Rectangular gp1 = a1.getBounds();
-        final Rectangular gp2 = a2.getBounds();
-        return (Math.abs(gp1.getY1() - gp2.getY1()) <= THRESHOLD 
-                && Math.abs(gp1.getY2() - gp2.getY2()) <= THRESHOLD); 
-    }
-    
-    public static boolean isOnSameLineRoughly(Area a1, Area a2)
-    {
-        final Rectangular gp1 = a1.getBounds();
-        final Rectangular gp2 = a2.getBounds();
-        return (gp2.getY1() >= gp1.getY1() && gp2.getY1() < gp1.getY2())
-                || (gp2.getY2() > gp1.getY1() && gp2.getY2() <= gp1.getY2());
+        Rectangular r1 = a1.getBounds();
+        Rectangular r2 = a2.getBounds();
+        Rectangular tall, shrt;
+        if (r2.getHeight() > r1.getHeight())
+        {
+            tall = r2; shrt = r1;
+        }
+        else
+        {
+            tall = r1; shrt = r2;
+        }
+        
+        return (tall.getY1() < shrt.midY() && tall.getY2() > shrt.midY());
     }
     
     /**
@@ -118,7 +118,7 @@ public class AreaUtils
         Rectangular gpa = topology.getPosition(a);
         for (Area cand : srcAreas)
         {
-            if (cand != a && isOnSameLineRoughly(cand, a))
+            if (cand != a && isOnSameLine(cand, a))
             {
                 Rectangular gpc = topology.getPosition(cand);
                 if (gpc.getX1() < gpa.getX1())

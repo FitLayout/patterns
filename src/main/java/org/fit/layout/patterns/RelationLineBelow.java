@@ -62,7 +62,7 @@ public class RelationLineBelow extends LineRelation implements BulkRelation
         {
             for (Area cand : areas)
             {
-                if (cand == closest || isOnSameLine(cand, closest))
+                if (cand == closest || AreaUtils.isOnSameLine(cand, closest))
                 {
                     float w = computeWeight(cand, a, t);
                     AreaConnection con = new AreaConnection(cand, a, this, w);

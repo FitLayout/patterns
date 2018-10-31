@@ -37,7 +37,7 @@ public class RelationSide extends LineRelation implements SimpleRelation
     {
         //here a1 is the right area, a2 is the left area
         //we say that a1 is on side of a2
-        if (isOnSameLine(a2, a1))
+        if (AreaUtils.isOnSameLine(a2, a1))
         {
             float dist = inverse ?
                             a2.getBounds().getX1() - a1.getBounds().getX2()
