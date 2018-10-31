@@ -10,8 +10,8 @@ import java.util.List;
 import org.fit.layout.model.Area;
 
 /**
- * A hint that forces using the whole line for the corresponding chunk even if only part
- * of the line was detected as the chunk. 
+ * A hint that forces using the whole source box for the corresponding chunk even if only part
+ * of the box was detected as the chunk. 
  * @author burgetr
  */
 public class HintWholeBox implements PresentationHint
@@ -37,6 +37,7 @@ public class HintWholeBox implements PresentationHint
                     chunk.setText(tb);
                     chunk.setBounds(chunk.getSourceBox().getSubstringBounds(0, boxText.length()));
                     chunk.setName(chunk.getName() + "(ext)");
+                    //TODO remove other overlapping areas?
                 }
             }
         }
@@ -46,7 +47,7 @@ public class HintWholeBox implements PresentationHint
     @Override
     public String toString()
     {
-        return "WholeLine";
+        return "WholeBox";
     }
     
 }
