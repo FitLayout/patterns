@@ -14,10 +14,10 @@ import org.fit.layout.model.Area;
  * of the line was detected as the chunk. 
  * @author burgetr
  */
-public class HintWholeLine implements PresentationHint
+public class HintWholeBox implements PresentationHint
 {
 
-    public HintWholeLine()
+    public HintWholeBox()
     {
     }
     

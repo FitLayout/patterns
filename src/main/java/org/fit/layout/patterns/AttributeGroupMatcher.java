@@ -22,7 +22,7 @@ import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.HintStyle;
-import org.fit.layout.patterns.model.HintWholeLine;
+import org.fit.layout.patterns.model.HintWholeBox;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
 import org.fit.layout.patterns.model.MatchStatistics;
@@ -513,7 +513,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             ret.addHint(tag, new HintStyle(tag, dis));
             if (tag.getValue().contains("title")) //TODO experimental
-                ret.addHint(tag, new HintWholeLine());
+                ret.addHint(tag, new HintWholeBox());
         }
         //TODO add more hints
         return ret;
