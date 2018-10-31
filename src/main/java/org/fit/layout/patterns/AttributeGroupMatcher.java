@@ -513,7 +513,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             ret.addHint(tag, new HintStyle(tag, dis));
             if (tag.getValue().contains("title")) //TODO experimental
-                ret.addHint(tag, new HintWholeBox());
+                ret.addHint(tag, new HintWholeBox(tag));
         }
         //TODO add more hints
         return ret;

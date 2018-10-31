@@ -5,11 +5,13 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
-import org.fit.layout.model.Rectangular;
+import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.AreaUtils;
 
 /**
  * A hint that forces using the whole line for the corresponding chunk even if only part
@@ -18,6 +20,12 @@ import org.fit.layout.model.Rectangular;
  */
 public class HintWholeLine implements PresentationHint
 {
+    private Tag tag;
+    
+    public HintWholeLine(Tag tag)
+    {
+        this.tag = tag;
+    }
 
     @Override
     public List<Area> apply(List<Area> areas)
@@ -31,8 +39,10 @@ public class HintWholeLine implements PresentationHint
                 if (srcArea != null && srcArea.getParent() != null)
                 {
                     AreaTopology topology = srcArea.getParent().getTopology();
-                    Rectangular gp = topology.getPosition(srcArea);
-                    
+                    List<Area> before = new ArrayList<>();
+                    List<Area> after = new ArrayList<>();
+                    AreaUtils.findAreasBeforeAfter(srcArea, topology, before, after);
+                    //TODO
                 }
             }
         }

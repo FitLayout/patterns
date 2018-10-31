@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
@@ -108,24 +109,56 @@ public class AreaUtils
     /**
      * Scans a list of areas and finds the areas that are befor or after a given area on the same line.
      * @param a the given area
-     * @param srcAreas source list of areas
      * @param topology the topology to be used for comparing the area positions
      * @param destBefore the destination collection of areas before the given area
      * @param destAfter the destination collection of areas after the given area
      */
-    public static void findAreasBeforeAfter(Area a, Collection<Area> srcAreas, AreaTopology topology, Collection<Area> destBefore, Collection<Area> destAfter)
+    public static void findAreasBeforeAfter(Area a, AreaTopology topology, List<Area> destBefore, List<Area> destAfter)
     {
         Rectangular gpa = topology.getPosition(a);
-        for (Area cand : srcAreas)
+        //find before
+        int x = gpa.getX1() - 1;
+        boolean breakFound = false;
+        while (x >= 0 && !breakFound)
         {
-            if (cand != a && isOnSameLine(cand, a))
+            int minX = x;
+            for (int y = gpa.getY1(); y <= gpa.getY2(); y++)
             {
-                Rectangular gpc = topology.getPosition(cand);
-                if (gpc.getX1() < gpa.getX1())
-                    destBefore.add(cand);
-                else
-                    destAfter.add(cand);
+                Collection<Area> cands = topology.findAllAreasAt(x, y);
+                for (Area cand : cands)
+                {
+                    if (isOnSameLine(cand, a))
+                    {
+                        destBefore.add(0, a);
+                        minX = Math.min(minX, a.getX1()); 
+                    }
+                    else
+                        breakFound = true; // found some area breaking the line
+                }
             }
+            x = minX - 1; 
+        }
+        //find after
+        x = gpa.getX2() + 1;
+        breakFound = false;
+        while (x < topology.getTopologyWidth() && !breakFound)
+        {
+            int maxX = x;
+            for (int y = gpa.getY1(); y <= gpa.getY2(); y++)
+            {
+                Collection<Area> cands = topology.findAllAreasAt(x, y);
+                for (Area cand : cands)
+                {
+                    if (isOnSameLine(cand, a))
+                    {
+                        destAfter.add(a);
+                        maxX = Math.max(maxX, a.getX2()); 
+                    }
+                    else
+                        breakFound = true; // found some area breaking the line
+                }
+            }
+            x = maxX + 1; 
         }
     }
     

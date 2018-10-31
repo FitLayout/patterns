@@ -5,9 +5,13 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.model.Tag;
 
 /**
  * A hint that forces using the whole source box for the corresponding chunk even if only part
@@ -16,17 +20,20 @@ import org.fit.layout.model.Area;
  */
 public class HintWholeBox implements PresentationHint
 {
-
-    public HintWholeBox()
-    {
-    }
+    private Tag tag;
     
+    public HintWholeBox(Tag tag)
+    {
+        this.tag = tag;
+    }
+
     @Override
     public List<Area> apply(List<Area> areas)
     {
+        Collection<Area> modified = new HashSet<>();
         for (Area a : areas)
         {
-            if (a instanceof TextChunkArea)
+            if (a instanceof TextChunkArea && a.hasTag(tag)) //TODO hasTag support?
             {
                 TextChunkArea chunk = (TextChunkArea) a;
                 String ta = chunk.getText().trim();
@@ -37,7 +44,20 @@ public class HintWholeBox implements PresentationHint
                     chunk.setText(tb);
                     chunk.setBounds(chunk.getSourceBox().getSubstringBounds(0, boxText.length()));
                     chunk.setName(chunk.getName() + "(ext)");
-                    //TODO remove other overlapping areas?
+                    modified.add(chunk);
+                    System.out.println("ADDED " + chunk);
+                }
+            }
+        }
+        for (Area mod : modified)
+        {
+            for (Iterator<Area> it = areas.iterator(); it.hasNext();)
+            {
+                Area a = it.next();
+                if (a.hasTag(tag) && a.getBounds().intersects(mod.getBounds()) && !modified.contains(a)) //TODO hasTag support?
+                {
+                    System.out.println("REMOVED " + a);
+                    it.remove();
                 }
             }
         }
