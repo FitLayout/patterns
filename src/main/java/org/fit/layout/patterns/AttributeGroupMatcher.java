@@ -22,6 +22,7 @@ import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.HintStyle;
+import org.fit.layout.patterns.model.HintWholeLine;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
 import org.fit.layout.patterns.model.MatchStatistics;
@@ -509,7 +510,11 @@ public class AttributeGroupMatcher extends BaseMatcher
         ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
         //Add style hints
         for (Tag tag : getTagsWithDependencies())
+        {
             ret.addHint(tag, new HintStyle(tag, dis));
+            if (tag.getValue().contains("title")) //TODO experimental
+                ret.addHint(tag, new HintWholeLine());
+        }
         //TODO add more hints
         return ret;
     }
