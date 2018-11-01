@@ -346,8 +346,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         best = scanDisambiguations();
-        for (MatcherConfiguration conf : best)
-            log.debug("Best:{}", conf);
+        /*for (MatcherConfiguration conf : best)
+            log.debug("Best:{}", conf);*/
         log.debug("Confiuration completed.");
     }
     
@@ -427,8 +427,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             if (tconf != null)
             {
-                if (tconf.getPattern().equals(conf.getPattern()))
-                    log.debug("Partial match {}", conf);
+                /*if (tconf.getPattern().equals(conf.getPattern()))
+                    log.debug("Partial match {}", conf);*/
                 if (!tconf.equals(conf))
                     continue;
             }
@@ -459,6 +459,11 @@ public class AttributeGroupMatcher extends BaseMatcher
                 bestMatch = match;
             
             log.debug("Result {}", match);
+            
+            MatchAnalyzer ma = new MatchAnalyzer(match);
+            for (Tag tag : getUsedTags())
+                ma.findPossibleHints(tag);
+            
             prevConf = conf;
             //if (i > 100) break;
         }
@@ -512,8 +517,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (Tag tag : getTagsWithDependencies())
         {
             ret.addHint(tag, new HintStyle(tag, dis));
-            if (tag.getValue().contains("title")) //TODO experimental
-                ret.addHint(tag, new HintWholeBox(tag));
+            //if (tag.getValue().contains("title")) //TODO experimental
+            //    ret.addHint(tag, new HintWholeBox(tag));
         }
         //TODO add more hints
         return ret;

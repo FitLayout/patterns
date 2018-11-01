@@ -37,16 +37,14 @@ public class HintWholeBox implements PresentationHint
             if (a instanceof TextChunkArea && a.hasTag(tag, AttributeGroupMatcher.MIN_TAG_SUPPORT_MATCH))
             {
                 TextChunkArea chunk = (TextChunkArea) a;
-                String ta = chunk.getText().trim();
-                String boxText = chunk.getSourceBox().getOwnText();
-                String tb = boxText.trim();
-                if (ta.length() != tb.length())
+                if (!usesWholeBox(chunk))
                 {
-                    chunk.setText(tb);
+                    String boxText = chunk.getSourceBox().getOwnText();
+                    chunk.setText(boxText.trim());
                     chunk.setBounds(chunk.getSourceBox().getSubstringBounds(0, boxText.length()));
                     chunk.setName(chunk.getName() + "(ext)");
                     modified.add(chunk);
-                    System.out.println("ADDED " + chunk);
+                    //System.out.println("ADDED " + chunk);
                 }
             }
         }
@@ -62,7 +60,7 @@ public class HintWholeBox implements PresentationHint
                         && a.getBounds().intersects(mod.getBounds())
                         && !retain.contains(a))
                 {
-                    System.out.println("REMOVED " + a + " for overlap with " + mod);
+                    //System.out.println("REMOVED " + a + " for overlap with " + mod);
                     retain.add(mod);
                     it.remove();
                 }
@@ -75,6 +73,19 @@ public class HintWholeBox implements PresentationHint
     public String toString()
     {
         return "WholeBox";
+    }
+    
+    /**
+     * Checks whether the chunk uses the whole text of its source box.
+     * @param chunk
+     * @return
+     */
+    public static boolean usesWholeBox(TextChunkArea chunk)
+    {
+        String ta = chunk.getText().trim();
+        String boxText = chunk.getSourceBox().getOwnText();
+        String tb = boxText.trim();
+        return (ta.length() == tb.length());
     }
     
 }
