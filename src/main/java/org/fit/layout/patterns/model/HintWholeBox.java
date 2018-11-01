@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.AttributeGroupMatcher;
 
 /**
  * A hint that forces using the whole source box for the corresponding chunk even if only part
@@ -33,7 +34,7 @@ public class HintWholeBox implements PresentationHint
         Collection<Area> modified = new HashSet<>();
         for (Area a : areas)
         {
-            if (a instanceof TextChunkArea && a.hasTag(tag)) //TODO hasTag support?
+            if (a instanceof TextChunkArea && a.hasTag(tag, AttributeGroupMatcher.MIN_TAG_SUPPORT_MATCH))
             {
                 TextChunkArea chunk = (TextChunkArea) a;
                 String ta = chunk.getText().trim();
@@ -49,14 +50,20 @@ public class HintWholeBox implements PresentationHint
                 }
             }
         }
+        //check for overlaps
+        Collection<Area> retain = new HashSet<>(); //the chunks to be retained for each overlap
         for (Area mod : modified)
         {
             for (Iterator<Area> it = areas.iterator(); it.hasNext();)
             {
                 Area a = it.next();
-                if (a.hasTag(tag) && a.getBounds().intersects(mod.getBounds()) && !modified.contains(a)) //TODO hasTag support?
+                if (a != mod
+                        && a.hasTag(tag, AttributeGroupMatcher.MIN_TAG_SUPPORT_MATCH)
+                        && a.getBounds().intersects(mod.getBounds())
+                        && !retain.contains(a))
                 {
-                    System.out.println("REMOVED " + a);
+                    System.out.println("REMOVED " + a + " for overlap with " + mod);
+                    retain.add(mod);
                     it.remove();
                 }
             }
