@@ -22,6 +22,8 @@ public class BoxText
     private String text;
     /** The individual box string start positions in the complete text */
     private int[] offsets;
+    /** The individual box string lengths in the complete text */
+    private int[] lengths;
     
     
     public BoxText(List<Box> boxes)
@@ -34,6 +36,11 @@ public class BoxText
     {
         return boxes;
     }
+    
+    public int getBoxCount()
+    {
+        return boxes.size();
+    }
 
     public String getText()
     {
@@ -45,17 +52,61 @@ public class BoxText
         return offsets;
     }
 
+    /**
+     * Finds the index of the box that contains the given text position.
+     * @param pos The position within the complete text
+     * @return The box index for the text positions within the complete text. Otherwise, -1 is returned.
+     */
     public int getIndexForPosition(int pos)
     {
         if (pos >= 0 && pos < text.length())
         {
             int i = 0;
-            while (i < offsets.length && offsets[i] < pos)
+            while (i + 1 < offsets.length && offsets[i + 1] <= pos)
                 i++;
             return i;
         }
         else
+        {
             return -1;
+        }
+    }
+    
+    public Box getBoxForPosition(int pos)
+    {
+        int i = getIndexForPosition(pos);
+        return (i == -1) ? null : boxes.get(i);
+    }
+    
+    public Rectangular getSubstringBounds(int spos, int epos)
+    {
+        if (spos >= 0 && spos < text.length() && epos >= 0 && epos <= text.length() && epos > spos)
+        {
+            //start and end index
+            int bi1 = getIndexForPosition(spos);
+            int ofs1 = spos - offsets[bi1];
+            int bi2 = getIndexForPosition(epos - 1); //the start of the last char
+            int ofs2 = epos - offsets[bi2];
+            //find the bounds
+            Rectangular r;
+            if (bi1 == bi2) //within the same box
+            {
+                Box box = boxes.get(bi1);
+                r = box.getSubstringBounds(ofs1, ofs2);
+            }
+            else //different boxes
+            {
+                Box box1 = boxes.get(bi1);
+                Box box2 = boxes.get(bi2);
+                r = box1.getSubstringBounds(ofs1, box1.getOwnText().length());
+                Rectangular r2 = box2.getSubstringBounds(0, ofs2);
+                if (r != null && r2 != null)
+                    r.expandToEnclose(r2);
+            }
+            return r;
+        }
+        else
+            return null;
     }
     
     @Override
@@ -70,15 +121,19 @@ public class BoxText
     {
         StringBuilder sb = new StringBuilder();
         offsets = new int[boxes.size()];
+        lengths = new int[boxes.size()];
         Box prev = null;
         int i = 0;
         for (Box box : boxes)
         {
             if (prev != null && boxesSeparated(prev, box))
                 sb.append(' ');
-            offsets[i++] = sb.length();
-            sb.append(box.getOwnText());
+            String btext = box.getOwnText(); 
+            offsets[i] = sb.length();
+            lengths[i] = btext.length();
+            sb.append(btext);
             prev = box;
+            i++;
         }
         text = sb.toString();
     }

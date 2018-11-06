@@ -144,33 +144,10 @@ public class PresentationBasedChunksSource extends ChunksSource
 
     private Area createSubstringArea(Area a, TextTag tag, BoxText boxText, TagOccurrence occ)
     {
-        //start and end index
-        int firstPos = occ.getPosition();
-        int bi1 = boxText.getIndexForPosition(firstPos);
-        int lastPos = occ.getPosition() + occ.getLength() - 1;
-        int bi2 = boxText.getIndexForPosition(lastPos);
-        //find the bounds
-        Rectangular r;
-        if (bi1 == bi2) //within the same box
-        {
-            int ofs1 = firstPos - boxText.getOffsets()[bi1];
-            int ofs2 = lastPos - boxText.getOffsets()[bi1] + 1;
-            Box box = boxText.getBoxes().get(bi1);
-            r = box.getSubstringBounds(ofs1, ofs2);
-        }
-        else //different boxes
-        {
-            int ofs1 = firstPos - boxText.getOffsets()[bi1];
-            Box box1 = boxText.getBoxes().get(bi1);
-            int ofs2 = lastPos - boxText.getOffsets()[bi2] + 1;
-            Box box2 = boxText.getBoxes().get(bi2);
-            r = box1.getSubstringBounds(ofs1, box1.getOwnText().length());
-            Rectangular r2 = box2.getSubstringBounds(0, ofs2);
-            if (r != null && r2 != null)
-                r.expandToEnclose(r2);
-        }
+        //determine the substring bounds
+        Rectangular r = boxText.getSubstringBounds(occ.getPosition(), occ.getPosition() + occ.getLength());
         //create the chunk area
-        TextChunkArea newArea = new TextChunkArea(r, a, boxText.getBoxes().get(bi1));
+        TextChunkArea newArea = new TextChunkArea(r, a, boxText.getBoxForPosition(occ.getPosition()));
         newArea.setText(occ.getText());
         newArea.setName("<chunk:" + tag.getValue() + "> " + occ);
         newArea.addTag(tag, a.getTagSupport(tag));
