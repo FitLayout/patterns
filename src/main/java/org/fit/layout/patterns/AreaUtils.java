@@ -49,8 +49,17 @@ public class AreaUtils
      */
     public static boolean isOnSameLine(Area a1, Area a2)
     {
-        Rectangular r1 = a1.getBounds();
-        Rectangular r2 = a2.getBounds();
+        return isOnSameLine(a1.getBounds(), a2.getBounds());
+    }
+    
+    /**
+     * Checks if the given rectangles are on the same line.
+     * @param r1
+     * @param r2
+     * @return
+     */
+    public static boolean isOnSameLine(Rectangular r1, Rectangular r2)
+    {
         Rectangular tall, shrt;
         if (r2.getHeight() > r1.getHeight())
         {

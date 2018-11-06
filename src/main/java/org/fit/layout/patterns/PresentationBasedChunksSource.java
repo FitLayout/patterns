@@ -20,6 +20,7 @@ import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.gui.PatternsPlugin;
+import org.fit.layout.patterns.model.BoxText;
 import org.fit.layout.patterns.model.PresentationHint;
 import org.fit.layout.patterns.model.TextChunkArea;
 
@@ -54,9 +55,10 @@ public class PresentationBasedChunksSource extends ChunksSource
                 for (TextTag t : supportedTags)
                 {
                     List<Area> dest = new ArrayList<>();
-                    recursiveScan(getRoot(), (TextTag) t, dest);
+                    Set<Area> processed = new HashSet<>();
+                    recursiveScan(getRoot(), (TextTag) t, dest, processed);
                     if (hints.get(t) != null)
-                        applyHints(dest, hints.get(t));
+                        dest = applyHints(dest, hints.get(t));
                     tagAreas.put(t, dest);
                 }
             }
@@ -94,21 +96,23 @@ public class PresentationBasedChunksSource extends ChunksSource
         return ret;
     }
     
-    private void applyHints(List<Area> areas, List<PresentationHint> hints)
+    private List<Area> applyHints(List<Area> areas, List<PresentationHint> hints)
     {
+        List<Area> current = areas;
         for (PresentationHint hint : hints)
-            hint.apply(areas);
+            current = hint.apply(current);
+        return current;
     }
     
     //==============================================================================================
     
-    private void recursiveScan(Area root, TextTag tag, List<Area> dest)
+    private void recursiveScan(Area root, TextTag tag, List<Area> dest, Set<Area> processed)
     {
         if (root.isLeaf())
         {
-            if (root.hasTag(tag, minTagSupport))
+            if (root.hasTag(tag, minTagSupport) && !processed.contains(root))
             {
-                List<Area> newAreas = createAreasFromTag(root, tag);
+                List<Area> newAreas = createAreasFromTag(root, tag, processed);
                 //System.out.println(root + " : " + t + " : " + newAreas);
                 for (Area a : newAreas)
                 {
@@ -119,71 +123,73 @@ public class PresentationBasedChunksSource extends ChunksSource
         else
         {
             for (Area child : root.getChildren())
-                recursiveScan(child, tag, dest);
+                recursiveScan(child, tag, dest, processed);
         }
     }
 
-    private List<Area> createAreasFromTag(Area a, TextTag t)
+    private List<Area> createAreasFromTag(Area a, TextTag t, Set<Area> processed)
     {
         List<Area> ret = new ArrayList<>();
         Tagger tg = t.getSource();
-        for (Box box : a.getBoxes())
+        List<Box> boxes = extractBoxes(a, t, processed);
+        BoxText boxText = new BoxText(boxes);
+        List<TagOccurrence> occurences = tg.extract(boxText.getText());
+        for (TagOccurrence occ : occurences)
         {
-            String text = box.getOwnText();
-            List<TagOccurrence> occurences = tg.extract(text);
-            int last = 0;
-            for (TagOccurrence occ : occurences)
-            {
-                int pos = occ.getPosition();
-                /*if (pos > last) //some substring between, create a chunk with no tag
-                {
-                    Area sepArea = createSubstringArea(a, box, t, false, text.substring(last, pos), last);
-                    ret.add(sepArea);
-                }*/
-                Area newArea = createSubstringArea(a, box, t, true, occ.getText(), pos);
-                ret.add(newArea);
-                last = pos + occ.getLength();
-            }
-            /*if (text.length() > last)
-            {
-                Area sepArea = createSubstringArea(a, box, t, false, text.substring(last), last);
-                ret.add(sepArea);
-            }*/
+            Area newArea = createSubstringArea(a, t, boxText, occ);
+            ret.add(newArea);
         }
         return ret;
     }
 
-    private List<Area> createUntaggedAreas(Area a, TextTag t)
+    private Area createSubstringArea(Area a, TextTag tag, BoxText boxText, TagOccurrence occ)
     {
-        List<Area> ret = new ArrayList<>();
-        for (Box box : a.getBoxes())
+        //start and end index
+        int firstPos = occ.getPosition();
+        int bi1 = boxText.getIndexForPosition(firstPos);
+        int lastPos = occ.getPosition() + occ.getLength() - 1;
+        int bi2 = boxText.getIndexForPosition(lastPos);
+        //find the bounds
+        Rectangular r;
+        if (bi1 == bi2) //within the same box
         {
-            String text = box.getOwnText();
-            if (text != null && text.length() > 0)
-            {
-                Area sepArea = createSubstringArea(a, box, t, false, text, 0);
-                ret.add(sepArea);
-            }
+            int ofs1 = firstPos - boxText.getOffsets()[bi1];
+            int ofs2 = lastPos - boxText.getOffsets()[bi1] + 1;
+            Box box = boxText.getBoxes().get(bi1);
+            r = box.getSubstringBounds(ofs1, ofs2);
         }
-        return ret;
-    }
-    
-    private Area createSubstringArea(Area a, Box box, TextTag tag, boolean present, String occ, int pos)
-    {
-        Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
-        TextChunkArea newArea = new TextChunkArea(r, a, box);
-        newArea.setText(occ);
-        if (present)
+        else //different boxes
         {
-            newArea.setName("<chunk:" + tag.getValue() + "> " + occ);
-            newArea.addTag(tag, a.getTagSupport(tag));
+            int ofs1 = firstPos - boxText.getOffsets()[bi1];
+            Box box1 = boxText.getBoxes().get(bi1);
+            int ofs2 = lastPos - boxText.getOffsets()[bi2] + 1;
+            Box box2 = boxText.getBoxes().get(bi2);
+            r = box1.getSubstringBounds(ofs1, box1.getOwnText().length());
+            Rectangular r2 = box2.getSubstringBounds(0, ofs2);
+            if (r != null && r2 != null)
+                r.expandToEnclose(r2);
         }
-        else
-        {
-            newArea.setName("<chunk:!" + tag.getValue() + "> " + occ);
-        }
+        //create the chunk area
+        TextChunkArea newArea = new TextChunkArea(r, a, boxText.getBoxes().get(bi1));
+        newArea.setText(occ.getText());
+        newArea.setName("<chunk:" + tag.getValue() + "> " + occ);
+        newArea.addTag(tag, a.getTagSupport(tag));
         newArea.setPage(a.getPage());
         return newArea;
+    }
+    
+    //==============================================================================================
+    
+    private List<Box> extractBoxes(Area src, Tag t, Set<Area> processed)
+    {
+        processed.add(src);
+        List<Box> current = new ArrayList<>(src.getBoxes());
+        if (hints.containsKey(t))
+        {
+            for (PresentationHint hint : hints.get(t))
+                current = hint.extractBoxes(src, current, processed);
+        }
+        return current;
     }
     
     //==============================================================================================
