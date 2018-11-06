@@ -19,7 +19,7 @@ import org.fit.layout.patterns.AttributeGroupMatcher;
  * of the box was detected as the chunk. 
  * @author burgetr
  */
-public class HintWholeBox implements PresentationHint
+public class HintWholeBox extends DefaultHint
 {
     private Tag tag;
     

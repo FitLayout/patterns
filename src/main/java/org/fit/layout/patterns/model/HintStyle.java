@@ -17,7 +17,7 @@ import org.fit.layout.patterns.StyleAnalyzerFixed;
  * 
  * @author burgetr
  */
-public class HintStyle implements PresentationHint
+public class HintStyle extends DefaultHint
 {
     private Tag tag;
     private Disambiguator dis;

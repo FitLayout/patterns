@@ -18,7 +18,7 @@ import org.fit.layout.patterns.AreaUtils;
  * of the line was detected as the chunk. 
  * @author burgetr
  */
-public class HintWholeLine implements PresentationHint
+public class HintWholeLine extends DefaultHint
 {
     private Tag tag;
     

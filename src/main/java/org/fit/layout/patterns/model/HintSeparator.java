@@ -14,7 +14,7 @@ import org.fit.layout.model.Tag;
  * 
  * @author burgetr
  */
-public class HintSeparator implements PresentationHint
+public class HintSeparator extends DefaultHint
 {
     private String separator;
     private Tag tag;
@@ -36,11 +36,13 @@ public class HintSeparator implements PresentationHint
         return separator;
     }
     
+    @Override
     public String toString()
     {
         return tag.toString() + " separated by '" + separator + "'";
     }
     
+    @Override
     public List<Area> apply(List<Area> src)
     {
         //TODO a dummy implementation
