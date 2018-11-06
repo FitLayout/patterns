@@ -7,48 +7,33 @@ package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
-import org.fit.layout.model.AreaTopology;
+import org.fit.layout.model.Box;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.AreaUtils;
 
 /**
  * A hint that forces using the whole line for the corresponding chunk even if only part
- * of the line was detected as the chunk. 
+ * of the line was detected as the chunk. This is similar to GetWholeBox hint but in addition
+ * all the areas on the same line are considered.
  * @author burgetr
  */
-public class HintWholeLine extends DefaultHint
+public class HintWholeLine extends HintWholeBox
 {
-    private Tag tag;
     
     public HintWholeLine(Tag tag)
     {
-        this.tag = tag;
+        super(tag);
     }
 
     @Override
-    public List<Area> apply(List<Area> areas)
+    public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed)
     {
-        for (Area a : areas)
-        {
-            if (a instanceof TextChunkArea)
-            {
-                TextChunkArea chunk = (TextChunkArea) a;
-                Area srcArea = chunk.getSourceArea();
-                if (srcArea != null && srcArea.getParent() != null)
-                {
-                    AreaTopology topology = srcArea.getParent().getTopology();
-                    List<Area> before = new ArrayList<>();
-                    List<Area> after = new ArrayList<>();
-                    AreaUtils.findAreasBeforeAfter(srcArea, topology, before, after);
-                    //TODO
-                }
-            }
-        }
-        return areas;
+        //TODO include all areas on the line as well
+        return new ArrayList<>(a.getBoxes());
     }
-
+    
     @Override
     public String toString()
     {
