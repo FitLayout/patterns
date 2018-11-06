@@ -517,8 +517,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (Tag tag : getTagsWithDependencies())
         {
             ret.addHint(tag, new HintStyle(tag, dis));
-            //if (tag.getValue().contains("title")) //TODO experimental
-            //    ret.addHint(tag, new HintWholeBox(tag));
+            if (tag.getValue().contains("title")) //TODO experimental
+                ret.addHint(tag, new HintWholeBox(tag));
         }
         //TODO add more hints
         return ret;
