@@ -5,36 +5,120 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Box;
+import org.fit.layout.model.Rectangular;
+import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.AreaUtils;
+import org.fit.layout.patterns.Disambiguator;
 
 /**
+ * This hint causes considering multiple subsequent lines to be treated as a single chunk source area.
+ * It assumes that every line is a single source area with certain style.
  * 
  * @author burgetr
  */
 public class HintMultiLine extends DefaultHint
 {
+    private static final int STEPDIF_THRESHOLD = 2; //pixels tolerance in the step difference between lines
+    
+    private Tag tag;
+    private Disambiguator dis;
+
+    
+    public HintMultiLine(Tag tag, Disambiguator dis)
+    {
+        this.tag = tag;
+        this.dis = dis;
+    }
 
     @Override
     public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed)
     {
-        if (a.getParent() != null)
+        Tag dtag = dis.getAreaTag(a);
+        if (tag.equals(dtag)) //the disambiguator must assign the destination tag to this area
         {
-            // also try to discover subsequent lines
-            AreaTopology topology = a.getParent().getTopology();
-            
-            
-            
-            
-            
-            return super.extractBoxes(a, current, processed);
+            if (a.getParent() != null) //the area must have a parent in order to work with the topology
+            {
+                //try to discover subsequent lines
+                AreaTopology topology = a.getParent().getTopology();
+                List<Area> lines = findConsistentLines(a, topology);
+                if (lines.size() > 1) //more than the source line found
+                {
+                    //System.out.println("Consistent lines for A=" + a);
+                    for (Area aa : lines)
+                    {
+                        //System.out.println("    " + aa);
+                        if (aa != a)
+                        {
+                            current.addAll(aa.getBoxes());
+                            processed.add(aa);
+                        }
+                    }
+                }
+                return current;
+            }
+            else
+                return current; //no operation
         }
         else
-            return current; //no operation
+            return current;
+    }
+    
+
+    private List<Area> findConsistentLines(Area a, AreaTopology topology)
+    {
+        List<Area> ret = new ArrayList<>();
+        ret.add(a);
+        Area last = a;
+        Rectangular lastr = topology.getPosition(last);
+        int laststep = -1;
+        boolean found = true;
+        while (found)
+        {
+            found = false;
+            Area next = findLineBelow(last, topology);
+            if (next != null)
+            {
+                Rectangular nextr = topology.getPosition(last);
+                
+                int step = nextr.getY1() - lastr.getY2();
+                int stepdif = Math.abs(laststep - step);
+                
+                Tag dtag = dis.getAreaTag(next);
+                if ((next.hasTag(tag) || tag.equals(dtag)) //assigned or inferred tag corresponds to the target tag
+                        && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD)) 
+                {
+                    ret.add(next);
+                    last = next;
+                    lastr = nextr;
+                    laststep = step;
+                    found = true;
+                }
+            }
+        }
+        return ret;
+    }
+    
+    private Area findLineBelow(Area a, AreaTopology topology)
+    {
+        List<Area> cands = new ArrayList<>(); 
+        AreaUtils.findAreasBelow(a, topology, cands);
+        if (cands.size() == 1)
+            return cands.get(0);
+        else
+            return null;
     }
 
+    @Override
+    public String toString()
+    {
+        return "MultiLine";
+    }
+    
 }

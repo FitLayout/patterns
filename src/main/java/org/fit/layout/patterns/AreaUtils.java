@@ -139,7 +139,8 @@ public class AreaUtils
                     if (isOnSameLine(cand, a))
                     {
                         destBefore.add(0, a);
-                        minX = Math.min(minX, a.getX1()); 
+                        Rectangular r = topology.getPosition(cand);
+                        minX = Math.min(minX, r.getX1()); 
                     }
                     else
                         breakFound = true; // found some area breaking the line
@@ -161,13 +162,43 @@ public class AreaUtils
                     if (isOnSameLine(cand, a))
                     {
                         destAfter.add(a);
-                        maxX = Math.max(maxX, a.getX2()); 
+                        Rectangular r = topology.getPosition(cand);
+                        maxX = Math.max(maxX, r.getX2());
                     }
                     else
                         breakFound = true; // found some area breaking the line
                 }
             }
             x = maxX + 1; 
+        }
+    }
+    
+    public static void findAreasBelow(Area a, AreaTopology topology, List<Area> destBelow)
+    {
+        Rectangular gpa = topology.getPosition(a);
+        
+        int y = gpa.getY2() + 1;
+        boolean found = false;
+        while (y < topology.getTopologyHeight() && !found)
+        {
+            int x = gpa.getX1();
+            while (x <= gpa.getX2())
+            {
+                int maxX = x;
+                Collection<Area> cands = topology.findAllAreasAt(x, y);
+                if (!cands.isEmpty())
+                {
+                    for (Area cand : cands)
+                    {
+                        destBelow.add(cand);
+                        Rectangular r = topology.getPosition(cand);
+                        maxX = Math.max(maxX, r.getX2());
+                    }
+                    found = true;
+                }
+                x = maxX + 1;
+            }
+            y++;
         }
     }
     
