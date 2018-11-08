@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.fit.layout.impl.DefaultContentLine;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Box;
+import org.fit.layout.model.ContentLine;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
@@ -70,7 +72,17 @@ public class HintMultiLine extends DefaultHint
             return current;
     }
     
+    @Override
+    public List<Area> processChunks(Area src, List<Area> areas)
+    {
+        //put all the resulting areas to a common logical content line
+        ContentLine line = new DefaultContentLine(areas.size());
+        line.addAll(areas);
+        return areas;
+    }
 
+    //===================================================================================================================
+    
     private List<Area> findConsistentLines(Area a, AreaTopology topology)
     {
         List<Area> ret = new ArrayList<>();

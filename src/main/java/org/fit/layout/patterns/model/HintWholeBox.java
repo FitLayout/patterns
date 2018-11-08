@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import org.fit.layout.impl.DefaultContentLine;
 import org.fit.layout.model.Area;
+import org.fit.layout.model.ContentLine;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher;
 
@@ -66,6 +68,15 @@ public class HintWholeBox extends DefaultHint
                 }
             }
         }
+        return areas;
+    }
+
+    @Override
+    public List<Area> processChunks(Area src, List<Area> areas)
+    {
+        //put all the resulting areas to a common logical content line
+        ContentLine line = new DefaultContentLine(areas.size());
+        line.addAll(areas);
         return areas;
     }
 
