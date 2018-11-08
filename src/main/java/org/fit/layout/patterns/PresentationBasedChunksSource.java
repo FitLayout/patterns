@@ -139,7 +139,14 @@ public class PresentationBasedChunksSource extends ChunksSource
             Area newArea = createSubstringArea(a, t, boxText, occ);
             ret.add(newArea);
         }
-        return ret;
+        //apply hints on the particular list of chunks
+        List<Area> current = ret;
+        if (hints.containsKey(t))
+        {
+            for (PresentationHint hint : hints.get(t))
+                current = hint.processChunks(a, current);
+        }
+        return current;
     }
 
     private Area createSubstringArea(Area a, TextTag tag, BoxText boxText, TagOccurrence occ)

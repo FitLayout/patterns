@@ -27,9 +27,17 @@ public interface PresentationHint
      * @return
      */
     public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed);
+
+    /**
+     * Applies the hint to the list of chunks for the given area (postprocessing a list for a given area)
+     * @param src
+     * @param chunks
+     * @return
+     */
+    public List<Area> processChunks(Area src, List<Area> chunks);
     
     /**
-     * Applies the hint to the current list of chunks (postprocessing)
+     * Applies the hint to the current list of chunks (postprocessing the whole list)
      * @param src
      * @return
      */

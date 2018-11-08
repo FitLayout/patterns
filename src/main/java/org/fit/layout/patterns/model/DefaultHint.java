@@ -26,6 +26,13 @@ public class DefaultHint implements PresentationHint
     }
 
     @Override
+    public List<Area> processChunks(Area src, List<Area> chunks)
+    {
+        //no changes are performed
+        return chunks;
+    }
+
+    @Override
     public List<Area> apply(List<Area> src)
     {
         //no changes are performed
