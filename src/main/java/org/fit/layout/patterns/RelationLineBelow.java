@@ -60,13 +60,28 @@ public class RelationLineBelow extends LineRelation implements BulkRelation
         //find all on the same line
         if (closest != null)
         {
+            Set<Area> used = new HashSet<>();
             for (Area cand : areas)
             {
-                if (cand == closest || AreaUtils.isOnSameLine(cand, closest))
+                if ((cand == closest || AreaUtils.isOnSameLine(cand, closest)) && !used.contains(cand))
                 {
                     float w = computeWeight(cand, a, t);
                     AreaConnection con = new AreaConnection(cand, a, this, w);
                     dest.add(con);
+                    used.add(cand);
+                    //try to use the chunks on the same logical line (if any)
+                    if (cand.getLine() != null)
+                    {
+                        for (Area sibl : cand.getLine())
+                        {
+                            if (!used.contains(sibl))
+                            {
+                                AreaConnection scon = new AreaConnection(sibl, a, this, w);
+                                dest.add(scon);
+                                used.add(sibl);
+                            }
+                        }
+                    }
                 }   
             }
         }
