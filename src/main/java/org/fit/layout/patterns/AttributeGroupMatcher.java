@@ -596,7 +596,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                 recursiveFindMatchesFor(pa, a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
             }
         }
-        return new MatchResult(matches, matchedAreas);
+        return new MatchResult(matches, matchedAreas, pa);
     }
     
     private boolean recursiveFindMatchesFor(RelationAnalyzer pa, Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,

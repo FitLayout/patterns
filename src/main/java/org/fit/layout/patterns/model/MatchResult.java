@@ -20,6 +20,7 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
 import org.fit.layout.patterns.DefaultRelationProbabilitySource;
+import org.fit.layout.patterns.RelationAnalyzer;
 import org.fit.layout.patterns.RelationProbabilitySource;
 
 /**
@@ -124,6 +125,7 @@ public class MatchResult implements Comparable<MatchResult>
     private RelationProbabilitySource probs;
     private Collection<Match> matches;
     private Set<Area> matchedAreas;
+    private RelationAnalyzer pa;
     private MatchStatistics stats;
     private Map<Area, List<AreaConnection>> connsM; //map of 1:M connections to their source areas
     private Map<Area, Float> avgM; //average weights of 1:M connections sharing a single source area
@@ -131,11 +133,12 @@ public class MatchResult implements Comparable<MatchResult>
     private Map<Tag, StyleCounter<AreaStyle>> styleStats; //different style statistics for the individual tags
    
     
-    public MatchResult(Collection<Match> matches, Set<Area> matchedAreas)
+    public MatchResult(Collection<Match> matches, Set<Area> matchedAreas, RelationAnalyzer pa)
     {
         this.probs = new DefaultRelationProbabilitySource();
         this.matches = matches;
         this.matchedAreas = matchedAreas;
+        this.pa = pa;
         this.stats = null;
     }
     
@@ -152,6 +155,11 @@ public class MatchResult implements Comparable<MatchResult>
     public Set<Area> getMatchedAreas()
     {
         return matchedAreas;
+    }
+    
+    public RelationAnalyzer getRelationAnalyzer()
+    {
+        return pa;
     }
     
     public MatchStatistics getStats()
