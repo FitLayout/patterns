@@ -117,6 +117,8 @@ public class MatchAnalyzer
             {
                 List<Area> sorted = getSortedMatch(match, tag);
                 Area a1 = sorted.get(0);
+                if (a1 instanceof TextChunkArea)
+                    topology = ((TextChunkArea) a1).getLayerTopology(); //for chunk areas, use the corresponding layer topology rather than the default one
                 for (int i = 1; i < sorted.size(); i++)
                 {
                     Area a2 = sorted.get(i);
