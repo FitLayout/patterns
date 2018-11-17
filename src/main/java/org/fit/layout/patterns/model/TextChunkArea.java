@@ -9,6 +9,7 @@ import java.awt.Color;
 
 import org.fit.layout.impl.DefaultArea;
 import org.fit.layout.model.Area;
+import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 
@@ -21,6 +22,7 @@ public class TextChunkArea extends DefaultArea
     private String text;
     private Area sourceArea;
     private Box sourceBox;
+    private AreaTopology layerTopology;
     private Color effectiveBackgroundColor;
     
 
@@ -61,6 +63,16 @@ public class TextChunkArea extends DefaultArea
         return sourceBox;
     }
     
+    public AreaTopology getLayerTopology()
+    {
+        return layerTopology;
+    }
+
+    public void setLayerTopology(AreaTopology layerTopology)
+    {
+        this.layerTopology = layerTopology;
+    }
+
     @Override
     public Color getEffectiveBackgroundColor()
     {

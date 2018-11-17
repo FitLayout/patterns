@@ -52,6 +52,11 @@ public class BoxText
         return offsets;
     }
 
+    public int length()
+    {
+        return text.length();
+    }
+    
     /**
      * Finds the index of the box that contains the given text position.
      * @param pos The position within the complete text
