@@ -8,6 +8,7 @@ package org.fit.layout.patterns.model;
 import java.util.List;
 import java.util.Set;
 
+import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Box;
 
@@ -23,6 +24,13 @@ public class DefaultHint implements PresentationHint
     {
         //no changes are performed 
         return current;
+    }
+
+    @Override
+    public List<TagOccurrence> processOccurrences(BoxText boxText, List<TagOccurrence> occurrences)
+    {
+        //no changes are performed
+        return occurrences;
     }
 
     @Override

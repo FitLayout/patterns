@@ -33,7 +33,7 @@ public class AttrSameLine implements PresentationAttribute
         List<PresentationHint> hints = new ArrayList<>();
         for (String separator : separators.getFrequentStyles(0.7f))
         {
-            hints.add(new HintSeparator(tag, separator));
+            //hints.add(new HintSeparator(tag, separator));
         }
         return hints;
     }

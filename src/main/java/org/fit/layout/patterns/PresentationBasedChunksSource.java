@@ -153,9 +153,17 @@ public class PresentationBasedChunksSource extends ChunksSource
         Tagger tg = t.getSource();
         List<Box> boxes = extractBoxes(a, t, processed);
         BoxText boxText = new BoxText(boxes);
-        List<TagOccurrence> occurences = tg.extract(boxText.getText());
+
+        List<TagOccurrence> occurrences = tg.extract(boxText.getText());
+        //apply hints on the particular list of chunks
+        if (hints.containsKey(t))
+        {
+            for (PresentationHint hint : hints.get(t))
+                occurrences = hint.processOccurrences(boxText, occurrences);
+        }
+        
         int last = 0;
-        for (TagOccurrence occ : occurences)
+        for (TagOccurrence occ : occurrences)
         {
             int pos = occ.getPosition();
             if (pos > last) //some substring between, create a chunk with no tag

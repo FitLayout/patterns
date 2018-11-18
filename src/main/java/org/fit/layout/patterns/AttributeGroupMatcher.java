@@ -22,6 +22,7 @@ import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.HintMultiLine;
+import org.fit.layout.patterns.model.HintSeparator;
 import org.fit.layout.patterns.model.HintStyle;
 import org.fit.layout.patterns.model.HintWholeBox;
 import org.fit.layout.patterns.model.Match;
@@ -522,6 +523,12 @@ public class AttributeGroupMatcher extends BaseMatcher
                 ret.addHint(tag, new HintWholeBox(tag));
             if (tag.getValue().contains("persons")) //TODO experimental
                 ret.addHint(tag, new HintMultiLine(tag, dis));
+            if (tag.getValue().contains("persons")) //TODO experimental
+            {
+                List<String> seps = new ArrayList<>(1);
+                seps.add(",");
+                ret.addHint(tag, new HintSeparator(tag, seps));
+            }
         }
         //TODO add more hints
         return ret;
