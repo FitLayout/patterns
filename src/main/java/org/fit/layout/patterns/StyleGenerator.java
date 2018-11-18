@@ -91,7 +91,7 @@ public class StyleGenerator
         {
             final Attribute attr = attrs.get(i);
             
-            List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentSyles(minFrequency));
+            List<AreaStyle> variants = new ArrayList<AreaStyle>(styleStats.get(i).getFrequentStyles(minFrequency));
             if (getMaxWildcards() > 0)
                 variants.addAll(createStyleCombinations(variants, getMaxWildcards()));
             if (variants.isEmpty())

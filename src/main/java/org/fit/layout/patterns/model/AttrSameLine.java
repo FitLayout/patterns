@@ -31,7 +31,7 @@ public class AttrSameLine implements PresentationAttribute
     {
         StyleCounter<String> separators = scanOccurences(tag, ra);
         List<PresentationHint> hints = new ArrayList<>();
-        for (String separator : separators.getFrequentSyles(0.7f))
+        for (String separator : separators.getFrequentStyles(0.7f))
         {
             hints.add(new HintSeparator(tag, separator));
         }

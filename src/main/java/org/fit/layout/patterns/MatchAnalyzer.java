@@ -45,8 +45,8 @@ public class MatchAnalyzer
         float inLine = inLineSupport(tag);
         //System.out.println("In line support for " + tag + " : " + inLine);
         
-        StyleCounter<String> seps = separatorSupport(tag);
-        System.out.println("Separators for " + tag + ": " + seps);
+        List<String> seps = frequentSeparators(tag);
+        System.out.println("Frequent separators for " + tag + ": " + seps);
         
         return null;
     }
@@ -106,16 +106,18 @@ public class MatchAnalyzer
     
     //============================================================================
     
-    private StyleCounter<String> separatorSupport(Tag tag)
+    private List<String> frequentSeparators(Tag tag)
     {
         StyleCounter<String> seps = new StyleCounter<>();
         AreaTopology topology = matchResult.getRelationAnalyzer().getTopology();
         
+        int cnt = 0;
         for (Match match : matchResult.getMatches())
         {
             if (match.get(tag).size() > 1)
             {
                 List<Area> sorted = getSortedMatch(match, tag);
+                cnt += sorted.size();
                 Area a1 = sorted.get(0);
                 if (a1 instanceof TextChunkArea)
                     topology = ((TextChunkArea) a1).getLayerTopology(); //for chunk areas, use the corresponding layer topology rather than the default one
@@ -140,7 +142,10 @@ public class MatchAnalyzer
             } 
         }
         
-        return seps;
+        if (cnt > 2) //some separators are possible
+            return seps.getFrequentStyles(0.5f, cnt);
+        else
+            return Collections.emptyList();
     }
     
     //============================================================================
