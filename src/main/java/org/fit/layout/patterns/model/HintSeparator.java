@@ -7,10 +7,13 @@ package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.model.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This hint tries to improve the recall of the tag occurrence discovery by applying
@@ -20,6 +23,8 @@ import org.fit.layout.model.Tag;
  */
 public class HintSeparator extends DefaultHint
 {
+    private static Logger log = LoggerFactory.getLogger(HintSeparator.class);
+    
     private List<String> separators;
     private Tag tag;
     private Pattern pattern;
@@ -59,10 +64,10 @@ public class HintSeparator extends DefaultHint
     @Override
     public List<TagOccurrence> processOccurrences(BoxText boxText, List<TagOccurrence> occurrences)
     {
-        String[] regs = pattern.split(boxText.toString());
-        List<String> splits = new ArrayList<>(regs.length);
-        for (String s : regs)
-            splits.add(s.trim());
+        List<TagOccurrence> splitOccurrences = findOccurrencesBySeparators(boxText.toString());
+        List<String> splits = new ArrayList<>(splitOccurrences.size());
+        for (TagOccurrence occ : splitOccurrences)
+            splits.add(occ.getText());
         List<String> occ = new ArrayList<>(occurrences.size());
         for (TagOccurrence o : occurrences)
             occ.add(o.getText());
@@ -76,7 +81,8 @@ public class HintSeparator extends DefaultHint
             {
                 if (is + 1 < splits.size() && cur.equals(splits.get(is + 1))) //found a single missing occurrence
                 {
-                    System.out.println("Found missing: " + splits.get(is));
+                    log.debug("Found missing by separators: {}" , splits.get(is));
+                    occurrences.add(splitOccurrences.get(is));
                     is++;
                 }
                 else //total mismatch, do nothing
@@ -91,8 +97,39 @@ public class HintSeparator extends DefaultHint
                 is++;
             }
         }
-        //TODO add missing chunks
         return occurrences;
     }
 
+    private List<TagOccurrence> findOccurrencesBySeparators(String text)
+    {
+        List<TagOccurrence> ret = new ArrayList<>();
+        Matcher match = pattern.matcher(text);
+        int last = 0;
+        while (match.find())
+        {
+            TagOccurrence occ = findOccurenceBetweeen(text, last, match.start() - 1);
+            ret.add(occ);
+            last = match.end();
+        }
+        if (last < text.length() - 1)
+        {
+            TagOccurrence occ = findOccurenceBetweeen(text, last, text.length() - 1);
+            ret.add(occ);
+        }
+        return ret;
+    }
+    
+    private TagOccurrence findOccurenceBetweeen(String text, int firstPos, int lastPos)
+    {
+        //trim whitespaces
+        int begin = firstPos;
+        while (begin < text.length() && Character.isWhitespace(text.charAt(begin)))
+            begin++;
+        int end = lastPos;
+        while (end >= begin && Character.isWhitespace(text.charAt(end)))
+            end--;
+        //create occurrence
+        return new TagOccurrence(text.substring(begin, end + 1), begin, 1.0f);
+    }
+    
 }
