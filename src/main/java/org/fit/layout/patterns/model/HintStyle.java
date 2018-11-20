@@ -5,6 +5,7 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fit.layout.model.Area;
@@ -42,6 +43,7 @@ public class HintStyle extends DefaultHint
     @Override
     public List<Area> apply(List<Area> areas)
     {
+        List<Area> ret = new ArrayList<Area>(areas.size());
         for (Area a : areas)
         {
             if (a instanceof TextChunkArea)
@@ -52,9 +54,13 @@ public class HintStyle extends DefaultHint
                     a.removeTag(tag);
                     a.setName("!" + a.getName());
                 }
+                else
+                {
+                    ret.add(a);
+                }
             }
         }
-        return areas;
+        return ret;
     }
     
     @Override
