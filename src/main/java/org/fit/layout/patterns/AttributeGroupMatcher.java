@@ -334,9 +334,15 @@ public class AttributeGroupMatcher extends BaseMatcher
     public void configure(Area root)
     {
         this.root = root;
+        //TODO move most of these to scanDisambiguations()?
+        //initial chunks source
         ChunksSource source = createBaseChunksSource(root);
+        //create attribute lists and blacklists
         scanAttributes();
-        gatherStatistics(source);
+        //create initial pattern analyzer
+        RelationAnalyzer pa = source.getPA();
+        //create style generator
+        styleGenerator = new StyleGenerator(attrs, source.getAreas(), pa, getUseStyleWildcards());
         
         if (tconf != null)
             log.debug("TC: {}", tconf);
@@ -404,6 +410,24 @@ public class AttributeGroupMatcher extends BaseMatcher
      */
     private List<MatcherConfiguration> scanDisambiguations()
     {
+        //generate supported styleMaps
+        List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
+        log.debug("{} style configurations", styleMaps.size());
+        //test the individual style maps
+        for (Map<Tag, AreaStyle> styleMap : styleMaps)
+        {
+            StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(styleMap));
+            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
+            ChunksSource styledSource = createStyledChunksSource(root, dis);
+            PatternGenerator patternGenerator = new PatternGenerator(this, styledSource.getPA());
+            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(styledSource.getAreas(), dis);
+            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(styledSource, dis, tagAreas);
+            
+            //TODO create new pattern generator, generate connection patterns, create configurations, test configurations
+            //TODO after, infer hints, test different hint combinations
+        }
+        
+        
         //generate all possible configurations
         List<MatcherConfiguration> all = generateConfigurations();
         log.debug("{} total configurations", all.size());
@@ -423,14 +447,9 @@ public class AttributeGroupMatcher extends BaseMatcher
         int i = 0;
         for (MatcherConfiguration conf : all)
         {
-            /*String s = conf.toString();
-            if (s.contains("title-below-session") && s.contains("fs:24"))
-                System.out.println("jo!");*/
             
             if (tconf != null)
             {
-                /*if (tconf.getPattern().equals(conf.getPattern()))
-                    log.debug("Partial match {}", conf);*/
                 if (!tconf.equals(conf))
                     continue;
             }
@@ -509,6 +528,17 @@ public class AttributeGroupMatcher extends BaseMatcher
     private ChunksSource createBaseChunksSource(Area root)
     {
         ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
+        return ret;
+    }
+    
+    private ChunksSource createStyledChunksSource(Area root, Disambiguator dis)
+    {
+        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
+        //Add style hints
+        for (Tag tag : getTagsWithDependencies())
+        {
+            ret.addHint(tag, new HintStyle(tag, dis));
+        }
         return ret;
     }
     
