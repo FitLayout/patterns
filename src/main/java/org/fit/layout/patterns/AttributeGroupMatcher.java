@@ -62,11 +62,6 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Set<Tag> tagBlacklist; //tags that should not be the first one in the pairs in order to avoid M:1 connections
     private Set<TagPair> pairBlacklist; //disallowed tag pairs in order to avoid M:N connections
     
-    //areas and statistics used for configuration
-    private Area root; //the root of the subtree used for the matcher configuration
-    private StyleGenerator styleGenerator;
-    private PatternGenerator patternGenerator;
-    
     //list of best configurations obtained by configure()
     private List<MatcherConfiguration> best;
     private MatcherConfiguration usedConf; //current configuration
@@ -333,8 +328,6 @@ public class AttributeGroupMatcher extends BaseMatcher
      */
     public void configure(Area root)
     {
-        this.root = root;
-        //TODO move most of these to scanDisambiguations()?
         //initial chunks source
         ChunksSource source = createBaseChunksSource(root);
         //create attribute lists and blacklists
@@ -342,7 +335,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         //create initial pattern analyzer
         RelationAnalyzer pa = source.getPA();
         //create style generator
-        styleGenerator = new StyleGenerator(attrs, source.getAreas(), pa, getUseStyleWildcards());
+        StyleGenerator styleGenerator = new StyleGenerator(attrs, source.getAreas(), pa, getUseStyleWildcards());
         
         if (tconf != null)
             log.debug("TC: {}", tconf);
@@ -353,7 +346,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.debug("Styles {}: {}", attrs.get(i).getTag(), styleGenerator.getStyleStats().get(i));
         }
         
-        best = scanDisambiguations();
+        best = scanDisambiguations(root, styleGenerator);
         /*for (MatcherConfiguration conf : best)
             log.debug("Best:{}", conf);*/
         log.debug("Confiuration completed.");
@@ -408,14 +401,25 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Scans all possible configurations and finds the ones that cover the largest number of areas.
      * @return The list of configurations that cover the larhest number of areas.
      */
-    private List<MatcherConfiguration> scanDisambiguations()
+    private List<MatcherConfiguration> scanDisambiguations(Area root, StyleGenerator styleGenerator)
     {
         //generate supported styleMaps
         List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
         log.debug("{} style configurations", styleMaps.size());
+        
+        MatchStatistics stats = new MatchStatistics();
+        MatchResult bestMatch = null;
+        List<MatcherConfiguration> all = new ArrayList<>();
+        int styleCnt = 0;
         //test the individual style maps
         for (Map<Tag, AreaStyle> styleMap : styleMaps)
         {
+            if (tconf != null)
+            {
+                if (!tconf.getStyleMap().equals(styleMap))
+                    continue;
+            }
+            
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(styleMap));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
             ChunksSource styledSource = createStyledChunksSource(root, dis);
@@ -423,71 +427,56 @@ public class AttributeGroupMatcher extends BaseMatcher
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(styledSource.getAreas(), dis);
             Map<Tag, Collection<Match>> depMatches = getDependencyMatches(styledSource, dis, tagAreas);
             
-            //TODO create new pattern generator, generate connection patterns, create configurations, test configurations
-            //TODO after, infer hints, test different hint combinations
+            //create new pattern generator, generate connection patterns, create configurations, test configurations
+            int patternCnt = 0;
+            Set<ConnectionPattern> patterns = patternGenerator.generateConnectionPatterns(MIN_SUPPORT_RELATIONS);
+            for (ConnectionPattern conns : patterns)
+            {
+                MatcherConfiguration conf = new MatcherConfiguration(styleMap, conns, null);
+                
+                if (tconf != null)
+                {
+                    if (!tconf.equals(conf))
+                        continue;
+                }
+                
+                log.debug("Checking conf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), conf);
+                
+                conf.setSource(styledSource);
+                MatchResult match = findMatches(conf, styledSource.getPA(), dis, tagAreas, depMatches);
+                //check whether the match is consistent
+                ConnectionPattern constraints = inferConsistencyConstraints(styledSource.getPA(), conf, match);
+                if (constraints.size() > 0)
+                {
+                    //some more constraints are necessary for ensuring the match consistency
+                    conf.setConstraints(constraints);
+                    match = findMatches(conf, styledSource.getPA(), dis, tagAreas, depMatches);
+                }
+                match.setStats(stats);
+                conf.setResult(match);
+                if (bestMatch == null || bestMatch.compareTo(match) < 0)
+                    bestMatch = match;
+                
+                log.debug("Result {}", match);
+                
+                if (match.getMatches().size() > 0)
+                {
+                    all.add(conf);
+                    
+                    //TODO after, infer hints, test different hint combinations
+                    MatchAnalyzer ma = new MatchAnalyzer(match);
+                    for (Tag tag : getUsedTags())
+                        ma.findPossibleHints(tag);
+                }
+                
+                patternCnt++;
+                //if (i > 100) break;
+                
+            }            
+            styleCnt++;
         }
         
-        
-        //generate all possible configurations
-        List<MatcherConfiguration> all = generateConfigurations();
-        log.debug("{} total configurations", all.size());
-        //System.out.println(all.get(0));
-        
-        //working data structures dependent on the current source
-        StyleAnalyzer sa = null;
-        Disambiguator dis = null;
-        Map<Tag, Set<Area>> tagAreas = null;
-        Map<Tag, Collection<Match>> depMatches = null;
-        
-        //find the best coverage
-        MatchStatistics stats = new MatchStatistics();
-        MatchResult bestMatch = null;
-        MatcherConfiguration prevConf = null;
-        ChunksSource currentSource = null;
-        int i = 0;
-        for (MatcherConfiguration conf : all)
-        {
-            
-            if (tconf != null)
-            {
-                if (!tconf.equals(conf))
-                    continue;
-            }
-            
-            log.debug("Checking conf {}/{}: {}", (++i), all.size(), conf);
-            
-            if (prevConf == null || !hasCompatibleSource(conf, prevConf))
-            {
-                sa = new StyleAnalyzerFixed(getCompleteStyleMap(conf.getStyleMap()));
-                dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-                currentSource = createSpecificChunksSource(root, conf, dis);
-                tagAreas = createAttrTagMap(currentSource.getAreas(), dis);
-                depMatches = getDependencyMatches(currentSource, dis, tagAreas);
-            }
-            conf.setSource(currentSource);
-            MatchResult match = findMatches(conf, currentSource.getPA(), dis, tagAreas, depMatches);
-            //check whether the match is consistent
-            ConnectionPattern constraints = inferConsistencyConstraints(currentSource.getPA(), conf, match);
-            if (constraints.size() > 0)
-            {
-                //some more constraints are necessary for ensuring the match consistency
-                conf.setConstraints(constraints);
-                match = findMatches(conf, currentSource.getPA(), dis, tagAreas, depMatches);
-            }
-            match.setStats(stats);
-            conf.setResult(match);
-            if (bestMatch == null || bestMatch.compareTo(match) < 0)
-                bestMatch = match;
-            
-            log.debug("Result {}", match);
-            
-            MatchAnalyzer ma = new MatchAnalyzer(match);
-            for (Tag tag : getUsedTags())
-                ma.findPossibleHints(tag);
-            
-            prevConf = conf;
-            //if (i > 100) break;
-        }
+        log.debug("{} configurations tested", all.size());
         
         //select the best configurations
         List<MatcherConfiguration> best = new ArrayList<>();
@@ -561,33 +550,6 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
         }
         //TODO add more hints
-        return ret;
-    }
-    
-    private boolean hasCompatibleSource(MatcherConfiguration c1, MatcherConfiguration c2)
-    {
-        return c1.getStyleMap().equals(c2.getStyleMap());
-    }
-    
-    /**
-     * Generates all the possible configurations that are applicable for the current area list.
-     * Creates all possible combinations of connection patterns and style maps supported
-     * by the underlying data.
-     * @return A list of configurations.
-     */
-    private List<MatcherConfiguration> generateConfigurations()
-    {
-        List<MatcherConfiguration> ret = new ArrayList<>();
-        List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
-        Set<ConnectionPattern> patterns = patternGenerator.generateConnectionPatterns(MIN_SUPPORT_RELATIONS);
-        for (Map<Tag, AreaStyle> styles : styleMaps) //for all style maps
-        {
-            for (ConnectionPattern conns : patterns)
-            {
-                MatcherConfiguration conf = new MatcherConfiguration(styles, conns, null);
-                ret.add(conf);
-            }
-        }
         return ret;
     }
     
@@ -987,23 +949,6 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (Attribute a : attrs)
             ret.add(a.getTag());
         return ret;
-    }
-    
-    private void gatherStatistics(ChunksSource parentSource)
-    {
-        //create initial pattern analyzer
-        RelationAnalyzer pa = parentSource.getPA();
-        
-        //create style generator
-        styleGenerator = new StyleGenerator(attrs, parentSource.getAreas(), pa, getUseStyleWildcards());
-        
-        //create pattern generator
-        patternGenerator = new PatternGenerator(this, pa);
-        
-        //discover tag chains used for disambiguation
-        /*ConsistentAreaAnalyzer ca = new ConsistentAreaAnalyzer(pa, getTags(), attrs.get(0).getMinSupport());
-        chains = ca.findConsistentChains(new RelationUnder());
-        chains.addAll(ca.findConsistentChains(new RelationSide()));*/
     }
     
     /**
