@@ -22,6 +22,7 @@ public class MatcherConfiguration
     private Map<Tag, AreaStyle> styleMap;
     private ConnectionPattern pattern; //the main connection pattern to search
     private ConnectionPattern constraints; //additional constraints that should be followed (or null if none)
+    private Map<Tag, Set<PresentationHint>> hints;
     private Set<Tag> tags;
     private MatchResult result;
     private ChunksSource source;
@@ -34,6 +35,11 @@ public class MatcherConfiguration
         this.tags = pattern.getTags();
     }
 
+    public MatcherConfiguration(MatcherConfiguration src)
+    {
+        this(src.getStyleMap(), src.getPattern(), src.getResult());
+    }
+    
     public Map<Tag, AreaStyle> getStyleMap()
     {
         return styleMap;
@@ -42,6 +48,16 @@ public class MatcherConfiguration
     public ConnectionPattern getPattern()
     {
         return pattern;
+    }
+
+    public Map<Tag, Set<PresentationHint>> getHints()
+    {
+        return hints;
+    }
+
+    public void setHints(Map<Tag, Set<PresentationHint>> hints)
+    {
+        this.hints = hints;
     }
 
     public MatchResult getResult()
@@ -84,7 +100,8 @@ public class MatcherConfiguration
     {
         String rs = (getResult() == null) ? "not checked" : getResult().toString();
         String cons = (getConstraints() == null) ? "" : " [&& " + getConstraints() + "]";
-        return getPattern() + cons + " " + getStyleMap() + " (" + rs + ")";
+        String hnt = (getHints() == null) ? "[-]" : "[" + getHints() + "]";
+        return getPattern() + cons + hnt + " " + getStyleMap() + " (" + rs + ")";
     }
 
     @Override

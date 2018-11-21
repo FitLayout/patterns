@@ -6,6 +6,7 @@
 package org.fit.layout.patterns;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,14 +22,12 @@ import org.fit.layout.patterns.graph.Group;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
 import org.fit.layout.patterns.model.ConnectionPattern;
-import org.fit.layout.patterns.model.HintMultiLine;
-import org.fit.layout.patterns.model.HintSeparator;
 import org.fit.layout.patterns.model.HintStyle;
-import org.fit.layout.patterns.model.HintWholeBox;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
 import org.fit.layout.patterns.model.MatchStatistics;
 import org.fit.layout.patterns.model.MatcherConfiguration;
+import org.fit.layout.patterns.model.PresentationHint;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagPair;
 import org.slf4j.Logger;
@@ -424,8 +423,6 @@ public class AttributeGroupMatcher extends BaseMatcher
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
             ChunksSource styledSource = createStyledChunksSource(root, dis);
             PatternGenerator patternGenerator = new PatternGenerator(this, styledSource.getPA());
-            Map<Tag, Set<Area>> tagAreas = createAttrTagMap(styledSource.getAreas(), dis);
-            Map<Tag, Collection<Match>> depMatches = getDependencyMatches(styledSource, dis, tagAreas);
             
             //create new pattern generator, generate connection patterns, create configurations, test configurations
             int patternCnt = 0;
@@ -441,32 +438,30 @@ public class AttributeGroupMatcher extends BaseMatcher
                 }
                 
                 log.debug("Checking conf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), conf);
-                
                 conf.setSource(styledSource);
-                MatchResult match = findMatches(conf, styledSource.getPA(), dis, tagAreas, depMatches);
-                //check whether the match is consistent
-                ConnectionPattern constraints = inferConsistencyConstraints(styledSource.getPA(), conf, match);
-                if (constraints.size() > 0)
-                {
-                    //some more constraints are necessary for ensuring the match consistency
-                    conf.setConstraints(constraints);
-                    match = findMatches(conf, styledSource.getPA(), dis, tagAreas, depMatches);
-                }
-                match.setStats(stats);
-                conf.setResult(match);
+                MatchResult match = evaluateConfiguration(conf, styledSource, dis, stats);
                 if (bestMatch == null || bestMatch.compareTo(match) < 0)
                     bestMatch = match;
-                
                 log.debug("Result {}", match);
                 
                 if (match.getMatches().size() > 0)
                 {
                     all.add(conf);
                     
-                    //TODO after, infer hints, test different hint combinations
-                    MatchAnalyzer ma = new MatchAnalyzer(match);
-                    for (Tag tag : getUsedTags())
-                        ma.findPossibleHints(tag);
+                    //infer hints and test different hint combinations
+                    List<MatcherConfiguration> iconfs = createConfigurationsWithHints(conf, match, dis);
+                    for (MatcherConfiguration iconf : iconfs)
+                    {
+                        log.debug("Checking iconf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), iconf);
+                        ChunksSource isource = createSpecificChunksSource(root, iconf, dis);
+                        iconf.setSource(isource);
+                        MatchResult imatch = evaluateConfiguration(iconf, isource, dis, stats);
+                        if (bestMatch == null || bestMatch.compareTo(imatch) < 0)
+                            bestMatch = imatch;
+                        log.debug("Result {}", imatch);
+                        if (imatch.getMatches().size() > 0)
+                            all.add(iconf);
+                    }
                 }
                 
                 patternCnt++;
@@ -514,6 +509,25 @@ public class AttributeGroupMatcher extends BaseMatcher
         return best;
     }
 
+    private MatchResult evaluateConfiguration(MatcherConfiguration conf, ChunksSource source, Disambiguator dis, MatchStatistics stats)
+    {
+        Map<Tag, Set<Area>> tagAreas = createAttrTagMap(source.getAreas(), dis);
+        Map<Tag, Collection<Match>> depMatches = getDependencyMatches(source, dis, tagAreas);
+        
+        MatchResult match = findMatches(conf, source.getPA(), dis, tagAreas, depMatches);
+        //check whether the match is consistent
+        ConnectionPattern constraints = inferConsistencyConstraints(source.getPA(), conf, match);
+        if (constraints.size() > 0)
+        {
+            //some more constraints are necessary for ensuring the match consistency
+            conf.setConstraints(constraints);
+            match = findMatches(conf, source.getPA(), dis, tagAreas, depMatches);
+        }
+        match.setStats(stats);
+        conf.setResult(match);
+        return match;
+    }
+    
     private ChunksSource createBaseChunksSource(Area root)
     {
         ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
@@ -533,23 +547,83 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis)
     {
-        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
-        //Add style hints
-        for (Tag tag : getTagsWithDependencies())
+        ChunksSource ret = createStyledChunksSource(root, dis);
+        if (conf.getHints() != null)
         {
-            ret.addHint(tag, new HintStyle(tag, dis));
-            if (tag.getValue().contains("title")) //TODO experimental
+            for (Tag tag : getTagsWithDependencies())
+            {
+                Set<PresentationHint> hints = conf.getHints().get(tag);
+                if (hints != null && !hints.isEmpty())
+                {
+                    for (PresentationHint hint : hints)
+                        ret.addHint(tag, hint);
+                }
+            }
+        }
+        /*for (Tag tag : getTagsWithDependencies())
+        {
+            if (tag.getValue().contains("title"))
                 ret.addHint(tag, new HintWholeBox(tag));
-            if (tag.getValue().contains("persons")) //TODO experimental
+            if (tag.getValue().contains("persons"))
                 ret.addHint(tag, new HintMultiLine(tag, dis));
-            if (tag.getValue().contains("persons")) //TODO experimental
+            if (tag.getValue().contains("persons"))
             {
                 List<String> seps = new ArrayList<>(1);
                 seps.add(",");
                 ret.addHint(tag, new HintSeparator(tag, seps));
             }
+        }*/
+        return ret;
+    }
+    
+    private List<MatcherConfiguration> createConfigurationsWithHints(MatcherConfiguration src, MatchResult match, Disambiguator dis)
+    {
+        List<MatcherConfiguration> ret = new ArrayList<>();
+        
+        List<Tag> tags = new ArrayList<>(getUsedTags()); //use the list to preserve order
+        List<List<Set<PresentationHint>>> hintGroups = new ArrayList<>(tags.size()); //hint groups for every tag
+        //infer the hint groups
+        MatchAnalyzer ma = new MatchAnalyzer(match);
+        for (Tag tag : tags)
+        {
+            List<Set<PresentationHint>> groups = ma.findPossibleHints(tag, dis);
+            groups.add(0, Collections.emptySet()); //add the null variant
+            hintGroups.add(groups);
+            log.debug("Hints for {} : {}", tag, groups);
         }
-        //TODO add more hints
+        //combine the hint groups
+        int[] indices = new int[tags.size()];
+        Arrays.fill(indices, 0);
+        boolean first = true;
+        final int lastcnt = hintGroups.get(hintGroups.size() - 1).size();
+        while (indices[indices.length-1] < lastcnt)
+        {
+            if (!first) //the first one is skipped -- its a no-hint alternative that is already tested
+            {
+                MatcherConfiguration conf = new MatcherConfiguration(src);
+                Map<Tag, Set<PresentationHint>> hints = new HashMap<>();
+                for (int i = 0; i < indices.length; i++)
+                {
+                    if (indices[i] < hintGroups.get(i).size()) //skip empty sets
+                        hints.put(tags.get(i), hintGroups.get(i).get(indices[i]));
+                }
+                conf.setHints(hints);
+                ret.add(conf);
+            }
+            first = false;
+            
+            //increment the indices
+            indices[0]++;
+            for (int i = 0; i < indices.length - 1; i++)
+            {
+                if (indices[i] >= hintGroups.get(i).size())
+                {
+                    indices[i] = 0;
+                    indices[i+1]++;
+                }
+            }
+        }
+        
         return ret;
     }
     

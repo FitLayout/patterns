@@ -8,6 +8,7 @@ package org.fit.layout.patterns;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,8 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.model.HintMultiLine;
+import org.fit.layout.patterns.model.HintSeparator;
 import org.fit.layout.patterns.model.HintWholeBox;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
@@ -29,6 +32,10 @@ import org.fit.layout.patterns.model.TextChunkArea;
  */
 public class MatchAnalyzer
 {
+    private static final float WHOLE_BOX_THRESHOLD = 0.75f;
+    private static final float IN_LINE_THRESHOLD = 0.75f;
+    private static final float SEPARATOR_MIN_FREQUENCY = 0.5f;
+    
     private MatchResult matchResult;
 
     
@@ -37,18 +44,53 @@ public class MatchAnalyzer
         this.matchResult = result;
     }
     
-    public Set<PresentationHint> findPossibleHints(Tag tag)
+    /**
+     * Infers the presentation hint groups that can be possibly used for the given tag. 
+     * @param tag the analyzed tag
+     * @param dis a style disambiguator that may be used
+     * @return A list of sets of hints. Each sets represents a group of hints that may be used together.
+     * During the evaluation, the groups are tested one by one.
+     */
+    public List<Set<PresentationHint>> findPossibleHints(Tag tag, Disambiguator dis)
     {
+        List<Set<PresentationHint>> ret = new ArrayList<>();
+        Set<PresentationHint> setWholeBox = new HashSet<>(1);
+        Set<PresentationHint> setInLine = new HashSet<>(2);
+        
         float wholeBox = wholeBoxSupport(tag);
-        System.out.println("Whole box support for " + tag + " : " + wholeBox);
+        //System.out.println("Whole box support for " + tag + " : " + wholeBox);
+        if (wholeBox > WHOLE_BOX_THRESHOLD)
+        {
+            setWholeBox.add(new HintWholeBox(tag));
+        }
         
         float inLine = inLineSupport(tag);
         //System.out.println("In line support for " + tag + " : " + inLine);
+        if (inLine > IN_LINE_THRESHOLD)
+        {
+            setInLine.add(new HintMultiLine(tag, dis));
+            
+            List<String> seps = frequentSeparators(tag);
+            //System.out.println("Frequent separators for " + tag + ": " + seps);
+            if (!seps.isEmpty())
+            {
+                setInLine.add(new HintSeparator(tag, seps));
+            }
+        }
         
-        List<String> seps = frequentSeparators(tag);
-        System.out.println("Frequent separators for " + tag + ": " + seps);
+        if (!setWholeBox.isEmpty())
+            ret.add(setWholeBox);
+        if (!setInLine.isEmpty())
+            ret.add(setInLine);
+        if (!setWholeBox.isEmpty() && !setInLine.isEmpty())
+        {
+            Set<PresentationHint> both = new HashSet<>();
+            both.addAll(setWholeBox);
+            both.addAll(setInLine);
+            ret.add(both);
+        }
         
-        return null;
+        return ret;
     }
 
     //============================================================================
@@ -73,13 +115,10 @@ public class MatchAnalyzer
     {
         int totalPairs = 0;
         int inLinePairs = 0;
-        int totalMatches = 0;
-        int multiLineMatches = 0;
         for (Match match : matchResult.getMatches())
         {
             if (match.get(tag).size() > 1)
             {
-                boolean multiLine = false;
                 List<Area> sorted = getSortedMatch(match, tag);
                 Area a1 = sorted.get(0);
                 for (int i = 1; i < sorted.size(); i++)
@@ -87,20 +126,12 @@ public class MatchAnalyzer
                     Area a2 = sorted.get(i);
                     if (AreaUtils.isOnSameLine(a1, a2))
                         inLinePairs++;
-                    else
-                        multiLine = true;
                     totalPairs++;
                     a1 = a2;
                 }
-                if (multiLine)
-                    multiLineMatches++;
-                totalMatches++;
             } 
         }
         float inLine = (totalPairs == 0) ? 0.0f : (float) inLinePairs / totalPairs;
-        float multiLine = (totalMatches == 0) ? 0.0f : (float) multiLineMatches / totalMatches;
-        System.out.println("In line support for " + tag + " : " + inLine);
-        System.out.println("Multiline support for " + tag + " : " + multiLine);
         return inLine;
     }
     
@@ -143,7 +174,7 @@ public class MatchAnalyzer
         }
         
         if (cnt > 2) //some separators are possible
-            return seps.getFrequentStyles(0.5f, cnt);
+            return seps.getFrequentStyles(SEPARATOR_MIN_FREQUENCY, cnt);
         else
             return Collections.emptyList();
     }

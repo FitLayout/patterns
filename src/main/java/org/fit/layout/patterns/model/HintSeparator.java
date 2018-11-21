@@ -58,7 +58,7 @@ public class HintSeparator extends DefaultHint
     @Override
     public String toString()
     {
-        return tag.toString() + " separated by '" + separators + "'";
+        return "Separated by " + separators;
     }
 
     @Override
