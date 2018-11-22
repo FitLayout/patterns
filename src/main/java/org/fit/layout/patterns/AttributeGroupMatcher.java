@@ -548,11 +548,25 @@ public class AttributeGroupMatcher extends BaseMatcher
     private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis)
     {
         ChunksSource ret = createStyledChunksSource(root, dis);
+        //unify the hints with the dependency hints
+        Map<Tag, Set<PresentationHint>> allHints = new HashMap<>();
         if (conf.getHints() != null)
+            allHints.putAll(conf.getHints());
+        if (dependencies != null)
+        {
+            for (AttributeGroupMatcher dep : dependencies)
+            {
+                Map<Tag, Set<PresentationHint>> depHints = dep.getUsedConf().getHints();
+                if (depHints != null)
+                    allHints.putAll(depHints);
+            }
+        }
+        //pass the hints to the chunks source
+        if (!allHints.isEmpty())
         {
             for (Tag tag : getTagsWithDependencies())
             {
-                Set<PresentationHint> hints = conf.getHints().get(tag);
+                Set<PresentationHint> hints = allHints.get(tag);
                 if (hints != null && !hints.isEmpty())
                 {
                     for (PresentationHint hint : hints)
