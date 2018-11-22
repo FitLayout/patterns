@@ -549,14 +549,14 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         ChunksSource ret = createStyledChunksSource(root, dis);
         //unify the hints with the dependency hints
-        Map<Tag, Set<PresentationHint>> allHints = new HashMap<>();
+        Map<Tag, List<PresentationHint>> allHints = new HashMap<>();
         if (conf.getHints() != null)
             allHints.putAll(conf.getHints());
         if (dependencies != null)
         {
             for (AttributeGroupMatcher dep : dependencies)
             {
-                Map<Tag, Set<PresentationHint>> depHints = dep.getUsedConf().getHints();
+                Map<Tag, List<PresentationHint>> depHints = dep.getUsedConf().getHints();
                 if (depHints != null)
                     allHints.putAll(depHints);
             }
@@ -566,7 +566,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             for (Tag tag : getTagsWithDependencies())
             {
-                Set<PresentationHint> hints = allHints.get(tag);
+                List<PresentationHint> hints = allHints.get(tag);
                 if (hints != null && !hints.isEmpty())
                 {
                     for (PresentationHint hint : hints)
@@ -595,13 +595,13 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<MatcherConfiguration> ret = new ArrayList<>();
         
         List<Tag> tags = new ArrayList<>(getUsedTags()); //use the list to preserve order
-        List<List<Set<PresentationHint>>> hintGroups = new ArrayList<>(tags.size()); //hint groups for every tag
+        List<List<List<PresentationHint>>> hintGroups = new ArrayList<>(tags.size()); //hint groups for every tag
         //infer the hint groups
         MatchAnalyzer ma = new MatchAnalyzer(match);
         for (Tag tag : tags)
         {
-            List<Set<PresentationHint>> groups = ma.findPossibleHints(tag, dis);
-            groups.add(0, Collections.emptySet()); //add the null variant
+            List<List<PresentationHint>> groups = ma.findPossibleHints(tag, dis);
+            groups.add(0, Collections.emptyList()); //add the null variant
             hintGroups.add(groups);
             log.debug("Hints for {} : {}", tag, groups);
         }
@@ -615,7 +615,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             if (!first) //the first one is skipped -- its a no-hint alternative that is already tested
             {
                 MatcherConfiguration conf = new MatcherConfiguration(src);
-                Map<Tag, Set<PresentationHint>> hints = new HashMap<>();
+                Map<Tag, List<PresentationHint>> hints = new HashMap<>();
                 for (int i = 0; i < indices.length; i++)
                 {
                     if (indices[i] < hintGroups.get(i).size()) //skip empty sets

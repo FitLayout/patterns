@@ -5,6 +5,7 @@
  */
 package org.fit.layout.patterns.model;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ public class MatcherConfiguration
     private Map<Tag, AreaStyle> styleMap;
     private ConnectionPattern pattern; //the main connection pattern to search
     private ConnectionPattern constraints; //additional constraints that should be followed (or null if none)
-    private Map<Tag, Set<PresentationHint>> hints;
+    private Map<Tag, List<PresentationHint>> hints;
     private Set<Tag> tags;
     private MatchResult result;
     private ChunksSource source;
@@ -50,12 +51,12 @@ public class MatcherConfiguration
         return pattern;
     }
 
-    public Map<Tag, Set<PresentationHint>> getHints()
+    public Map<Tag, List<PresentationHint>> getHints()
     {
         return hints;
     }
 
-    public void setHints(Map<Tag, Set<PresentationHint>> hints)
+    public void setHints(Map<Tag, List<PresentationHint>> hints)
     {
         this.hints = hints;
     }

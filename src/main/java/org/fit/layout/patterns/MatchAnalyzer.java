@@ -8,9 +8,7 @@ package org.fit.layout.patterns;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.fit.layout.classify.StyleCounter;
 import org.fit.layout.model.Area;
@@ -32,7 +30,7 @@ import org.fit.layout.patterns.model.TextChunkArea;
  */
 public class MatchAnalyzer
 {
-    private static final float WHOLE_BOX_THRESHOLD = 0.75f;
+    private static final float WHOLE_BOX_THRESHOLD = 0.5f;
     private static final float IN_LINE_THRESHOLD = 0.75f;
     private static final float SEPARATOR_MIN_FREQUENCY = 0.5f;
     
@@ -48,14 +46,14 @@ public class MatchAnalyzer
      * Infers the presentation hint groups that can be possibly used for the given tag. 
      * @param tag the analyzed tag
      * @param dis a style disambiguator that may be used
-     * @return A list of sets of hints. Each sets represents a group of hints that may be used together.
-     * During the evaluation, the groups are tested one by one.
+     * @return A list of listo of hints. Each of the lists represents a group of hints that may be used together in
+     * the given order. During the evaluation, the groups are tested one by one.
      */
-    public List<Set<PresentationHint>> findPossibleHints(Tag tag, Disambiguator dis)
+    public List<List<PresentationHint>> findPossibleHints(Tag tag, Disambiguator dis)
     {
-        List<Set<PresentationHint>> ret = new ArrayList<>();
-        Set<PresentationHint> setWholeBox = new HashSet<>(1);
-        Set<PresentationHint> setInLine = new HashSet<>(2);
+        List<List<PresentationHint>> ret = new ArrayList<>();
+        List<PresentationHint> setWholeBox = new ArrayList<>(1);
+        List<PresentationHint> setInLine = new ArrayList<>(2);
         
         float wholeBox = wholeBoxSupport(tag);
         //System.out.println("Whole box support for " + tag + " : " + wholeBox);
@@ -84,7 +82,7 @@ public class MatchAnalyzer
             ret.add(setInLine);
         if (!setWholeBox.isEmpty() && !setInLine.isEmpty())
         {
-            Set<PresentationHint> both = new HashSet<>();
+            List<PresentationHint> both = new ArrayList<>();
             both.addAll(setWholeBox);
             both.addAll(setInLine);
             ret.add(both);
