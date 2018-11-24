@@ -436,6 +436,10 @@ public class MatchResult implements Comparable<MatchResult>
     
     //==================================================================================================
     
+    /**
+     * Obtains the statistics of the metrics for all the tag connections.
+     * @return A map that assigns connection statistics to the individual tag connections.
+     */
     public Map<TagConnection, ConnectionStats> getConnStats()
     {
         if (conStats == null)
@@ -443,7 +447,7 @@ public class MatchResult implements Comparable<MatchResult>
             conStats = new HashMap<>();
             for (Match match : matches)
             {
-                //create a local map for the match
+                //create a local mapping from tag connections to area connections for the match
                 Map<TagConnection, Set<AreaConnection>> mmap = new HashMap<>();
                 for (Match.ConnectionMatch con : match.getAreaConnections1())
                 {
@@ -540,6 +544,14 @@ public class MatchResult implements Comparable<MatchResult>
     
     //==================================================================================================
     
+    /**
+     * This class represents the metric statistics for a given tag connection. It is a set of 
+     * sets of area connections where each set corresponds to the area connections from
+     * a single match. Over these sets, different statistics for the connections may be
+     * computed.
+     * 
+     * @author burgetr
+     */
     public class ConnectionStats extends HashSet<Set<AreaConnection>>
     {
         private static final long serialVersionUID = 1L;
@@ -552,16 +564,29 @@ public class MatchResult implements Comparable<MatchResult>
         private Metric bestMetric;
         private float bestMetricValue;
 
+        /**
+         * Creates tag statistics for a given tag connection.
+         * @param tcon The tag connection.
+         */
         public ConnectionStats(TagConnection tcon)
         {
             this.tcon = tcon;
         }
 
+        /**
+         * Obtains the metrics that are evaluated for this tag connections.
+         * @return A set of evaluated metrics.
+         */
         public Set<Metric> getMetrics()
         {
             return tcon.getRelation().metrics();
         }
         
+        /**
+         * Obtains the minimal value of the given metric among the tag connections.
+         * @param m the metric
+         * @return the minimal value of the given metric
+         */
         public float getMetricMin(Metric m)
         {
             if (metricMin == null)
@@ -570,6 +595,11 @@ public class MatchResult implements Comparable<MatchResult>
             return ret == null ? -1.0f : ret;
         }
         
+        /**
+         * Obtains the maximal value of the given metric among the tag connections.
+         * @param m the metric
+         * @return the maximal value of the given metric
+         */
         public float getMetricMax(Metric m)
         {
             if (metricMax == null)
@@ -578,6 +608,11 @@ public class MatchResult implements Comparable<MatchResult>
             return ret == null ? -1.0f : ret;
         }
         
+        /**
+         * Obtains the average value of the given metric among the tag connections.
+         * @param m the metric
+         * @return the average value of the given metric
+         */
         public float getMetricAvg(Metric m)
         {
             if (metricAvg == null)
@@ -586,6 +621,11 @@ public class MatchResult implements Comparable<MatchResult>
             return ret == null ? -1.0f : ret;
         }
         
+        /**
+         * Obtains the sigma value of the given metric among the tag connections.
+         * @param m the metric
+         * @return the sigma value of the given metric
+         */
         public float getMetricSigma(Metric m)
         {
             if (metricSigma == null)
@@ -594,6 +634,11 @@ public class MatchResult implements Comparable<MatchResult>
             return ret == null ? -1.0f : ret;
         }
 
+        /**
+         * Finds the best metric. Currently, the one with the lowest sigma value is considered
+         * to be the best one.
+         * @return the best metric
+         */
         public Metric getBestMetric()
         {
             if (bestMetric == null)
@@ -601,6 +646,10 @@ public class MatchResult implements Comparable<MatchResult>
             return bestMetric;
         }
         
+        /**
+         * Finds the sigma value of the best metric returned by {@link #getBestMetric()}.
+         * @return the sigma value of the best metric
+         */
         public float getBestMetricValue()
         {
             if (bestMetric == null)
@@ -610,6 +659,9 @@ public class MatchResult implements Comparable<MatchResult>
         
         //==================================================================================================
         
+        /**
+         * Computes the min, max, avg and sigma values for all the metrics.
+         */
         private void evaluateMetrics()
         {
             metricMin = new HashMap<>();
@@ -664,6 +716,14 @@ public class MatchResult implements Comparable<MatchResult>
             
         }
         
+        /**
+         * Computes the values of the given metrics for all the area connections represented
+         * by this connection statistics object.
+         * @param m the metric to be computed
+         * @return The array containing the values of the given metric for the indidividual
+         * area connections. The length of the array corresponds to the size of the
+         * connection stats set.
+         */
         private float[] computeMetricValues(Metric m)
         {
             float[] ret = new float[this.size()];

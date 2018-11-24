@@ -15,10 +15,21 @@ import java.util.function.ToIntFunction;
 public interface Metric
 {
 
+    /**
+     * Computes the value of the metric for the given set of area connections that are supposed
+     * to belong to a particular match.
+     * @param cons The set of area connections.
+     * @return the metric value
+     */
     public float compute(Set<AreaConnection> cons);
 
     //==================================================================================================
     
+    /**
+     * A base metric that has a name assigned.
+     * 
+     * @author burgetr
+     */
     abstract public class BaseMetric implements Metric
     {
         private String name;
@@ -71,6 +82,14 @@ public interface Metric
             super(name);
         }
         
+        /**
+         * Computes the minimal horizontal distance between the specified point of the first area and specified
+         * point of the second area within the whole set of area connections.
+         * @param d1 the point in the first area (LEFT, CENTER or RIGHT)
+         * @param d2 the point in the second area (LEFT, CENTER or RIGHT)
+         * @param cons the set of area connections to be evaluated
+         * @return the minimal horizontal distance
+         */
         protected float computeMinDist(Dir d1, Dir d2, Set<AreaConnection> cons)
         {
             final AreaConnection first = cons.iterator().next();
@@ -110,6 +129,9 @@ public interface Metric
     
     //==================================================================================================
     
+    /**
+     * Represents the minimal horizontal distance between the left edges of the connected areas within the set.
+     */
     public static final Metric widthLL = new WidthMetric("widthLL")
     {
         @Override
@@ -119,6 +141,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the left edge of the first area and the center of the second area.
+     */
     public static final Metric widthLC = new WidthMetric("widthLC")
     {
         @Override
@@ -128,6 +153,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the left edge of the first area and the right edge of the second area.
+     */
     public static final Metric widthLR = new WidthMetric("widthLR")
     {
         @Override
@@ -137,6 +165,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the center of the first area and the left edge of the second area.
+     */
     public static final Metric widthCL = new WidthMetric("widthCL")
     {
         @Override
@@ -146,6 +177,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the centers of the connected areas within the set.
+     */
     public static final Metric widthCC = new WidthMetric("widthCC")
     {
         @Override
@@ -155,6 +189,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the center of the first area and the right edge of the second area.
+     */
     public static final Metric widthCR = new WidthMetric("widthCR")
     {
         @Override
@@ -164,6 +201,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the right edge of the first area and the left edge of the second area.
+     */
     public static final Metric widthRL = new WidthMetric("widthRL")
     {
         @Override
@@ -173,6 +213,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the right edge of the first area and the center of the second area.
+     */
     public static final Metric widthRC = new WidthMetric("widthRC")
     {
         @Override
@@ -182,6 +225,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal horizontal distance between the right edges of the connected areas.
+     */
     public static final Metric widthRR = new WidthMetric("widthRR")
     {
         @Override
@@ -191,6 +237,9 @@ public interface Metric
         }
     };
     
+    /**
+     * Represents the minimal vertical distance between the baselines of the connected areas.
+     */
     public static final Metric heightBB = new BaseMetric("widthBB")
     {
         @Override
