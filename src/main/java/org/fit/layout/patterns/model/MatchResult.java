@@ -419,7 +419,7 @@ public class MatchResult implements Comparable<MatchResult>
             {
                 Metric m = getConnStats().get(tcon).getBestMetric();
                 float val = m.compute(con);
-                System.out.println("  con: " + con + " = " + val);
+                System.out.println(val + " =  con: " + con);
             }*/
         }
     }

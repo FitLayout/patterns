@@ -97,13 +97,13 @@ public interface Metric
             switch (d1)
             {
                 case LEFT:
-                    ref = first.getA1().getX1();
+                    ref = first.getA2().getX1();
                     break;
                 case CENTER:
-                    ref = (first.getA1().getX1() + first.getA1().getX2()) / 2;
+                    ref = (first.getA2().getX1() + first.getA2().getX2()) / 2;
                     break;
                 case RIGHT:
-                    ref = first.getA1().getX2();
+                    ref = first.getA2().getX2();
                     break;
                 default:
                     ref = 0;
@@ -112,18 +112,21 @@ public interface Metric
             switch (d2)
             {
                 case LEFT:
-                    mapper = c -> pixelRound(c.getA2().getX1() - ref);
+                    mapper = c -> pixelRound(c.getA1().getX1() - ref);
                     break;
                 case CENTER:
-                    mapper = c -> pixelRound(((c.getA2().getX1() + c.getA2().getX2()) / 2) - ref);
+                    mapper = c -> pixelRound(((c.getA1().getX1() + c.getA1().getX2()) / 2) - ref);
                     break;
                 case RIGHT:
-                    mapper = c -> pixelRound(c.getA2().getX2() - ref);
+                    mapper = c -> pixelRound(c.getA1().getX2() - ref);
                     break;
                 default:
                     mapper = null;
             }
-            return findMin(cons, mapper);
+            int minDist = findMin(cons, mapper); //for positive distances, we need the minimal value
+            int maxDist = findMax(cons, mapper); //if the distances are negative, we want the maximal value
+            //return the one with the minimal absolute value
+            return (Math.abs(minDist) < Math.abs(maxDist)) ? minDist : maxDist;
         }
     }
     
@@ -246,9 +249,11 @@ public interface Metric
         public float compute(Set<AreaConnection> cons)
         {
             AreaConnection first = cons.iterator().next();
-            int ref = first.getA1().getY2();
-            int minDif = findMin(cons, c -> pixelRound(c.getA2().getY2() - ref));
-            return minDif;
+            int ref = first.getA2().getY2();
+            int minDif = findMin(cons, c -> pixelRound(c.getA1().getY2() - ref)); //for positive distances, we need the minimal value
+            int maxDif = findMax(cons, c -> pixelRound(c.getA1().getY2() - ref)); //if the distances are negative, we want the maximal value
+            //return the one with the minimal absolute value
+            return (Math.abs(minDif) < Math.abs(maxDif)) ? minDif : maxDif;
         }
     };
     
