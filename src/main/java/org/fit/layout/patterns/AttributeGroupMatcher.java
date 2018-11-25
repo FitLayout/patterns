@@ -421,7 +421,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(styleMap));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-            ChunksSource styledSource = createStyledChunksSource(root, dis);
+            ChunksSource styledSource = createSpecificChunksSource(root, null, dis);
             PatternGenerator patternGenerator = new PatternGenerator(this, styledSource.getPA());
             
             //create new pattern generator, generate connection patterns, create configurations, test configurations
@@ -528,12 +528,24 @@ public class AttributeGroupMatcher extends BaseMatcher
         return match;
     }
     
+    /**
+     * Creates an initial chunks source used for infering the basic styles.
+     * @param root  the root of the source area tree to be processed
+     * @return the chunks source
+     */
     private ChunksSource createBaseChunksSource(Area root)
     {
         ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
         return ret;
     }
     
+    /**
+     * Creates a chunks source with hints for filtering the chunks based on their style using
+     * a configured disambiguator.
+     * @param root the root of the source area tree to be processed
+     * @param dis the disambiguator used for filtering the chunks based on their style 
+     * @return the resulting chunks source
+     */
     private ChunksSource createStyledChunksSource(Area root, Disambiguator dis)
     {
         ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
@@ -545,12 +557,22 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
+    /**
+     * Creates a chunks source with all the hints based on the given matcher configuration.
+     * The hints used by the dependency matchers are used too.
+     * @param root the root of the source area tree to be processed
+     * @param conf the matcher configuration that specifies the hints to be used or {@code null} when
+     * no hints should be used for the current matcher (only the hints of the dependency matchers
+     * are used)
+     * @param dis dis the disambiguator used for filtering the chunks based on their style
+     * @return the resulting chunks source
+     */
     private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis)
     {
         ChunksSource ret = createStyledChunksSource(root, dis);
         //unify the hints with the dependency hints
         Map<Tag, List<PresentationHint>> allHints = new HashMap<>();
-        if (conf.getHints() != null)
+        if (conf != null && conf.getHints() != null)
             allHints.putAll(conf.getHints());
         if (dependencies != null)
         {
