@@ -530,7 +530,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             conf.setConstraints(constraints);
             match = findMatches(conf, source.getPA(), dis, tagAreas, depMatches);
         }
-        match.getScore().setStats(stats);
+        match.evaluateScore().setStats(stats);
         conf.setResult(match.getScore());
         return match;
     }

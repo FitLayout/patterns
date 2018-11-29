@@ -46,6 +46,7 @@ public class MatchResult
         this.matches = matches;
         this.matchedAreas = matchedAreas;
         this.pa = pa;
+        score = new MatchResultScore();
     }
     
     public void setRelationProbabilitySource(RelationProbabilitySource src)
@@ -182,16 +183,19 @@ public class MatchResult
     
     public MatchResultScore getScore()
     {
-        if (score == null)
-        {
-            score = new MatchResultScore();
-            score.setMinConnectionWeight(getMinConnectionWeight());
-            score.setMaxConnectionWeight(getMaxConnectionWeight());
-            score.setAverageConnectionWeight(getAverageConnectionWeight());
-            score.setConnectionWeightSigma(getConnectionWeightSigma());
-            score.setMinMetric(getMinMetric());
-            score.setStyleConsistency(getStyleConsistency());
-        }
+        return score;
+    }
+    
+    public MatchResultScore evaluateScore()
+    {
+        score.setMatches(getMatches().size());
+        score.setMatchedAreas(getMatchedAreas().size());
+        score.setMinConnectionWeight(getMinConnectionWeight());
+        score.setMaxConnectionWeight(getMaxConnectionWeight());
+        score.setAverageConnectionWeight(getAverageConnectionWeight());
+        score.setConnectionWeightSigma(getConnectionWeightSigma());
+        score.setMinMetric(getMinMetric());
+        score.setStyleConsistency(getStyleConsistency());
         return score;
     }
     
