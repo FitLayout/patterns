@@ -7,7 +7,6 @@ package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,109 +28,17 @@ import org.fit.layout.patterns.RelationProbabilitySource;
  * 
  * @author burgetr
  */
-public class MatchResult implements Comparable<MatchResult>
+public class MatchResult
 {
-    /** A list of comparators that are used for comparing the match result in the given order. */
-    private static List<Comparator<MatchResult>> cclist;
-    static {
-        cclist = new ArrayList<>(5);
-        cclist.add(new Comparator<MatchResult>() //number of matched areas above a threshold
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getStats() != null && o1.getStats() == o2.getStats())
-                {
-                    final int threshold = o1.getStats().getMaxAreas() / 2;
-                    int t1 = (o1.getMatchedAreas().size() > threshold) ? 1 : 0;
-                    int t2 = (o2.getMatchedAreas().size() > threshold) ? 1 : 0;
-                    return t1 - t2;
-                }
-                else
-                    return 0; //cannot compare, use next comparators
-            }
-        });
-        /*cclist.add(new Comparator<MatchResult>() //minimal metric standard deviation value (lower is better)
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getMinMetric() < o2.getMinMetric())
-                    return 1;
-                else if (o1.getMinMetric() > o2.getMinMetric())
-                    return -1;
-                else
-                    return 0;
-            }
-        });*/
-        /*cclist.add(new Comparator<MatchResult>() //connection weight standard deviation (lower is better)
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getConnectionWeightSigma() < o2.getConnectionWeightSigma())
-                    return 1;
-                else if (o1.getConnectionWeightSigma() > o2.getConnectionWeightSigma())
-                    return -1;
-                else
-                    return 0;
-            }
-        });*/
-        cclist.add(new Comparator<MatchResult>() //overall score
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getOverallScore() > o2.getOverallScore())
-                    return 1;
-                else if (o1.getOverallScore() < o2.getOverallScore())
-                    return -1;
-                else
-                    return 0;
-            }
-        });
-        /*cclist.add(new Comparator<MatchResult>() //number of matched areas
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                return o1.getMatchedAreas().size() - o2.getMatchedAreas().size();
-            }
-        });
-        cclist.add(new Comparator<MatchResult>() //total number of matches found
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                return o1.getMatches().size() - o2.getMatches().size();
-            }
-        });
-        cclist.add(new Comparator<MatchResult>() //average connection weight (greater is better)
-        {
-            @Override
-            public int compare(MatchResult o1, MatchResult o2)
-            {
-                if (o1.getAverageConnectionWeight() > o2.getAverageConnectionWeight())
-                    return 1;
-                else if (o1.getAverageConnectionWeight() < o2.getAverageConnectionWeight())
-                    return -1;
-                else
-                    return 0;
-            }
-        });*/
-    }
-
-    
     private RelationProbabilitySource probs;
     private Collection<Match> matches;
     private Set<Area> matchedAreas;
     private RelationAnalyzer pa;
-    private MatchStatistics stats;
     private Map<Area, List<AreaConnection>> connsM; //map of 1:M connections to their source areas
     private Map<Area, Float> avgM; //average weights of 1:M connections sharing a single source area
     private Map<TagConnection, ConnectionStats> conStats; //area connection stats for every tag connection
     private Map<Tag, StyleCounter<AreaStyle>> styleStats; //different style statistics for the individual tags
-   
+    private MatchResultScore score;
     
     public MatchResult(Collection<Match> matches, Set<Area> matchedAreas, RelationAnalyzer pa)
     {
@@ -139,7 +46,6 @@ public class MatchResult implements Comparable<MatchResult>
         this.matches = matches;
         this.matchedAreas = matchedAreas;
         this.pa = pa;
-        this.stats = null;
     }
     
     public void setRelationProbabilitySource(RelationProbabilitySource src)
@@ -162,17 +68,6 @@ public class MatchResult implements Comparable<MatchResult>
         return pa;
     }
     
-    public MatchStatistics getStats()
-    {
-        return stats;
-    }
-
-    public void setStats(MatchStatistics stats)
-    {
-        this.stats = stats;
-        updateStats();
-    }
-
     /**
      * Finds the minimal value of the weights of the matches conatined in this result.
      * @return The minimal weight of the matches or 0 for an empty match result
@@ -285,57 +180,27 @@ public class MatchResult implements Comparable<MatchResult>
         return sum / cnt;
     }
     
-    public float getCoveredAreas()
+    public MatchResultScore getScore()
     {
-        if (getStats() != null)
-            return matchedAreas.size() / (float) getStats().getMaxAreas();
-        else
-            return 0.0f;
-    }
-    
-    public float getCoveredMatches()
-    {
-        if (getStats() != null)
-            return matches.size() / (float) getStats().getMaxMatches();
-        else
-            return 0.0f;
-    }
-    
-    public float getOverallScore()
-    {
-        return (1 * (1.0f - getMinMetric())
-                + 1 * getStyleConsistency()
-                + 1 * getCoveredAreas()
-                + 0.5f * getAverageConnectionWeight()) / 3.5f;
+        if (score == null)
+        {
+            score = new MatchResultScore();
+            score.setMinConnectionWeight(getMinConnectionWeight());
+            score.setMaxConnectionWeight(getMaxConnectionWeight());
+            score.setAverageConnectionWeight(getAverageConnectionWeight());
+            score.setConnectionWeightSigma(getConnectionWeightSigma());
+            score.setMinMetric(getMinMetric());
+            score.setStyleConsistency(getStyleConsistency());
+        }
+        return score;
     }
     
     @Override
     public String toString()
     {
-        return matches.size() + " matches (" + getCoveredMatches() + ")"
-            + ", " + matchedAreas.size() + " areas covered (" + getCoveredAreas() + ")"
-            + ", S=" + getOverallScore()
-            + ", w=" + getAverageConnectionWeight() 
-            + ", s=" + getConnectionWeightSigma()
-            + ", sc=" + getStyleConsistency()
-            + ", mm=" + getMinMetric()
-            //+ ", min=" + getMinConnectionWeight()
-            //+ ", max=" + getMaxConnectionWeight()
-            ;
+        return getScore().toString();
     }
 
-    @Override
-    public int compareTo(MatchResult o)
-    {
-        for (Comparator<MatchResult> cc : cclist)
-        {
-            int comp = cc.compare(this, o);
-            if (comp != 0)
-                return comp;
-        }
-        return 0;
-    }
-    
     //==================================================================================================
     
     private Map<Area, List<AreaConnection>> getConnsM()
@@ -532,14 +397,6 @@ public class MatchResult implements Comparable<MatchResult>
             }
         }
         return styles;
-    }
-    
-    //==================================================================================================
-    
-    public void updateStats()
-    {
-        stats.setMaxMatches(Math.max(stats.getMaxMatches(), getMatches().size()));
-        stats.setMaxAreas(Math.max(stats.getMaxAreas(), getMatchedAreas().size()));
     }
     
     //==================================================================================================

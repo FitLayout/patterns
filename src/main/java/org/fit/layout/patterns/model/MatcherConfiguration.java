@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.ChunksSource;
 
 /**
  * A matcher configuration that involves a tag connection pattern and the styles
@@ -25,10 +24,9 @@ public class MatcherConfiguration
     private ConnectionPattern constraints; //additional constraints that should be followed (or null if none)
     private Map<Tag, List<PresentationHint>> hints;
     private Set<Tag> tags;
-    private MatchResult result;
-    private ChunksSource source;
+    private MatchResultScore result;
     
-    public MatcherConfiguration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, MatchResult result)
+    public MatcherConfiguration(Map<Tag, AreaStyle> styleMap, ConnectionPattern pattern, MatchResultScore result)
     {
         this.styleMap = styleMap;
         this.pattern = pattern;
@@ -61,12 +59,12 @@ public class MatcherConfiguration
         this.hints = hints;
     }
 
-    public MatchResult getResult()
+    public MatchResultScore getResult()
     {
         return result;
     }
 
-    public void setResult(MatchResult result)
+    public void setResult(MatchResultScore result)
     {
         this.result = result;
     }
@@ -84,16 +82,6 @@ public class MatcherConfiguration
     public void setConstraints(ConnectionPattern constraints)
     {
         this.constraints = constraints;
-    }
-
-    public ChunksSource getSource()
-    {
-        return source;
-    }
-
-    public void setSource(ChunksSource source)
-    {
-        this.source = source;
     }
 
     @Override

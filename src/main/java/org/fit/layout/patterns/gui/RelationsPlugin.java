@@ -21,6 +21,7 @@ import org.fit.layout.gui.Browser;
 import org.fit.layout.gui.BrowserPlugin;
 import org.fit.layout.model.Area;
 import org.fit.layout.patterns.AttributeGroupMatcher;
+import org.fit.layout.patterns.ChunksSource;
 import org.fit.layout.patterns.Relation;
 import org.fit.layout.patterns.RelationAnalyzer;
 import org.fit.layout.patterns.model.AreaConnection;
@@ -100,11 +101,8 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
         selectedArea = area;
         if (matcher != null && matcher.getUsedConf() != null)
         {
-            //if (pa == null)
-            //{
-                pa = matcher.getUsedConf().getSource().getPA();
-                fillRelationsCombo(pa.getAnalyzedRelations());
-            //}
+            pa = getCurrentPA();
+            fillRelationsCombo(pa.getAnalyzedRelations());
             updateConnectionList(selectedArea, pa);
         }
         else
@@ -119,13 +117,19 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
         {
             if (pa == null)
             {
-                pa = matcher.getUsedConf().getSource().getPA();
+                pa = getCurrentPA();
                 fillRelationsCombo(pa.getAnalyzedRelations());
             }
             updateConnectionList(selectedArea, pa);
         }
         else
             log.info("No matcher");
+    }
+    
+    private RelationAnalyzer getCurrentPA()
+    {
+        ChunksSource src = matcher.getSourceForConf(matcher.getUsedConf(), browser.getAreaTree().getRoot());
+        return src.getPA();
     }
     
     private void fillRelationsCombo(List<Relation> relations)

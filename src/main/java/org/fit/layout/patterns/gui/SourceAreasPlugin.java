@@ -104,16 +104,27 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     @Override
     public void updateGUI()
     {
-        AttributeGroupMatcher m = provider.getMatchers().get(pp.getCurrentMatcher());
+        AttributeGroupMatcher m = getCurrentMatcher();
         if (m != null && m.getUsedConf() != null)
         {
-            ChunksSource source = m.getUsedConf().getSource();
+            ChunksSource source = getCurrentSource(m);
             setAreas(source.getAreas());
         }
         else
             clearAreas();
     }
 
+    private AttributeGroupMatcher getCurrentMatcher()
+    {
+        return provider.getMatchers().get(pp.getCurrentMatcher());
+    }
+    
+    private ChunksSource getCurrentSource(AttributeGroupMatcher matcher)
+    {
+        ChunksSource src = matcher.getSourceForConf(matcher.getUsedConf(), browser.getAreaTree().getRoot());
+        return src;
+    }
+    
     private void setAreas(List<Area> areas)
     {
         currentAreas = new ArrayList<>(areas);

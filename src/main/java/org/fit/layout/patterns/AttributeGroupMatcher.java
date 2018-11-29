@@ -25,6 +25,7 @@ import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.HintStyle;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
+import org.fit.layout.patterns.model.MatchResultScore;
 import org.fit.layout.patterns.model.MatchStatistics;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.fit.layout.patterns.model.PresentationHint;
@@ -131,8 +132,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             usedConf = best.get(index);
             //usedConf.getResult().dumpMatchAverages();
-            usedConf.getResult().dumpMinMetric();
-            usedConf.getResult().dumpStyleStats();
+            //usedConf.getResult().dumpMinMetric();
+            //usedConf.getResult().dumpStyleStats();
         }
         else
             log.error("Cannot use non-existing configuration index {}", index);
@@ -394,6 +395,14 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
     }
     
+    public ChunksSource getSourceForConf(MatcherConfiguration conf, Area root)
+    {
+        StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
+        Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
+        ChunksSource source = createSpecificChunksSource(root, conf, dis);
+        return source;
+    }
+    
     //==============================================================================================
     
     /**
@@ -438,9 +447,8 @@ public class AttributeGroupMatcher extends BaseMatcher
                 }
                 
                 log.debug("Checking conf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), conf);
-                conf.setSource(styledSource);
                 MatchResult match = evaluateConfiguration(conf, styledSource, dis, stats);
-                if (bestMatch == null || bestMatch.compareTo(match) < 0)
+                if (bestMatch == null || bestMatch.getScore().compareTo(match.getScore()) < 0)
                     bestMatch = match;
                 log.debug("Result {}", match);
                 
@@ -454,9 +462,8 @@ public class AttributeGroupMatcher extends BaseMatcher
                     {
                         log.debug("Checking iconf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), iconf);
                         ChunksSource isource = createSpecificChunksSource(root, iconf, dis);
-                        iconf.setSource(isource);
                         MatchResult imatch = evaluateConfiguration(iconf, isource, dis, stats);
-                        if (bestMatch == null || bestMatch.compareTo(imatch) < 0)
+                        if (bestMatch == null || bestMatch.getScore().compareTo(imatch.getScore()) < 0)
                             bestMatch = imatch;
                         log.debug("Result {}", imatch);
                         if (imatch.getMatches().size() > 0)
@@ -483,8 +490,8 @@ public class AttributeGroupMatcher extends BaseMatcher
                 @Override
                 public int compare(MatcherConfiguration o1, MatcherConfiguration o2)
                 {
-                    MatchResult r1 = o1.getResult();
-                    MatchResult r2 = o2.getResult();
+                    MatchResultScore r1 = o1.getResult();
+                    MatchResultScore r2 = o2.getResult();
                     if (r1 == null && r2 == null)
                         return 0;
                     else if (r1 == null)
@@ -523,8 +530,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             conf.setConstraints(constraints);
             match = findMatches(conf, source.getPA(), dis, tagAreas, depMatches);
         }
-        match.setStats(stats);
-        conf.setResult(match);
+        match.getScore().setStats(stats);
+        conf.setResult(match.getScore());
         return match;
     }
     
