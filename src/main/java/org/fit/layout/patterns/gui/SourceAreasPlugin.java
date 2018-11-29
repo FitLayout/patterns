@@ -121,7 +121,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     
     private ChunksSource getCurrentSource(AttributeGroupMatcher matcher)
     {
-        ChunksSource src = matcher.getSourceForConf(matcher.getUsedConf(), browser.getAreaTree().getRoot());
+        ChunksSource src = matcher.getUsedSource(browser.getAreaTree().getRoot());
         return src;
     }
     

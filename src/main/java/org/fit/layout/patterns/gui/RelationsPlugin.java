@@ -101,8 +101,11 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
         selectedArea = area;
         if (matcher != null && matcher.getUsedConf() != null)
         {
-            pa = getCurrentPA();
-            fillRelationsCombo(pa.getAnalyzedRelations());
+            if (pa == null)
+            {
+                pa = getCurrentPA();
+                fillRelationsCombo(pa.getAnalyzedRelations());
+            }
             updateConnectionList(selectedArea, pa);
         }
         else
@@ -128,7 +131,7 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
     
     private RelationAnalyzer getCurrentPA()
     {
-        ChunksSource src = matcher.getSourceForConf(matcher.getUsedConf(), browser.getAreaTree().getRoot());
+        ChunksSource src = matcher.getUsedSource(browser.getAreaTree().getRoot());
         return src.getPA();
     }
     

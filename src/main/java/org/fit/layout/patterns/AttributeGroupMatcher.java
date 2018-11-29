@@ -65,6 +65,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     //list of best configurations obtained by configure()
     private List<MatcherConfiguration> best;
     private MatcherConfiguration usedConf; //current configuration
+    private ChunksSource usedSource; //source used for monitoring the current configuration, created by getSourceForConf()
     
     //testing configuration
     private MatcherConfiguration tconf;
@@ -131,6 +132,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         if (best != null && index >= 0 && index < best.size())
         {
             usedConf = best.get(index);
+            usedSource = null; //configuration changed, create a new source next time
             //usedConf.getResult().dumpMatchAverages();
             //usedConf.getResult().dumpMinMetric();
             //usedConf.getResult().dumpStyleStats();
@@ -395,12 +397,15 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
     }
     
-    public ChunksSource getSourceForConf(MatcherConfiguration conf, Area root)
+    public ChunksSource getUsedSource(Area root)
     {
-        StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
-        Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
-        ChunksSource source = createSpecificChunksSource(root, conf, dis);
-        return source;
+        if (usedSource == null)
+        {
+            StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
+            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
+            usedSource = createSpecificChunksSource(root, usedConf, dis);
+        }
+        return usedSource;
     }
     
     //==============================================================================================
