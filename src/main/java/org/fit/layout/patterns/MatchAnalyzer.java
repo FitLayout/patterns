@@ -57,7 +57,7 @@ public class MatchAnalyzer
         
         float wholeBox = wholeBoxSupport(tag);
         //System.out.println("Whole box support for " + tag + " : " + wholeBox);
-        if (wholeBox > WHOLE_BOX_THRESHOLD)
+        if (wholeBox > WHOLE_BOX_THRESHOLD && wholeBox < 1.0f)
         {
             setWholeBox.add(new HintWholeBox(tag));
         }
