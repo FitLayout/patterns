@@ -393,6 +393,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             MatchResult result = findMatches(usedConf, source.getPA(), dis, tagAreas, depMatches);
             if (getKeyAttr() != null)
                 result.groupByKey(getKeyAttr().getTag());
+            result.dumpMatchAverages();
             return result.getMatches();
         }
     }

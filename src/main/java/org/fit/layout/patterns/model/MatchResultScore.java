@@ -229,9 +229,9 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     public float getOverallScore()
     {
         return (1 * (1.0f - getMinMetric())
-                + 1 * getStyleConsistency()
+                + 0.5f * getStyleConsistency()
                 + 1 * getCoveredAreas()
-                + 0.5f * getAverageConnectionWeight()) / 3.5f;
+                + 0.5f * getAverageConnectionWeight()) / 3.0f;
     }
     
     public void updateStats()

@@ -263,7 +263,8 @@ public class MatchResult
                 sum += con.getAreaConnection().getWeight() * probs.get11Probability(con.getAreaConnection().getRelation());
             //1:M connection use the average for all the connections from the same "1" area
             for (Match.ConnectionMatch con : match.getAreaConnectionsM1())
-                sum += getAvgM().get(con.getAreaConnection().getA2()) * probs.get1MProbability(con.getAreaConnection().getRelation());
+                //sum += getAvgM().get(con.getAreaConnection().getA2()) * probs.get1MProbability(con.getAreaConnection().getRelation());
+                sum += con.getAreaConnection().getWeight() * probs.get1MProbability(con.getAreaConnection().getRelation());
             return sum / cnt;
         }
         else
