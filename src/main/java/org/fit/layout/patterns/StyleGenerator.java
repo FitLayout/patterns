@@ -18,8 +18,6 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher.Attribute;
 import org.fit.layout.patterns.model.AreaStyle;
-import org.fit.layout.patterns.model.PresentationHint;
-import org.fit.layout.patterns.model.PresentationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +36,6 @@ public class StyleGenerator
     private int maxWildcards;
     
     private List<StyleCounter<AreaStyle>> styleStats;
-    private List<PresentationStats> presStats;
 
     
     public StyleGenerator(List<Attribute> attrs, List<Area> areas, RelationAnalyzer pa, int maxWildcards)
@@ -166,11 +163,9 @@ public class StyleGenerator
     {
         //count styles
         styleStats = new ArrayList<>(attrs.size());
-        presStats = new ArrayList<>(attrs.size());
         for (int i = 0; i < attrs.size(); i++)
         {
             styleStats.add(new StyleCounter<AreaStyle>());
-            presStats.add(new PresentationStats(attrs.get(i).getTag(), pa));
         }
         for (Area a : areas)
         {
@@ -179,14 +174,8 @@ public class StyleGenerator
                 if (a.hasTag(attrs.get(i).getTag(), attrs.get(i).getMinSupport()))
                 {
                     styleStats.get(i).add(new AreaStyle(a));
-                    presStats.get(i).addArea(a);
                 }
             }
-        }
-        for (PresentationStats pres : presStats)
-        {
-            List<PresentationHint> hints = pres.getPresentationHints();
-            log.info("Hints: {}", hints);
         }
     }
     
