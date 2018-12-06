@@ -35,6 +35,7 @@ public class HintMultiLine extends DefaultHint
     
     public HintMultiLine(Tag tag, Disambiguator dis)
     {
+        super("MultiLine");
         this.tag = tag;
         this.dis = dis;
     }
@@ -127,10 +128,4 @@ public class HintMultiLine extends DefaultHint
             return null;
     }
 
-    @Override
-    public String toString()
-    {
-        return "MultiLine";
-    }
-    
 }

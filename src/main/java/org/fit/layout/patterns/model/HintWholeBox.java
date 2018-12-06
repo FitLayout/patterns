@@ -27,6 +27,7 @@ public class HintWholeBox extends DefaultHint
     
     public HintWholeBox(Tag tag)
     {
+        super("WholeBox");
         this.tag = tag;
     }
 
@@ -80,12 +81,6 @@ public class HintWholeBox extends DefaultHint
         return areas;
     }
 
-    @Override
-    public String toString()
-    {
-        return "WholeBox";
-    }
-    
     /**
      * Checks whether the chunk uses the whole text of its source box.
      * @param chunk

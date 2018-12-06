@@ -331,7 +331,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     public void configure(Area root)
     {
         //initial chunks source
-        ChunksSource source = createBaseChunksSource(root);
+        ChunksSource source = createBaseChunksSource(root, null);
         //create attribute lists and blacklists
         scanAttributes();
         //create initial pattern analyzer
@@ -372,7 +372,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
-            ChunksSource source = createSpecificChunksSource(root, usedConf, dis);
+            ChunksSource source = createSpecificChunksSource(root, usedConf, dis, null);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(source.getAreas(), dis);
             
             Collection<Match> result = match(source, dis, tagAreas);
@@ -404,7 +404,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
-            usedSource = createSpecificChunksSource(root, usedConf, dis);
+            usedSource = createSpecificChunksSource(root, usedConf, dis, null);
         }
         return usedSource;
     }
@@ -421,6 +421,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
         log.debug("{} style configurations", styleMaps.size());
         
+        ChunksCache cache = null; //the cache is not used for now, it does not help
         MatchStatistics stats = new MatchStatistics();
         MatchResult bestMatch = null;
         List<MatcherConfiguration> all = new ArrayList<>();
@@ -436,7 +437,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(styleMap));
             Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
-            ChunksSource styledSource = createSpecificChunksSource(root, null, dis);
+            ChunksSource styledSource = createSpecificChunksSource(root, null, dis, cache);
             PatternGenerator patternGenerator = new PatternGenerator(this, styledSource.getPA());
             
             //create new pattern generator, generate connection patterns, create configurations, test configurations
@@ -467,7 +468,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                     for (MatcherConfiguration iconf : iconfs)
                     {
                         log.debug("Checking iconf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), iconf);
-                        ChunksSource isource = createSpecificChunksSource(root, iconf, dis);
+                        ChunksSource isource = createSpecificChunksSource(root, iconf, dis, cache);
                         MatchResult imatch = evaluateConfiguration(iconf, isource, dis, stats);
                         if (bestMatch == null || bestMatch.getScore().compareTo(imatch.getScore()) < 0)
                             bestMatch = imatch;
@@ -485,6 +486,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         log.debug("{} configurations tested", all.size());
+        //log.debug("{} entries in the cache, {} reads, {} hits", cache.size(), cache.getReads(), cache.getHits());
         
         //select the best configurations
         List<MatcherConfiguration> best = new ArrayList<>();
@@ -543,12 +545,13 @@ public class AttributeGroupMatcher extends BaseMatcher
     
     /**
      * Creates an initial chunks source used for infering the basic styles.
-     * @param root  the root of the source area tree to be processed
+     * @param root the root of the source area tree to be processed
+     * @param cache the extracted chunks cache or {@code null} when no cache should be used 
      * @return the chunks source
      */
-    private ChunksSource createBaseChunksSource(Area root)
+    private ChunksSource createBaseChunksSource(Area root, ChunksCache cache)
     {
-        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
+        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH, cache);
         return ret;
     }
     
@@ -557,11 +560,12 @@ public class AttributeGroupMatcher extends BaseMatcher
      * a configured disambiguator.
      * @param root the root of the source area tree to be processed
      * @param dis the disambiguator used for filtering the chunks based on their style 
+     * @param cache the extracted chunks cache or {@code null} when no cache should be used 
      * @return the resulting chunks source
      */
-    private ChunksSource createStyledChunksSource(Area root, Disambiguator dis)
+    private ChunksSource createStyledChunksSource(Area root, Disambiguator dis, ChunksCache cache)
     {
-        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH);
+        ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH, cache);
         //Add style hints
         for (Tag tag : getTagsWithDependencies())
         {
@@ -580,9 +584,9 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis dis the disambiguator used for filtering the chunks based on their style
      * @return the resulting chunks source
      */
-    private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis)
+    private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis, ChunksCache cache)
     {
-        ChunksSource ret = createStyledChunksSource(root, dis);
+        ChunksSource ret = createStyledChunksSource(root, dis, cache);
         //unify the hints with the dependency hints
         Map<Tag, List<PresentationHint>> allHints = new HashMap<>();
         if (conf != null && conf.getHints() != null)

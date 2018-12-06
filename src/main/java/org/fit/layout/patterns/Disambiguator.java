@@ -87,5 +87,29 @@ public class Disambiguator
             return result;
         }
     }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((styles == null) ? 0 : styles.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        Disambiguator other = (Disambiguator) obj;
+        if (styles == null)
+        {
+            if (other.styles != null) return false;
+        }
+        else if (!styles.equals(other.styles)) return false;
+        return true;
+    }
     
 }

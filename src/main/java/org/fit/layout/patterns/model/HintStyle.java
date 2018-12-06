@@ -26,6 +26,7 @@ public class HintStyle extends DefaultHint
 
     public HintStyle(Tag tag, Disambiguator dis)
     {
+        super("Style");
         this.tag = tag;
         this.dis = dis;
     }
@@ -74,4 +75,29 @@ public class HintStyle extends DefaultHint
             
         return "Style:" + style;
     }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((dis == null) ? 0 : dis.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
+        HintStyle other = (HintStyle) obj;
+        if (dis == null)
+        {
+            if (other.dis != null) return false;
+        }
+        else if (!dis.equals(other.dis)) return false;
+        return true;
+    }
+    
 }

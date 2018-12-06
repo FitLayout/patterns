@@ -18,6 +18,12 @@ import org.fit.layout.model.Box;
  */
 public class DefaultHint implements PresentationHint
 {
+    private String name;
+    
+    public DefaultHint(String name)
+    {
+        this.name = name;
+    }
 
     @Override
     public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed)
@@ -47,4 +53,26 @@ public class DefaultHint implements PresentationHint
         return src;
     }
 
+    @Override
+    public String toString()
+    {
+        return name;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        DefaultHint other = (DefaultHint) obj;
+        return name.equals(other.name);
+    }
+    
 }

@@ -19,14 +19,16 @@ import org.fit.layout.model.Tag;
  * A hint that forces using the whole line for the corresponding chunk even if only part
  * of the line was detected as the chunk. This is similar to GetWholeBox hint but in addition
  * all the areas on the same line are considered.
+ * TODO This is not finished and currently not used. The preceding segmentation step is to output
+ * whole lines as the smallest boxes i.e. HintWholeBox should be sufficient.
  * @author burgetr
  */
-public class HintWholeLine extends HintWholeBox
+public class HintWholeLine extends DefaultHint
 {
     
     public HintWholeLine(Tag tag)
     {
-        super(tag);
+        super("WholeLine");
     }
 
     @Override

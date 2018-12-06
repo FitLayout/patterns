@@ -32,6 +32,7 @@ public class HintSeparator extends DefaultHint
     
     public HintSeparator(Tag tag, List<String> separators)
     {
+        super("Separator");
         this.tag = tag;
         this.separators = separators;
         
@@ -59,6 +60,31 @@ public class HintSeparator extends DefaultHint
     public String toString()
     {
         return "Separated by " + separators;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result
+                + ((separators == null) ? 0 : separators.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
+        HintSeparator other = (HintSeparator) obj;
+        if (separators == null)
+        {
+            if (other.separators != null) return false;
+        }
+        else if (!separators.equals(other.separators)) return false;
+        return true;
     }
 
     @Override

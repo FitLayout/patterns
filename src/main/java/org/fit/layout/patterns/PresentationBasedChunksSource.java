@@ -34,14 +34,23 @@ import org.fit.layout.patterns.model.TextChunkArea;
 public class PresentationBasedChunksSource extends ChunksSource
 {
     private float minTagSupport;
+    private ChunksCache cache;
     private List<Area> areas;
     private Map<Tag, List<Area>> tagAreas;
     private Map<Tag, List<PresentationHint>> hints;
     
-    public PresentationBasedChunksSource(Area root, float minTagSupport)
+    /**
+     * Creates a new source.
+     * @param root the root area of the area tree
+     * @param minTagSupport minimal support of the tags for considering the areas for chunk extraction
+     * @param cache the cache of already extracted chunks for sharing the chunks among different sources
+     * or {@code null} when no cache should be used.
+     */
+    public PresentationBasedChunksSource(Area root, float minTagSupport, ChunksCache cache)
     {
         super(root);
         this.minTagSupport = minTagSupport;
+        this.cache = cache;
         hints = new HashMap<>();
     }
     
@@ -56,26 +65,24 @@ public class PresentationBasedChunksSource extends ChunksSource
             {
                 for (TextTag t : supportedTags)
                 {
-                    List<Area> destChunks = new ArrayList<>();
-                    List<Area> destAll = new ArrayList<>();
-                    Set<Area> processed = new HashSet<>();
-                    recursiveScan(getRoot(), (TextTag) t, destChunks, destAll, processed);
-                    //apply hints on chunks
-                    if (hints.get(t) != null)
-                        destChunks = applyHints(destChunks, hints.get(t));
-                    //store chunks for the tag
-                    tagAreas.put(t, destChunks);
-                    //create a layer topology for all the created areas
-                    AreaTopology layerTopology = new AreaListGridTopology(destAll);
-                    for (Area a : destAll)
-                        ((TextChunkArea) a).setLayerTopology(layerTopology);
+                    final List<PresentationHint> hintList = hints.get(t);
+                    List<Area> chunks = null;
+                    if (cache != null)
+                        chunks = cache.get(t, hintList);
+                    if (chunks == null)
+                    {
+                        chunks = extractChunks(t, hintList);
+                        if (cache != null)
+                            cache.put(t, hintList, chunks);
+                    }
+                    tagAreas.put(t, chunks);
                 }
             }
             areas = disambiguateAreas(tagAreas);
         }
         return areas;
     }
-    
+
     @Override
     public void addHint(Tag tag, PresentationHint hint)
     {
@@ -95,6 +102,23 @@ public class PresentationBasedChunksSource extends ChunksSource
     }
     
     //==============================================================================================
+    
+    private List<Area> extractChunks(Tag t, List<PresentationHint> hints)
+    {
+        List<Area> destChunks = new ArrayList<>();
+        List<Area> destAll = new ArrayList<>();
+        Set<Area> processed = new HashSet<>();
+        recursiveScan(getRoot(), (TextTag) t, destChunks, destAll, processed);
+        //apply hints on chunks
+        if (hints != null)
+            destChunks = applyHints(destChunks, hints);
+        //create a layer topology for all the created areas
+        AreaTopology layerTopology = new AreaListGridTopology(destAll);
+        for (Area a : destAll)
+            ((TextChunkArea) a).setLayerTopology(layerTopology);
+        
+        return destChunks;
+    }
     
     private List<Area> disambiguateAreas(Map<Tag, List<Area>> areas)
     {
