@@ -95,8 +95,8 @@ public class RelationLineBelow extends LineRelation implements BulkRelation
         float em = a1.getFontSize();
         if (distY >= -0.5f*em)
         {
-            int tw = topology.getTopologyPosition().getWidth();
-            int th = topology.getTopologyPosition().getHeight();
+            int tw = a1.getPage().getWidth();
+            int th = a1.getPage().getHeight();
             float ww = 1.0f - distX / tw;
             float wh = 1.0f - distY / th;
             float w = ww * wh;

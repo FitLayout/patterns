@@ -44,7 +44,7 @@ public class RelationAfter extends LineRelation implements SimpleRelation
                             : a1.getBounds().getX1() - a2.getBounds().getX2();
             if (dist >= 0)
             {
-                int tw = topology.getTopologyPosition().getWidth();
+                int tw = a1.getPage().getWidth();
                 float w = 1.0f - (dist / 3) * 3.0f / tw;
                 /*if (a1.getId() == 40)
                     System.out.println("Found: " + a1 + " " + getName() + " " + a2 + " w=" + w);*/

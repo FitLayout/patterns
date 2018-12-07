@@ -36,7 +36,7 @@ public class RelationSameLine extends LineRelation implements SimpleRelation
                             a1.getBounds().getX1() - a2.getBounds().getX1());
             if (dist >= 0)
             {
-                int tw = topology.getTopologyPosition().getWidth();
+                int tw = a1.getPage().getWidth();
                 float w = 1.0f - dist / tw;
                 return w;
             }

@@ -51,8 +51,8 @@ public class RelationBelow extends BaseRelation implements SimpleRelation
             float em = Math.max(a2.getFontSize(), a1.getFontSize());
             if (dist >= -0.5f*em)
             {
-                int tw = topology.getTopologyPosition().getHeight();
-                float w = 1.0f - dist / tw;
+                int th = a1.getPage().getWidth();
+                float w = 1.0f - dist / th;
                 return w;
             }
             else
