@@ -52,6 +52,8 @@ public class AttributeGroupMatcher extends BaseMatcher
     public static final float MIN_TAG_SUPPORT_TRAIN = 0.09f;
     /** Minimal tag support for considering the area to have the given tag -- matching step */
     public static final float MIN_TAG_SUPPORT_MATCH = 0.09f;
+    /** Use chunks caching while scanning different configurations. Currently, it seems that it does not help much */
+    private static final boolean USE_CHUNKS_CACHE = false;
 
     private List<Attribute> attrs; //list of all attributes
     private List<AttributeGroupMatcher> dependencies; //already configured group matchers
@@ -421,7 +423,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
         log.debug("{} style configurations", styleMaps.size());
         
-        ChunksCache cache = null; //the cache is not used for now, it does not help
+        ChunksCache cache = USE_CHUNKS_CACHE ? new ChunksCache() : null;
         MatchStatistics stats = new MatchStatistics();
         MatchResult bestMatch = null;
         List<MatcherConfiguration> all = new ArrayList<>();
@@ -486,7 +488,8 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         log.debug("{} configurations tested", all.size());
-        //log.debug("{} entries in the cache, {} reads, {} hits", cache.size(), cache.getReads(), cache.getHits());
+        if (USE_CHUNKS_CACHE)
+            log.debug("{} entries in the cache, {} reads, {} hits", cache.size(), cache.getReads(), cache.getHits());
         
         //select the best configurations
         List<MatcherConfiguration> best = new ArrayList<>();
