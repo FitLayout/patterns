@@ -33,6 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * A common base for pattern-based logical tree providers where the patterns are obtained from an extraction graph. 
+ * It implements the graph loading and the basic logical tree creation operations. Final logical tree providers
+ * must only implement the specific service interface. 
  * 
  * @author burgetr
  */
@@ -40,11 +43,13 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
 {
     private static Logger log = LoggerFactory.getLogger(GraphBasedLogicalProvider.class);
     
+    /** Start auto-configuration of matchers when the logical tree is requested? */
+    private boolean autoConfigure = true;
     /** Main tag used for tagging the results */
     private Tag mainTag = new DefaultTag("logical", "match");
     /** Graph specification */
     private Graph graph;
-    /** The used group matcher */
+    /** The used group matchers */
     private List<AttributeGroupMatcher> groupMatchers;
     
     
@@ -53,17 +58,46 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         super();
     }
     
+    public boolean isAutoConfigure()
+    {
+        return autoConfigure;
+    }
+
+    /**
+     * Switches auto-configuration in or off. When set to {@code true} (default), auto-configuration of the matchers
+     * will be performed when {@link GraphBasedLogicalProvider#createLogicalTree(AreaTree)} is called and the
+     * matchers are not yet configured. When set to {@code false}, only an error message will be displayed
+     * and no logical tree will be created when the matchers are not configured. 
+     * @param autoConfigure the autoConfigure switch value
+     */
+    public void setAutoConfigure(boolean autoConfigure)
+    {
+        this.autoConfigure = autoConfigure;
+    }
+
+    /**
+     * Gets the current graph used for extraction.
+     * @return the currently used graph
+     */
     public Graph getGraph()
     {
         return graph;
     }
 
+    /**
+     * Sets a new extraction graph. The matchers must be reconfigured after setting a new graph.
+     * @param graph the new extraction graph
+     */
     public void setGraph(Graph graph)
     {
         this.graph = graph;
         groupMatchers = null; //a new graph requires creating new group matchers
     }
     
+    /**
+     * Loads a new graph from a JSON description.
+     * @param is an input stream from which the JSON specification will be read
+     */
     public void loadGraphFromJson(InputStream is)
     {
         GraphLoader gl = new GraphLoader();
@@ -136,11 +170,24 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
     @Override
     public LogicalAreaTree createLogicalTree(AreaTree areaTree)
     {
+        //get the top matcher
         AttributeGroupMatcher matcher = getMatchers().get(getMatchers().size() - 1);
+        
+        //configure the matcher when not configured yet
+        if (matcher.getBestConfigurations() == null)
+        {
+            if (autoConfigure)
+                autoConfigureMatchers(areaTree);
+            else
+                log.error("Matcher is not configured and auto-configuration is disabled");
+        }
+        
+        //find matches in the area tree
         Collection<Match> matches = matcher.match(areaTree.getRoot());
         if (matches == null)
             matches = Collections.emptyList();
         
+        //create the logical tree from the matches
         LogicalArea lroot = new DefaultLogicalArea(areaTree.getRoot());
         addLogicalAreas(matches, matcher, lroot, createTagForMatcher(matcher));
         
@@ -149,6 +196,19 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         return ret;
     }
 
+    protected void autoConfigureMatchers(AreaTree areaTree)
+    {
+        //configure and use the their best configurations for all matchers
+        for (AttributeGroupMatcher m : getMatchers())
+        {
+            configureMatcher(m, areaTree.getRoot());
+            if (m.getBestConfigurations() != null && m.getBestConfigurations().size() > 0)
+                m.setUsedConf(0); //the best configuration should be the first one
+            else
+                log.error("Matcher {} has no configurations available", m);
+        }
+    }
+    
     protected void addLogicalAreas(Collection<Match> matches, AttributeGroupMatcher matcher, LogicalArea destNode, Tag superAreaTag)
     {
         for (Match match : matches)
