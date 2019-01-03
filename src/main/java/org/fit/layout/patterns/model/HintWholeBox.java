@@ -5,16 +5,14 @@
  */
 package org.fit.layout.patterns.model;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.impl.DefaultContentLine;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.ContentLine;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.AttributeGroupMatcher;
 
 /**
  * A hint that forces using the whole source box for the corresponding chunk even if only part
@@ -23,53 +21,24 @@ import org.fit.layout.patterns.AttributeGroupMatcher;
  */
 public class HintWholeBox extends DefaultHint
 {
-    private Tag tag;
     
     public HintWholeBox(Tag tag)
     {
         super("WholeBox");
-        this.tag = tag;
     }
 
     @Override
-    public List<Area> postprocessChunks(List<Area> areas)
+    public List<TagOccurrence> processOccurrences(BoxText boxText, List<TagOccurrence> occurrences)
     {
-        Collection<Area> modified = new HashSet<>();
-        for (Area a : areas)
+        if (occurrences.isEmpty())
+            return occurrences; //no occurences - do nothing
+        else
         {
-            if (a instanceof TextChunkArea && a.hasTag(tag, AttributeGroupMatcher.MIN_TAG_SUPPORT_MATCH))
-            {
-                TextChunkArea chunk = (TextChunkArea) a;
-                if (!usesWholeBox(chunk))
-                {
-                    String boxText = chunk.getSourceBox().getOwnText();
-                    chunk.setText(boxText.trim());
-                    chunk.setBounds(chunk.getSourceBox().getSubstringBounds(0, boxText.length()));
-                    chunk.setName(chunk.getName() + "(ext)");
-                    modified.add(chunk);
-                    //System.out.println("ADDED " + chunk);
-                }
-            }
+            List<TagOccurrence> ret = new ArrayList<>();
+            TagOccurrence occ = new TagOccurrence(boxText.getText(), 0, 1.0f);
+            ret.add(occ);
+            return ret;
         }
-        //check for overlaps
-        Collection<Area> retain = new HashSet<>(); //the chunks to be retained for each overlap
-        for (Area mod : modified)
-        {
-            for (Iterator<Area> it = areas.iterator(); it.hasNext();)
-            {
-                Area a = it.next();
-                if (a != mod
-                        && a.hasTag(tag, AttributeGroupMatcher.MIN_TAG_SUPPORT_MATCH)
-                        && a.getBounds().intersects(mod.getBounds())
-                        && !retain.contains(a))
-                {
-                    //System.out.println("REMOVED " + a + " for overlap with " + mod);
-                    retain.add(mod);
-                    it.remove();
-                }
-            }
-        }
-        return areas;
     }
 
     @Override
@@ -81,17 +50,4 @@ public class HintWholeBox extends DefaultHint
         return areas;
     }
 
-    /**
-     * Checks whether the chunk uses the whole text of its source box.
-     * @param chunk
-     * @return
-     */
-    public static boolean usesWholeBox(TextChunkArea chunk)
-    {
-        String ta = chunk.getText().trim();
-        String boxText = chunk.getSourceBox().getOwnText();
-        String tb = boxText.trim();
-        return (ta.length() == tb.length());
-    }
-    
 }

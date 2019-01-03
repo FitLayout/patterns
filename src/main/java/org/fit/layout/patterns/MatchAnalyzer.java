@@ -99,7 +99,7 @@ public class MatchAnalyzer
         int cnt = 0;
         for (Area a : areas)
         {
-            if (a instanceof TextChunkArea && HintWholeBox.usesWholeBox((TextChunkArea) a))
+            if (a instanceof TextChunkArea && usesWholeBox((TextChunkArea) a))
             {
                 cnt++;
             }
@@ -238,5 +238,17 @@ public class MatchAnalyzer
             return null;
     }
 
-    
+    /**
+     * Checks whether the chunk uses the whole text of its source box.
+     * @param chunk
+     * @return
+     */
+    public static boolean usesWholeBox(TextChunkArea chunk)
+    {
+        String ta = chunk.getText().trim();
+        String boxText = chunk.getSourceBox().getOwnText();
+        String tb = boxText.trim();
+        return (ta.length() == tb.length());
+    }
+
 }
