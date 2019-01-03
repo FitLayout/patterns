@@ -15,7 +15,7 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.model.HintMultiLine;
+import org.fit.layout.patterns.model.HintInLine;
 import org.fit.layout.patterns.model.HintSeparator;
 import org.fit.layout.patterns.model.HintWholeBox;
 import org.fit.layout.patterns.model.Match;
@@ -66,7 +66,7 @@ public class MatchAnalyzer
         //System.out.println("In line support for " + tag + " : " + inLine);
         if (inLine > IN_LINE_THRESHOLD)
         {
-            setInLine.add(new HintMultiLine(tag, dis));
+            setInLine.add(new HintInLine(tag, dis));
             
             List<String> seps = frequentSeparators(tag);
             //System.out.println("Frequent separators for " + tag + ": " + seps);

@@ -1,5 +1,5 @@
 /**
- * HintMultiLine.java
+ * HintInLine.java
  *
  * Created on 6. 11. 2018, 21:31:40 by burgetr
  */
@@ -25,7 +25,7 @@ import org.fit.layout.patterns.Disambiguator;
  * 
  * @author burgetr
  */
-public class HintMultiLine extends DefaultHint
+public class HintInLine extends DefaultHint
 {
     private static final int STEPDIF_THRESHOLD = 2; //pixels tolerance in the step difference between lines
     
@@ -33,9 +33,9 @@ public class HintMultiLine extends DefaultHint
     private Disambiguator dis;
 
     
-    public HintMultiLine(Tag tag, Disambiguator dis)
+    public HintInLine(Tag tag, Disambiguator dis)
     {
-        super("MultiLine");
+        super("InLine");
         this.tag = tag;
         this.dis = dis;
     }
@@ -105,7 +105,7 @@ public class HintMultiLine extends DefaultHint
                 
                 Tag dtag = dis.getAreaTag(next);
                 if ((next.hasTag(tag) || tag.equals(dtag)) //assigned or inferred tag corresponds to the target tag
-                        && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD)) 
+                        && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD)) //TODO should the assigned tag be used?
                 {
                     ret.add(next);
                     last = next;
