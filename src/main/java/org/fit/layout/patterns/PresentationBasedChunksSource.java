@@ -29,6 +29,20 @@ import org.fit.layout.patterns.model.TextChunkArea;
 /**
  * A chunk source that follows some presentation patterns in order to improve the chunk extraction.
  * 
+ * Chunk extraction goes through the tree of areas. For every leaf area of the tree, the chunk extraction
+ * consists of the following phases:
+ * 
+ * <ol>
+ * <li>Box extraction - extraction of a source boxes from the given source areas. We obtain a list of boxes that
+ * are later used as the source text for extracting the text chunks.
+ * <li>Occurence extraction - location of the tag occurences in the source box text. We obtain a list of occurences.
+ * <li>Chunk creation - creation of the chunks from the occurences. We obtain a list of chunks found in the box text.
+ * </ol>
+ * 
+ * Finally, the chunks obtained from the individual areas are joined to a single list. The individual phases
+ * of the extraction may be influenced by different presentation hints registered using
+ * the {@link #addHint(Tag, PresentationHint)} method.
+ * 
  * @author burgetr
  */
 public class PresentationBasedChunksSource extends ChunksSource
@@ -109,7 +123,7 @@ public class PresentationBasedChunksSource extends ChunksSource
         List<Area> destAll = new ArrayList<>();
         Set<Area> processed = new HashSet<>();
         recursiveScan(getRoot(), (TextTag) t, destChunks, destAll, processed);
-        //apply hints on chunks
+        //apply post-processing hints on all chunks for the given tag
         if (hints != null)
             destChunks = applyHints(destChunks, hints);
         //create a layer topology for all the created areas
@@ -148,7 +162,7 @@ public class PresentationBasedChunksSource extends ChunksSource
     {
         List<Area> current = areas;
         for (PresentationHint hint : hints)
-            current = hint.apply(current);
+            current = hint.postprocessChunks(current);
         return current;
     }
     

@@ -42,7 +42,7 @@ public class HintStyle extends DefaultHint
     }
     
     @Override
-    public List<Area> apply(List<Area> areas)
+    public List<Area> postprocessChunks(List<Area> areas)
     {
         List<Area> ret = new ArrayList<Area>(areas.size());
         for (Area a : areas)

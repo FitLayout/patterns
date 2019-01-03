@@ -13,6 +13,8 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.Box;
 
 /**
+ * A hint that influences the chunk extraction in different points of the chunk extraction phases
+ * as defined by the {@link PresentationBasedChunksSource}.
  * 
  * @author burgetr
  */
@@ -48,9 +50,9 @@ public interface PresentationHint
     
     /**
      * Applies the hint to the current list of chunks (postprocessing the whole list)
-     * @param src
+     * @param chunks the list of chunks (typically for a given tag)
      * @return
      */
-    public List<Area> apply(List<Area> src);
+    public List<Area> postprocessChunks(List<Area> chunks);
 
 }

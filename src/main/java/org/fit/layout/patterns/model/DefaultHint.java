@@ -47,7 +47,7 @@ public class DefaultHint implements PresentationHint
     }
 
     @Override
-    public List<Area> apply(List<Area> src)
+    public List<Area> postprocessChunks(List<Area> src)
     {
         //no changes are performed
         return src;

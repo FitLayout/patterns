@@ -32,7 +32,7 @@ public class HintWholeBox extends DefaultHint
     }
 
     @Override
-    public List<Area> apply(List<Area> areas)
+    public List<Area> postprocessChunks(List<Area> areas)
     {
         Collection<Area> modified = new HashSet<>();
         for (Area a : areas)
