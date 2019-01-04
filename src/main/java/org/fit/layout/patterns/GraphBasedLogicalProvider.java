@@ -196,7 +196,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         return ret;
     }
 
-    protected void autoConfigureMatchers(AreaTree areaTree)
+    public void autoConfigureMatchers(AreaTree areaTree)
     {
         //configure and use the their best configurations for all matchers
         for (AttributeGroupMatcher m : getMatchers())
