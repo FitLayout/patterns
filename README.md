@@ -1,6 +1,6 @@
 FIT Layout Analysis Framework - Pattern Discovery Algorithms
 ============================================================
-(c) 2016 Radek Burget (burgetr@fit.vutbr.cz)
+(c) 2016-2019 Radek Burget (burgetr@fit.vutbr.cz)
 
 See the project page for more information and downloads:
 [http://www.fit.vutbr.cz/~burgetr/FITLayout/](http://www.fit.vutbr.cz/~burgetr/FITLayout/)
