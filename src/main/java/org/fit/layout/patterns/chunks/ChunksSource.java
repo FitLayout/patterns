@@ -3,13 +3,14 @@
  *
  * Created on 9. 3. 2018, 23:27:32 by burgetr
  */
-package org.fit.layout.patterns;
+package org.fit.layout.patterns.chunks;
 
 import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.model.PresentationHint;
+import org.fit.layout.patterns.RelationAnalyzer;
+import org.fit.layout.patterns.RelationAnalyzerSymmetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

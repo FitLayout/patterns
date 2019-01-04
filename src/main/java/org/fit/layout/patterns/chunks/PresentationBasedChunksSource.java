@@ -3,7 +3,7 @@
  *
  * Created on 29. 6. 2018, 15:16:19 by burgetr
  */
-package org.fit.layout.patterns;
+package org.fit.layout.patterns.chunks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,9 +22,6 @@ import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.gui.PatternsPlugin;
-import org.fit.layout.patterns.model.BoxText;
-import org.fit.layout.patterns.model.PresentationHint;
-import org.fit.layout.patterns.model.TextChunkArea;
 
 /**
  * A chunk source that follows some presentation patterns in order to improve the chunk extraction.

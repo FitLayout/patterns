@@ -1,14 +1,15 @@
 /**
- * HintInLine.java
+ * HintMultiBox.java
  *
- * Created on 6. 11. 2018, 21:31:40 by burgetr
+ * Created on 3. 1. 2019, 13:05:43 by burgetr
  */
-package org.fit.layout.patterns.model;
+package org.fit.layout.patterns.chunks;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.impl.DefaultContentLine;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
@@ -20,22 +21,20 @@ import org.fit.layout.patterns.AreaUtils;
 import org.fit.layout.patterns.Disambiguator;
 
 /**
- * This hint causes considering multiple subsequent lines to be treated as a single chunk source area.
- * It assumes that every line is a single source area with certain style.
- * 
+ * This hint has the same meaning as {@link HintWholeBox} but it also considers multiple subsequent boxes. 
  * @author burgetr
  */
-public class HintInLine extends DefaultHint
+public class HintMultiBox extends DefaultHint
 {
     private static final int STEPDIF_THRESHOLD = 2; //pixels tolerance in the step difference between lines
-    
+
     private Tag tag;
     private Disambiguator dis;
 
     
-    public HintInLine(Tag tag, Disambiguator dis)
+    public HintMultiBox(Tag tag, Disambiguator dis)
     {
-        super("InLine");
+        super("MultiBox");
         this.tag = tag;
         this.dis = dis;
     }
@@ -74,6 +73,20 @@ public class HintInLine extends DefaultHint
     }
     
     @Override
+    public List<TagOccurrence> processOccurrences(BoxText boxText, List<TagOccurrence> occurrences)
+    {
+        if (occurrences.isEmpty())
+            return occurrences; //no occurences - do nothing
+        else
+        {
+            List<TagOccurrence> ret = new ArrayList<>();
+            TagOccurrence occ = new TagOccurrence(boxText.getText(), 0, 1.0f);
+            ret.add(occ);
+            return ret;
+        }
+    }
+
+    @Override
     public List<Area> processChunks(Area src, List<Area> areas)
     {
         //put all the resulting areas to a common logical content line
@@ -81,7 +94,7 @@ public class HintInLine extends DefaultHint
         line.addAll(areas);
         return areas;
     }
-
+    
     //===================================================================================================================
     
     private List<Area> findConsistentLines(Area a, AreaTopology topology)
@@ -104,8 +117,8 @@ public class HintInLine extends DefaultHint
                 int stepdif = Math.abs(laststep - step);
                 
                 Tag dtag = dis.getAreaTag(next);
-                if ((next.hasTag(tag) || tag.equals(dtag)) //assigned or inferred tag corresponds to the target tag
-                        && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD)) //TODO should the assigned tag be used?
+                if (tag.equals(dtag) //inferred tag corresponds to the target tag
+                        && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD))
                 {
                     ret.add(next);
                     last = next;
@@ -127,5 +140,5 @@ public class HintInLine extends DefaultHint
         else
             return null;
     }
-
+    
 }

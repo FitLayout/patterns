@@ -3,7 +3,7 @@
  *
  * Created on 6. 12. 2018, 13:13:32 by burgetr
  */
-package org.fit.layout.patterns;
+package org.fit.layout.patterns.chunks;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.model.PresentationHint;
 
 /**
  * A cache of already created chunks depending on tags and hints.

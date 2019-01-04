@@ -15,13 +15,13 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.model.HintInLine;
-import org.fit.layout.patterns.model.HintSeparator;
-import org.fit.layout.patterns.model.HintWholeBox;
+import org.fit.layout.patterns.chunks.HintInLine;
+import org.fit.layout.patterns.chunks.HintSeparator;
+import org.fit.layout.patterns.chunks.HintWholeBox;
+import org.fit.layout.patterns.chunks.PresentationHint;
+import org.fit.layout.patterns.chunks.TextChunkArea;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
-import org.fit.layout.patterns.model.PresentationHint;
-import org.fit.layout.patterns.model.TextChunkArea;
 
 /**
  * Algorithms for analyzing the common visual presentation patterns in a given match result.

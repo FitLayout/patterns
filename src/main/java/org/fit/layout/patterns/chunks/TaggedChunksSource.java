@@ -3,7 +3,7 @@
  *
  * Created on 9. 3. 2018, 23:37:25 by burgetr
  */
-package org.fit.layout.patterns;
+package org.fit.layout.patterns.chunks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,6 @@ import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.gui.PatternsPlugin;
-import org.fit.layout.patterns.model.TextChunkArea;
 
 /**
  * An area list source that creates artificial areas by extracting tagged chunks from leaf areas.

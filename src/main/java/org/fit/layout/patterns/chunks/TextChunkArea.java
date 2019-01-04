@@ -3,7 +3,7 @@
  *
  * Created on 26. 6. 2018, 13:52:54 by burgetr
  */
-package org.fit.layout.patterns.model;
+package org.fit.layout.patterns.chunks;
 
 import java.awt.Color;
 

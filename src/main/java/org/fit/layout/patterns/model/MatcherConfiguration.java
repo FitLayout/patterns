@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.chunks.PresentationHint;
 
 /**
  * A matcher configuration that involves a tag connection pattern and the styles

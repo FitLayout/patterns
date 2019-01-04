@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fit.layout.model.Area;
+import org.fit.layout.patterns.chunks.ChunksSource;
 
 /**
  * An area list source that simply takes the leaf areas in a tree with a given root area.

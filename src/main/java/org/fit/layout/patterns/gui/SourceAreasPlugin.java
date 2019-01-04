@@ -28,7 +28,7 @@ import org.fit.layout.impl.DefaultTag;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AttributeGroupMatcher;
-import org.fit.layout.patterns.ChunksSource;
+import org.fit.layout.patterns.chunks.ChunksSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.awt.GridBagLayout;

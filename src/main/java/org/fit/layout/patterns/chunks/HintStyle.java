@@ -3,7 +3,7 @@
  *
  * Created on 10. 7. 2018, 15:37:07 by burgetr
  */
-package org.fit.layout.patterns.model;
+package org.fit.layout.patterns.chunks;
 
 import java.util.ArrayList;
 import java.util.List;
