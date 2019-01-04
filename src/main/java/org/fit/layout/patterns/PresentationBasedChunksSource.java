@@ -189,17 +189,21 @@ public class PresentationBasedChunksSource extends ChunksSource
         List<Area> chunks = new ArrayList<>();
         List<Area> all = new ArrayList<>();
         Tagger tg = t.getSource();
+        
+        //Stage 1: Extract boxes
         List<Box> boxes = extractBoxes(a, t, processed);
         BoxText boxText = new BoxText(boxes);
 
+        //Stage 2: Find occurences
         List<TagOccurrence> occurrences = tg.extract(boxText.getText());
-        //apply hints on the particular list of chunks
+        //apply hints on the particular list of occurences
         if (hints.containsKey(t))
         {
             for (PresentationHint hint : hints.get(t))
                 occurrences = hint.processOccurrences(boxText, occurrences);
         }
         
+        //Stage 3: Create chunks based on the occurences
         int last = 0;
         for (TagOccurrence occ : occurrences)
         {
