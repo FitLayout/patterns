@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.model.Area;
-import org.fit.layout.model.Box;
 
 /**
  * A default no-op presentation hint.
@@ -26,7 +25,7 @@ public class DefaultHint implements PresentationHint
     }
 
     @Override
-    public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed)
+    public SourceBoxList extractBoxes(Area a, SourceBoxList current, Set<Area> processed)
     {
         //no changes are performed 
         return current;

@@ -17,7 +17,7 @@ import org.fit.layout.patterns.AreaUtils;
  */
 public class BoxText
 {
-    private List<Box> boxes;
+    private SourceBoxList boxes;
     /** Complete text of the string of boxes */
     private String text;
     /** The individual box string start positions in the complete text */
@@ -26,7 +26,7 @@ public class BoxText
     private int[] lengths;
     
     
-    public BoxText(List<Box> boxes)
+    public BoxText(SourceBoxList boxes)
     {
         this.boxes = boxes;
         computeOffsets();

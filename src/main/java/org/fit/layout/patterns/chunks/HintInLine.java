@@ -12,7 +12,6 @@ import java.util.Set;
 import org.fit.layout.impl.DefaultContentLine;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
-import org.fit.layout.model.Box;
 import org.fit.layout.model.ContentLine;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
@@ -41,7 +40,7 @@ public class HintInLine extends DefaultHint
     }
 
     @Override
-    public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed)
+    public SourceBoxList extractBoxes(Area a, SourceBoxList current, Set<Area> processed)
     {
         Tag dtag = dis.getAreaTag(a);
         if (tag.equals(dtag)) //the disambiguator must assign the destination tag to this area

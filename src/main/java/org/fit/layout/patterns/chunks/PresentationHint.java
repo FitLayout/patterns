@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.model.Area;
-import org.fit.layout.model.Box;
 
 /**
  * A hint that influences the chunk extraction in different points of the chunk extraction phases
@@ -29,7 +28,7 @@ public interface PresentationHint
      * @param processed
      * @return
      */
-    public List<Box> extractBoxes(Area a, List<Box> current, Set<Area> processed);
+    public SourceBoxList extractBoxes(Area a, SourceBoxList current, Set<Area> processed);
 
     /**
      * Applies the hint to a list of occurences extracted from the given box text (postprocessing a list of

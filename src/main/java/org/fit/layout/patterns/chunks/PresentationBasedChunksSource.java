@@ -18,7 +18,6 @@ import org.fit.layout.classify.TextTag;
 import org.fit.layout.impl.AreaListGridTopology;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
-import org.fit.layout.model.Box;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.gui.PatternsPlugin;
@@ -188,7 +187,7 @@ public class PresentationBasedChunksSource extends ChunksSource
         Tagger tg = t.getSource();
         
         //Stage 1: Extract boxes
-        List<Box> boxes = extractBoxes(a, t, processed);
+        SourceBoxList boxes = extractBoxes(a, t, processed);
         BoxText boxText = new BoxText(boxes);
 
         //Stage 2: Find occurences
@@ -257,10 +256,10 @@ public class PresentationBasedChunksSource extends ChunksSource
     
     //==============================================================================================
     
-    private List<Box> extractBoxes(Area src, Tag t, Set<Area> processed)
+    private SourceBoxList extractBoxes(Area src, Tag t, Set<Area> processed)
     {
         processed.add(src);
-        List<Box> current = new ArrayList<>(src.getBoxes());
+        SourceBoxList current = new SourceBoxList(src.getBoxes(), true); //we start with block layout (single line)
         if (hints.containsKey(t))
         {
             for (PresentationHint hint : hints.get(t))
