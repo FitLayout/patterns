@@ -107,10 +107,21 @@ public class BoxText
                 Rectangular r2 = box2.getSubstringBounds(0, ofs2);
                 if (r != null && r2 != null)
                 {
-                    if (r2.getX1() >= r.getX2() && r2.getY1() < r.getY2())
-                        r.expandToEnclose(r2); //basically on the same line, just expand the rectangle to cover both
-                    else
-                        r.setX2(r.getX2() + r2.getWidth()); //different lines - just expand the first box to indicate the total length
+                    if (r2.getX1() >= r.getX2() && r2.getY1() < r.getY2()) //basically on the same line
+                    {
+                        r.expandToEnclose(r2); //just expand the rectangle to cover both
+                    }
+                    else //different lines
+                    {
+                        if (boxes.isBlockLayout())
+                        {
+                            r.expandToEnclose(r2); //block - cover both
+                        }
+                        else
+                        {
+                            r.setX2(r.getX2() + r2.getWidth()); //inline - just expand the first box to indicate the total length
+                        }
+                    }
                 }
             }
             return r;

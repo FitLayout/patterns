@@ -62,6 +62,8 @@ public class HintInLine extends DefaultHint
                             processed.add(aa);
                         }
                     }
+                    //the chunks are spread over multiple lines - they may use an inline layout
+                    current.setBlockLayout(false);
                 }
                 return current;
             }
