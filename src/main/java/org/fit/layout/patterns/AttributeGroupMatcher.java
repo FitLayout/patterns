@@ -642,7 +642,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<Tag> tags = new ArrayList<>(getUsedTags()); //use the list to preserve order
         List<List<List<PresentationHint>>> hintGroups = new ArrayList<>(tags.size()); //hint groups for every tag
         //infer the hint groups
-        MatchAnalyzer ma = new MatchAnalyzer(match);
+        MatchAnalyzer ma = new MatchAnalyzer(match, src);
         for (Tag tag : tags)
         {
             List<List<PresentationHint>> groups = ma.findPossibleHints(tag, dis);

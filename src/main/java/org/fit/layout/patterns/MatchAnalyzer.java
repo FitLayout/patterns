@@ -20,8 +20,11 @@ import org.fit.layout.patterns.chunks.HintMultiBox;
 import org.fit.layout.patterns.chunks.HintSeparator;
 import org.fit.layout.patterns.chunks.PresentationHint;
 import org.fit.layout.patterns.chunks.TextChunkArea;
+import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
+import org.fit.layout.patterns.model.MatcherConfiguration;
+import org.fit.layout.patterns.model.TagConnection;
 
 /**
  * Algorithms for analyzing the common visual presentation patterns in a given match result.
@@ -35,11 +38,13 @@ public class MatchAnalyzer
     private static final float SEPARATOR_MIN_FREQUENCY = 0.5f;
     
     private MatchResult matchResult;
+    private MatcherConfiguration conf;
 
     
-    public MatchAnalyzer(MatchResult result)
+    public MatchAnalyzer(MatchResult result, MatcherConfiguration conf)
     {
         this.matchResult = result;
+        this.conf = conf;
     }
     
     /**
@@ -55,7 +60,8 @@ public class MatchAnalyzer
         List<PresentationHint> setWholeBox = new ArrayList<>(1);
         List<PresentationHint> setInLine = new ArrayList<>(2);
         
-        float wholeBox = wholeBoxSupport(tag);
+        boolean isBlock = tagInBlockRelation(tag);
+        float wholeBox = isBlock ? 0.95f : wholeBoxSupport(tag);
         //System.out.println("Whole box support for " + tag + " : " + wholeBox);
         if (wholeBox > WHOLE_BOX_THRESHOLD && wholeBox < 1.0f)
         {
@@ -176,6 +182,24 @@ public class MatchAnalyzer
             return seps.getFrequentStyles(SEPARATOR_MIN_FREQUENCY, cnt);
         else
             return Collections.emptyList();
+    }
+    
+    //============================================================================
+    
+    private boolean tagInBlockRelation(Tag tag)
+    {
+        ConnectionPattern conns = conf.getPattern();
+        for (TagConnection con : conns)
+        {
+            if (con.getA2().equals(tag))
+            {
+                if (con.getRelation().getName().equals("underHeading"))
+                    return true;
+                else
+                    return false;
+            }
+        }
+        return false;
     }
     
     //============================================================================
