@@ -122,18 +122,20 @@ public class RelationAnalyzer
             indexA1 = new HashMap<>();
             indexA2 = new HashMap<>();
             indexR = new HashMap<>();
+            List<SimpleRelation> simpleRels = new ArrayList<>();
             for (Relation r : analyzedRelations)
             {
                 if (r instanceof BulkRelation)
                     addConnectionsForBulkRelation(areas, (BulkRelation) r);
                 else if (r instanceof SimpleRelation)
-                    addConnectionsForSimpleRelation(areas, (SimpleRelation) r);
+                    simpleRels.add((SimpleRelation) r);
             }
+            addConnectionsForSimpleRelations(areas, simpleRels.toArray(new SimpleRelation[simpleRels.size()]));
         }
         return areaConnections;
     }
     
-    private void addConnectionsForSimpleRelation(List<Area> areas, SimpleRelation relation)
+    private void addConnectionsForSimpleRelations(List<Area> areas, SimpleRelation[] relations)
     {
         for (Area a1 : areas)
         {
@@ -141,10 +143,13 @@ public class RelationAnalyzer
             {
                 if (a1 != a2 && !a1.getBounds().intersects(a2.getBounds()))
                 {
-                    float w = relation.isInRelationship(a1, a2, topology, areas);
-                    if (w >= MIN_RELATION_WEIGHT)
+                    for (SimpleRelation relation : relations)
                     {
-                        addAreaConnection(new AreaConnection(a1, a2, relation, w));
+                        final float w = relation.isInRelationship(a1, a2, topology, areas);
+                        if (w >= MIN_RELATION_WEIGHT)
+                        {
+                            addAreaConnection(new AreaConnection(a1, a2, relation, w));
+                        }
                     }
                 }
             }
@@ -153,7 +158,7 @@ public class RelationAnalyzer
 
     private void addConnectionsForBulkRelation(List<Area> areas, BulkRelation relation)
     {
-        Set<AreaConnection> cons = relation.findRelations(topology, areas);
+        final Set<AreaConnection> cons = relation.findRelations(topology, areas);
         for (AreaConnection con : cons)
             addAreaConnection(con);
     }
@@ -306,8 +311,8 @@ public class RelationAnalyzer
             tagConnections = new TagConnectionList();
             for (AreaConnection ac : getAreaConnections())
             {
-                Set<Tag> srcTags = ac.getA1().getTags().keySet();
-                Set<Tag> dstTags = ac.getA2().getTags().keySet();
+                final Set<Tag> srcTags = ac.getA1().getTags().keySet();
+                final Set<Tag> dstTags = ac.getA2().getTags().keySet();
                 if (!srcTags.isEmpty() && !dstTags.isEmpty())
                 {
                     for (Tag src : srcTags)
