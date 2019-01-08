@@ -31,7 +31,7 @@ import org.fit.layout.patterns.model.TagConnectionList;
  */
 public class RelationAnalyzer
 {
-    private static final float MIN_RELATION_WEIGHT = 0.1f;
+    public static final float MIN_RELATION_WEIGHT = 0.1f;
     private static final List<Relation> ANALYZED_RELATIONS;
     static {
         ANALYZED_RELATIONS = new ArrayList<>(5);

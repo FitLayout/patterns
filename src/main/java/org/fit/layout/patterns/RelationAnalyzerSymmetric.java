@@ -20,11 +20,7 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
     private static final List<Relation> ANALYZED_RELATIONS;
     static {
         ANALYZED_RELATIONS = new ArrayList<>(10);
-        ANALYZED_RELATIONS.add(new RelationSide(false));
-        ANALYZED_RELATIONS.add(new RelationSide(true));
-        ANALYZED_RELATIONS.add(new RelationAfter(false));
-        ANALYZED_RELATIONS.add(new RelationAfter(true));
-        ANALYZED_RELATIONS.add(new RelationSameLine());
+        ANALYZED_RELATIONS.add(new SameLineRelations());
         ANALYZED_RELATIONS.add(new RelationUnder());
         ANALYZED_RELATIONS.add(new RelationUnderHeading());
         ANALYZED_RELATIONS.add(new RelationBelow(false));
