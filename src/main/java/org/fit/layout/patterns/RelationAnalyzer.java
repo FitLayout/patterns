@@ -32,6 +32,15 @@ import org.fit.layout.patterns.model.TagConnectionList;
 public class RelationAnalyzer
 {
     private static final float MIN_RELATION_WEIGHT = 0.1f;
+    private static final List<Relation> ANALYZED_RELATIONS;
+    static {
+        ANALYZED_RELATIONS = new ArrayList<>(5);
+        ANALYZED_RELATIONS.add(new RelationSide(false));
+        ANALYZED_RELATIONS.add(new RelationUnder());
+        ANALYZED_RELATIONS.add(new RelationAfter(false));
+        ANALYZED_RELATIONS.add(new RelationBelow());
+        ANALYZED_RELATIONS.add(new RelationSameLine());
+    }
     
     private List<Relation> analyzedRelations;
     private List<Area> areas;
@@ -47,28 +56,13 @@ public class RelationAnalyzer
     public RelationAnalyzer(List<Area> areas)
     {
         this.areas = areas;
-        
         topology = new AreaListGridTopology(areas);
-        analyzedRelations = new ArrayList<>();
-        initRelations();
+        setAnalyzedRelations(ANALYZED_RELATIONS);
     }
 
-    protected void initRelations()
+    protected void setAnalyzedRelations(List<Relation> relations)
     {
-        addRelation(new RelationSide(false));
-        addRelation(new RelationUnder());
-        addRelation(new RelationAfter(false));
-        addRelation(new RelationBelow());
-        addRelation(new RelationSameLine());
-    }
-    
-    /**
-     * Adds a new relation to the analyzed relations.
-     * @param rel the relation to be added
-     */
-    public void addRelation(Relation rel)
-    {
-        analyzedRelations.add(rel);
+        analyzedRelations = relations;
     }
     
     public List<Relation> getAnalyzedRelations()

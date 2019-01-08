@@ -5,6 +5,7 @@
  */
 package org.fit.layout.patterns;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fit.layout.model.Area;
@@ -16,25 +17,25 @@ import org.fit.layout.model.Area;
  */
 public class RelationAnalyzerSymmetric extends RelationAnalyzer
 {
+    private static final List<Relation> ANALYZED_RELATIONS;
+    static {
+        ANALYZED_RELATIONS = new ArrayList<>(10);
+        ANALYZED_RELATIONS.add(new RelationSide(false));
+        ANALYZED_RELATIONS.add(new RelationSide(true));
+        ANALYZED_RELATIONS.add(new RelationAfter(false));
+        ANALYZED_RELATIONS.add(new RelationAfter(true));
+        ANALYZED_RELATIONS.add(new RelationSameLine());
+        ANALYZED_RELATIONS.add(new RelationUnder());
+        ANALYZED_RELATIONS.add(new RelationUnderHeading());
+        ANALYZED_RELATIONS.add(new RelationBelow(false));
+        ANALYZED_RELATIONS.add(new RelationBelow(true));
+        ANALYZED_RELATIONS.add(new RelationLineBelow());
+    }
 
     public RelationAnalyzerSymmetric(List<Area> areas)
     {
         super(areas);
-    }
-
-    @Override
-    protected void initRelations()
-    {
-        addRelation(new RelationSide(false));
-        addRelation(new RelationSide(true));
-        addRelation(new RelationAfter(false));
-        addRelation(new RelationAfter(true));
-        addRelation(new RelationSameLine());
-        addRelation(new RelationUnder());
-        addRelation(new RelationUnderHeading());
-        addRelation(new RelationBelow(false));
-        addRelation(new RelationBelow(true));
-        addRelation(new RelationLineBelow());
+        setAnalyzedRelations(ANALYZED_RELATIONS);
     }
 
 }
