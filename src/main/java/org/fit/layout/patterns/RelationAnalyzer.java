@@ -29,20 +29,10 @@ import org.fit.layout.patterns.model.TagConnectionList;
  * 
  * @author burgetr
  */
-public class RelationAnalyzer
+public abstract class RelationAnalyzer
 {
     public static final float MIN_RELATION_WEIGHT = 0.1f;
-    private static final List<Relation> ANALYZED_RELATIONS;
-    static {
-        ANALYZED_RELATIONS = new ArrayList<>(5);
-        ANALYZED_RELATIONS.add(new RelationSide(false));
-        ANALYZED_RELATIONS.add(new RelationUnder());
-        ANALYZED_RELATIONS.add(new RelationAfter(false));
-        ANALYZED_RELATIONS.add(new RelationBelow());
-        ANALYZED_RELATIONS.add(new RelationSameLine());
-    }
     
-    private List<Relation> analyzedRelations;
     private List<Area> areas;
     private AreaTopology topology;
     private AreaConnectionList areaConnections;
@@ -57,18 +47,9 @@ public class RelationAnalyzer
     {
         this.areas = areas;
         topology = new AreaListGridTopology(areas);
-        setAnalyzedRelations(ANALYZED_RELATIONS);
     }
 
-    protected void setAnalyzedRelations(List<Relation> relations)
-    {
-        analyzedRelations = relations;
-    }
-    
-    public List<Relation> getAnalyzedRelations()
-    {
-        return analyzedRelations;
-    }
+    public abstract List<Relation> getAnalyzedRelations();
 
     public List<Area> getAreas()
     {
@@ -118,7 +99,8 @@ public class RelationAnalyzer
             indexA1 = new HashMap<>();
             indexA2 = new HashMap<>();
             indexR = new HashMap<>();
-            List<SimpleRelation> simpleRels = new ArrayList<>();
+            addConnections();
+            /*List<SimpleRelation> simpleRels = new ArrayList<>();
             List<SimpleGridRelation> simpleGridRels = new ArrayList<>();
             for (Relation r : analyzedRelations)
             {
@@ -130,10 +112,12 @@ public class RelationAnalyzer
                     simpleRels.add((SimpleRelation) r);
             }
             addConnectionsForSimpleGridRelations(areas, simpleGridRels.toArray(new SimpleGridRelation[simpleGridRels.size()]));
-            addConnectionsForSimpleRelations(areas, simpleRels.toArray(new SimpleRelation[simpleRels.size()]));
+            addConnectionsForSimpleRelations(areas, simpleRels.toArray(new SimpleRelation[simpleRels.size()]));*/
         }
         return areaConnections;
     }
+    
+    protected abstract void addConnections();
     
     private void addConnectionsForSimpleRelations(List<Area> areas, SimpleRelation[] relations)
     {
@@ -187,7 +171,7 @@ public class RelationAnalyzer
             addAreaConnection(con);
     }
     
-    private void addAreaConnection(AreaConnection con)
+    protected void addAreaConnection(AreaConnection con)
     {
         //add to the list
         areaConnections.add(con);
