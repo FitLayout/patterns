@@ -18,7 +18,7 @@ import org.fit.layout.patterns.model.Metric;
  * 
  * @author burgetr
  */
-public class RelationUnder extends BaseRelation implements SimpleRelation
+public class RelationUnder extends BaseRelation implements SimpleGridRelation
 {
 
     public RelationUnder()
@@ -27,14 +27,10 @@ public class RelationUnder extends BaseRelation implements SimpleRelation
     }
 
     @Override
-    public float isInRelationship(Area a1, Area a2, AreaTopology topology, Collection<Area> areas)
+    public float isInRelationship(Area a1, Rectangular gp1, Area a2, Rectangular gp2, AreaTopology topology, Collection<Area> areas)
     {
-        /*if (a1.getId() == 385 && a2.getId() == 382)
-            System.out.println("jo!");*/
         //here a1 is the bottom area, a2 is the top area
         //we say that a1 is below a2
-        final Rectangular gp1 = topology.getPosition(a1);
-        final Rectangular gp2 = topology.getPosition(a2);
         Rectangular inter = gp1.intersection(new Rectangular(gp2.getX1(), gp1.getY1(), gp2.getX2(), gp1.getY2()));
         if (inter.getWidth() > Math.min(gp1.getWidth(), gp2.getWidth()) / 2) //at least 1/2 of the smaller area overlaps
         {
