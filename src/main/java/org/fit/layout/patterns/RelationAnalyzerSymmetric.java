@@ -66,7 +66,7 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
         if (!areas.isEmpty())
         {
             //total page width (use the page of the first area, all areas should share the same page anyway)
-            final int tw = areas.get(0).getWidth();
+            final int tw = areas.get(0).getPage().getWidth();
             //scan the line relationships
             for (Area a1 : areas)
             {
@@ -125,7 +125,7 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
         if (!areas.isEmpty())
         {
             //total page width (use the page of the first area, all areas should share the same page anyway)
-            final int th = areas.get(0).getWidth(); //TODO should we use height?
+            final int th = areas.get(0).getPage().getWidth(); //TODO should we use height?
             //scan the line relationships
             final Set<Entry<Area,Rectangular>> entries = getTopology().getPositionMap().entrySet();
             for (Entry<Area,Rectangular> e1 : entries)
@@ -189,8 +189,8 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
     {
         if (!areas.isEmpty())
         {
-            final int tw = areas.get(0).getWidth();
-            final int th = areas.get(0).getHeight();
+            final int tw = areas.get(0).getPage().getWidth();
+            final int th = areas.get(0).getPage().getHeight();
             for (Area a : areas)
                 findLineBelow(a, areas, tw, th);
         }
@@ -244,8 +244,8 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
     {
         if (!areas.isEmpty())
         {
-            final int tw = areas.get(0).getWidth();
-            final int th = areas.get(0).getHeight();
+            final int tw = areas.get(0).getPage().getWidth();
+            final int th = areas.get(0).getPage().getHeight();
             for (Area a : areas)
                 findSubordinate(a, getTopology(), areas, tw, th);
         }
