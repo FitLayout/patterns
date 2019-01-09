@@ -12,13 +12,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.fit.layout.impl.AreaListGridTopology;
 import org.fit.layout.model.Area;
 import org.fit.layout.model.AreaTopology;
-import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaConnectionList;
@@ -51,6 +49,11 @@ public abstract class RelationAnalyzer
 
     public abstract List<Relation> getAnalyzedRelations();
 
+    /**
+     * Adds all the connections based on the evaluated relations.
+     */
+    protected abstract void addConnections();
+    
     public List<Area> getAreas()
     {
         return areas;
@@ -100,75 +103,8 @@ public abstract class RelationAnalyzer
             indexA2 = new HashMap<>();
             indexR = new HashMap<>();
             addConnections();
-            /*List<SimpleRelation> simpleRels = new ArrayList<>();
-            List<SimpleGridRelation> simpleGridRels = new ArrayList<>();
-            for (Relation r : analyzedRelations)
-            {
-                if (r instanceof BulkRelation)
-                    addConnectionsForBulkRelation(areas, (BulkRelation) r);
-                else if (r instanceof SimpleGridRelation)
-                    simpleGridRels.add((SimpleGridRelation) r);
-                else if (r instanceof SimpleRelation)
-                    simpleRels.add((SimpleRelation) r);
-            }
-            addConnectionsForSimpleGridRelations(areas, simpleGridRels.toArray(new SimpleGridRelation[simpleGridRels.size()]));
-            addConnectionsForSimpleRelations(areas, simpleRels.toArray(new SimpleRelation[simpleRels.size()]));*/
         }
         return areaConnections;
-    }
-    
-    protected abstract void addConnections();
-    
-    private void addConnectionsForSimpleRelations(List<Area> areas, SimpleRelation[] relations)
-    {
-        for (Area a1 : areas)
-        {
-            for (Area a2 : areas)
-            {
-                if (a1 != a2 && !a1.getBounds().intersects(a2.getBounds()))
-                {
-                    for (SimpleRelation relation : relations)
-                    {
-                        final float w = relation.isInRelationship(a1, a2, topology, areas);
-                        if (w >= MIN_RELATION_WEIGHT)
-                        {
-                            addAreaConnection(new AreaConnection(a1, a2, relation, w));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void addConnectionsForSimpleGridRelations(List<Area> areas, SimpleGridRelation[] relations)
-    {
-        final Set<Entry<Area,Rectangular>> entries = topology.getPositionMap().entrySet();
-        for (Entry<Area,Rectangular> e1 : entries)
-        {
-            for (Entry<Area,Rectangular> e2 : entries)
-            {
-                final Area a1 = e1.getKey();
-                final Area a2 = e2.getKey();
-                if (a1 != a2 && !a1.getBounds().intersects(a2.getBounds()))
-                {
-                    for (SimpleGridRelation relation : relations)
-                    {
-                        final float w = relation.isInRelationship(a1, e1.getValue(), a2, e2.getValue(), topology, areas);
-                        if (w >= MIN_RELATION_WEIGHT)
-                        {
-                            addAreaConnection(new AreaConnection(a1, a2, relation, w));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void addConnectionsForBulkRelation(List<Area> areas, BulkRelation relation)
-    {
-        final Set<AreaConnection> cons = relation.findRelations(topology, areas);
-        for (AreaConnection con : cons)
-            addAreaConnection(con);
     }
     
     protected void addAreaConnection(AreaConnection con)

@@ -5,19 +5,25 @@
  */
 package org.fit.layout.patterns;
 
+import java.util.Set;
+
+import org.fit.layout.patterns.model.Metric;
 
 /**
  * A common base implementation of all the relations.
  *  
  * @author burgetr
  */
-public abstract class BaseRelation implements Relation
+public class BasicRelation implements Relation
 {
     private String name;
+    private Set<Metric> usedMetrics;
+    
 
-    public BaseRelation(String name)
+    public BasicRelation(String name, Set<Metric> usedMetrics)
     {
         this.name = name;
+        this.usedMetrics = usedMetrics;
     }
 
     @Override
@@ -26,6 +32,12 @@ public abstract class BaseRelation implements Relation
         return name;
     }
 
+    @Override
+    public Set<Metric> metrics()
+    {
+        return usedMetrics;
+    }
+    
     @Override
     public int hashCode()
     {
@@ -41,7 +53,7 @@ public abstract class BaseRelation implements Relation
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        BaseRelation other = (BaseRelation) obj;
+        BasicRelation other = (BasicRelation) obj;
         if (name == null)
         {
             if (other.name != null) return false;
@@ -53,7 +65,7 @@ public abstract class BaseRelation implements Relation
     @Override
     public String toString()
     {
-        return "rel:" + name;
+        return name;
     }
-    
+
 }
