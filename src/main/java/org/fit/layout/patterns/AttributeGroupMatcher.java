@@ -56,7 +56,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     /** Minimal tag support for considering the area to have the given tag -- matching step */
     public static final float MIN_TAG_SUPPORT_MATCH = 0.09f;
     /** Use chunks caching while scanning different configurations. Currently, it seems that it does not help much */
-    private static final boolean USE_CHUNKS_CACHE = false;
+    private static final boolean USE_CHUNKS_CACHE = true;
 
     private List<Attribute> attrs; //list of all attributes
     private List<AttributeGroupMatcher> dependencies; //already configured group matchers
