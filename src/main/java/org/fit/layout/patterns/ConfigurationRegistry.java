@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.MatcherConfiguration;
+import org.fit.layout.patterns.model.TagConnection;
 
 /**
  * A registry of configurations used for discovering equivalent configurations based on the
@@ -31,14 +32,14 @@ public class ConfigurationRegistry
         known.add(conf);
     }
     
-    public boolean isKnown(MatcherConfiguration conf)
+    public MatcherConfiguration findEquivalent(MatcherConfiguration conf)
     {
         for (MatcherConfiguration c : known)
         {
             if (isEquivalent(c, conf))
-                return true;
+                return c;
         }
-        return false;
+        return null;
     }
     
     //================================================================================
@@ -49,9 +50,37 @@ public class ConfigurationRegistry
                 && isPatternEquivalent(c1.getPattern(), c2.getPattern());
     }
     
-    public boolean isPatternEquivalent(ConnectionPattern p1, ConnectionPattern p2)
+    private boolean isPatternEquivalent(ConnectionPattern p1, ConnectionPattern p2)
     {
-        return false; //TODO
+        for (TagConnection tc1 : p1)
+        {
+            //find the corresponding tag pair in p2
+            TagConnection found = null;
+            for (TagConnection tc2 : p2)
+            {
+                if (isConnectionEquivalent(tc1, tc2))
+                {
+                    found = tc2;
+                    break;
+                }
+            }
+            if (found == null)
+                return false;
+        }
+        //all corresponding tag pairs found
+        return true;
+    }
+    
+    private boolean isConnectionEquivalent(TagConnection tc1, TagConnection tc2)
+    {
+        return
+                (tc2.getA1().equals(tc1.getA1()) && tc2.getA2().equals(tc1.getA2()) //equal tags
+                        && tc2.getRelation().equals(tc1.getRelation()))             //  and the equal relation
+                || 
+                (tc2.getA1().equals(tc1.getA2()) && tc2.getA2().equals(tc1.getA1()) //reverse tags
+                        && ((tc2.getRelation().equals(tc1.getRelation()) && tc1.getRelation().isSymmetric()) //the same symmetric relation
+                                || (tc2.getRelation().getInverse() != null                                   //inverse relation
+                                        && tc2.getRelation().getInverse().equals(tc1.getRelation()))));
     }
     
 }

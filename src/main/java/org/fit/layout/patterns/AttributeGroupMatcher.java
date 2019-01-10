@@ -426,11 +426,13 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<Map<Tag, AreaStyle>> styleMaps = styleGenerator.generateStyleMaps(MIN_SUPPORT_STYLE);
         log.debug("{} style configurations", styleMaps.size());
         
+        ConfigurationRegistry registry = new ConfigurationRegistry();
         ChunksCache cache = USE_CHUNKS_CACHE ? new ChunksCache() : null;
         MatchStatistics stats = new MatchStatistics();
         MatchResult bestMatch = null;
         List<MatcherConfiguration> all = new ArrayList<>();
         int styleCnt = 0;
+        int skipCnt = 0;
         //test the individual style maps
         for (Map<Tag, AreaStyle> styleMap : styleMaps)
         {
@@ -457,6 +459,14 @@ public class AttributeGroupMatcher extends BaseMatcher
                     if (!tconf.equals(conf))
                         continue;
                 }
+                
+                if (registry.findEquivalent(conf) != null)
+                {
+                    log.debug("{} is equivalent to {}, skipping", conf, registry.findEquivalent(conf));
+                    skipCnt++;
+                    continue;
+                }
+                registry.add(conf);
                 
                 log.debug("Checking conf {}/{} {}/{}: {}", styleCnt, styleMaps.size(), patternCnt, patterns.size(), conf);
                 MatchResult match = evaluateConfiguration(conf, styledSource, dis, stats);
@@ -491,6 +501,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         log.debug("{} configurations tested", all.size());
+        log.debug("{} duplicate configurations skipped", skipCnt);
         if (USE_CHUNKS_CACHE)
             log.debug("{} entries in the cache, {} reads, {} hits", cache.size(), cache.getReads(), cache.getHits());
         
