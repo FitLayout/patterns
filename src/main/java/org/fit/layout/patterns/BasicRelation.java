@@ -18,12 +18,16 @@ public class BasicRelation implements Relation
 {
     private String name;
     private Set<Metric> usedMetrics;
+    private boolean symmetric;
+    private Relation inverse;
     
 
     public BasicRelation(String name, Set<Metric> usedMetrics)
     {
         this.name = name;
         this.usedMetrics = usedMetrics;
+        symmetric = false;
+        inverse = null;
     }
 
     @Override
@@ -36,6 +40,32 @@ public class BasicRelation implements Relation
     public Set<Metric> metrics()
     {
         return usedMetrics;
+    }
+    
+    @Override
+    public boolean isSymmetric()
+    {
+        return symmetric;
+    }
+
+    public BasicRelation setSymmetric(boolean symmetric)
+    {
+        this.symmetric = symmetric;
+        return this;
+    }
+    
+    @Override
+    public Relation getInverse()
+    {
+        return inverse;
+    }
+
+    public BasicRelation setInverse(Relation inverse)
+    {
+        this.inverse = inverse;
+        if (inverse instanceof BasicRelation)
+            ((BasicRelation) inverse).inverse = this;
+        return this;
     }
     
     @Override
