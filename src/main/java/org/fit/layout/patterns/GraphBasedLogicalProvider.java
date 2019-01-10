@@ -209,6 +209,21 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
         }
     }
     
+    public String getUsedConf()
+    {
+        String ret = "";
+        for (AttributeGroupMatcher m : getMatchers())
+        {
+            if (!ret.isEmpty())
+                ret += " : ";
+            if (m.getUsedConf() != null)
+                ret += m.getUsedConf().toString();
+            else
+                ret += "-none-";
+        }
+        return ret;
+    }
+    
     protected void addLogicalAreas(Collection<Match> matches, AttributeGroupMatcher matcher, LogicalArea destNode, Tag superAreaTag)
     {
         for (Match match : matches)
