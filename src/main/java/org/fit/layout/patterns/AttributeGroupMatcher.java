@@ -56,7 +56,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     /** Minimal tag support for considering the area to have the given tag -- matching step */
     public static final float MIN_TAG_SUPPORT_MATCH = 0.09f;
     /** Use chunks caching while scanning different configurations. Currently, it seems that it does not help much */
-    private static final boolean USE_CHUNKS_CACHE = true;
+    private static final boolean USE_CHUNKS_CACHE = false;
 
     private List<Attribute> attrs; //list of all attributes
     private List<AttributeGroupMatcher> dependencies; //already configured group matchers
@@ -356,6 +356,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         best = scanDisambiguations(root, styleGenerator);
         /*for (MatcherConfiguration conf : best)
             log.debug("Best:{}", conf);*/
+        System.gc();
         log.debug("Confiuration completed.");
     }
     
@@ -503,7 +504,10 @@ public class AttributeGroupMatcher extends BaseMatcher
         log.debug("{} configurations tested", all.size());
         log.debug("{} duplicate configurations skipped", skipCnt);
         if (USE_CHUNKS_CACHE)
-            log.debug("{} entries in the cache, {} reads, {} hits", cache.size(), cache.getReads(), cache.getHits());
+        {
+            log.debug("{} entries in the cache ({} chunks), {} reads, {} hits", cache.size(), cache.getChunkCount(), cache.getReads(), cache.getHits());
+            cache = null;
+        }
         
         //select the best configurations
         List<MatcherConfiguration> best = new ArrayList<>();

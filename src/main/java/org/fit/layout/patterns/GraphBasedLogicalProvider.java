@@ -217,7 +217,7 @@ public abstract class GraphBasedLogicalProvider extends BaseLogicalTreeProvider 
             if (!ret.isEmpty())
                 ret += " : ";
             if (m.getUsedConf() != null)
-                ret += m.getUsedConf().toString();
+                ret += m.getUsedConf().getDescription();
             else
                 ret += "-none-";
         }

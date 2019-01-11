@@ -58,6 +58,14 @@ public class ChunksCache
     {
         return hits;
     }
+    
+    public int getChunkCount()
+    {
+        int r = 0;
+        for (List<Area> list : chunks.values())
+            r += list.size();
+        return r;
+    }
 
     //==========================================================================================
     

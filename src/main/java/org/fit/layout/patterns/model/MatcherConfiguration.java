@@ -93,6 +93,17 @@ public class MatcherConfiguration
         String hnt = (getHints() == null) ? "[-]" : "[" + getHints() + "]";
         return getPattern() + cons + hnt + " " + getStyleMap() + " (" + rs + ")";
     }
+    
+    /**
+     * Formats a human-readable description of the configuration without the evaluation result.
+     * @return
+     */
+    public String getDescription()
+    {
+        String cons = (getConstraints() == null) ? "" : " [&& " + getConstraints() + "]";
+        String hnt = (getHints() == null) ? "[-]" : "[" + getHints() + "]";
+        return getPattern() + cons + hnt + " " + getStyleMap();
+    }
 
     @Override
     public int hashCode()

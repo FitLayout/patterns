@@ -18,6 +18,7 @@ import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.chunks.HintInLine;
 import org.fit.layout.patterns.chunks.HintMultiBox;
 import org.fit.layout.patterns.chunks.HintSeparator;
+import org.fit.layout.patterns.chunks.HintWholeBox;
 import org.fit.layout.patterns.chunks.PresentationHint;
 import org.fit.layout.patterns.chunks.TextChunkArea;
 import org.fit.layout.patterns.model.ConnectionPattern;
@@ -60,13 +61,13 @@ public class MatchAnalyzer
         List<PresentationHint> setWholeBox = new ArrayList<>(1);
         List<PresentationHint> setInLine = new ArrayList<>(2);
         
-        boolean isBlock = tagInBlockRelation(tag);
+        boolean isBlock = false;//tagInBlockRelation(tag);
         float wholeBox = isBlock ? 0.95f : wholeBoxSupport(tag);
         //System.out.println("Whole box support for " + tag + " : " + wholeBox);
         if (wholeBox > WHOLE_BOX_THRESHOLD && wholeBox < 1.0f)
         {
-            //setWholeBox.add(new HintWholeBox(tag));
-            setWholeBox.add(new HintMultiBox(tag, dis));
+            setWholeBox.add(new HintWholeBox(tag));
+            //setWholeBox.add(new HintMultiBox(tag, dis));
         }
         
         float inLine = inLineSupport(tag);
