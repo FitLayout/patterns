@@ -659,7 +659,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             List<List<PresentationHint>> groups = ma.findPossibleHints(tag, dis);
             groups.add(0, Collections.emptyList()); //add the null variant
             hintGroups.add(groups);
-            log.debug("Hints for {} : {}", tag, groups);
+            //log.debug("Hints for {} : {}", tag, groups);
         }
         //combine the hint groups
         int[] indices = new int[tags.size()];

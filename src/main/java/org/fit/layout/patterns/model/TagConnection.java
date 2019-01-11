@@ -26,4 +26,10 @@ public class TagConnection extends Connection<Tag>
         return new TagPair(getA1(), getA2());
     }
 
+    @Override
+    public String toString()
+    {
+        return getA1().toString() + "-" + getRelation().getName() + "-" + getA2().toString(); 
+    }
+    
 }

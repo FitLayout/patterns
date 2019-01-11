@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
 
 import org.fit.layout.classify.TagOccurrence;
 import org.fit.layout.model.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This hint tries to improve the recall of the tag occurrence discovery by applying
@@ -23,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HintSeparator extends DefaultHint
 {
-    private static Logger log = LoggerFactory.getLogger(HintSeparator.class);
+    //private static Logger log = LoggerFactory.getLogger(HintSeparator.class);
     
     private List<String> separators;
     private Tag tag;
@@ -107,7 +105,7 @@ public class HintSeparator extends DefaultHint
             {
                 if (is + 1 < splits.size() && cur.equals(splits.get(is + 1))) //found a single missing occurrence
                 {
-                    log.debug("Found missing by separators: {}" , splits.get(is));
+                    //log.debug("Found missing by separators: {}" , splits.get(is));
                     occurrences.add(splitOccurrences.get(is));
                     is++;
                 }
