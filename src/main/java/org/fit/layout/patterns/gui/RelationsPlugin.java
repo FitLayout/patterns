@@ -16,11 +16,9 @@ import java.util.Vector;
 import javax.swing.JPanel;
 
 import org.fit.layout.api.ServiceManager;
-import org.fit.layout.gui.AreaSelectionListener;
 import org.fit.layout.gui.Browser;
 import org.fit.layout.gui.BrowserPlugin;
 import org.fit.layout.model.Area;
-import org.fit.layout.patterns.AttributeGroupMatcher;
 import org.fit.layout.patterns.Relation;
 import org.fit.layout.patterns.RelationAnalyzer;
 import org.fit.layout.patterns.chunks.ChunksSource;
@@ -44,14 +42,13 @@ import java.awt.event.ActionEvent;
  * 
  * @author burgetr
  */
-public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, ChunkSelectionListener
+public class RelationsPlugin implements BrowserPlugin, ChunkSelectionListener
 {
     private static Logger log = LoggerFactory.getLogger(RelationsPlugin.class);
     
     private Browser browser;
     private PatternBasedLogicalProvider provider;
-    private AttributeGroupMatcher matcher;
-    private RelationAnalyzer pa;
+    private RelationAnalyzer currentPA;
     private Area selectedArea;
     
     private JPanel pnl_main;
@@ -71,14 +68,11 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
     {
         this.browser = browser;
         this.browser.addToolPanel("Relations", getPnl_main());
-        this.browser.addAreaSelectionListener(this);
         
         provider = ServiceManager.findByClass(ServiceManager.findLogicalTreeProviders().values(), PatternBasedLogicalProvider.class);
         if (provider != null)
         {
             log.info("Found logical provider: {}", provider);
-            if (provider.getMatchers().size() > 0)
-                matcher = provider.getMatchers().get(provider.getMatchers().size() - 1);
         }
         else
             return false;
@@ -96,43 +90,20 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
     }
 
     @Override
-    public void areaSelected(Area area)
+    public void chunkSelected(Area area, ChunksSource source)
     {
         selectedArea = area;
-        if (matcher != null && matcher.getUsedConf() != null)
+        if (source.getPA() != currentPA)
         {
-            if (pa == null)
-            {
-                pa = getCurrentPA();
-                fillRelationsCombo(pa.getAnalyzedRelations());
-            }
-            updateConnectionList(selectedArea, pa);
+            currentPA = source.getPA();
+            fillRelationsCombo(currentPA.getAnalyzedRelations());
+        }
+        if (currentPA != null)
+        {
+            updateConnectionList(selectedArea, currentPA);
         }
         else
-            log.info("No matcher");
-    }
-    
-    @Override
-    public void chunkSelected(Area area)
-    {
-        selectedArea = area;
-        if (matcher != null && matcher.getUsedConf() != null)
-        {
-            if (pa == null)
-            {
-                pa = getCurrentPA();
-                fillRelationsCombo(pa.getAnalyzedRelations());
-            }
-            updateConnectionList(selectedArea, pa);
-        }
-        else
-            log.info("No matcher");
-    }
-    
-    private RelationAnalyzer getCurrentPA()
-    {
-        ChunksSource src = matcher.getUsedSource(browser.getAreaTree().getRoot());
-        return src.getPA();
+            log.info("Chunk source not available");
     }
     
     private void fillRelationsCombo(List<Relation> relations)
@@ -255,8 +226,8 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
         	relationCombo = new JComboBox<Relation>();
         	relationCombo.addActionListener(new ActionListener() {
         	    public void actionPerformed(ActionEvent e) {
-        	        if (selectedArea != null && pa != null)
-        	            updateConnectionList(selectedArea, pa);
+        	        if (selectedArea != null && currentPA != null)
+        	            updateConnectionList(selectedArea, currentPA);
         	    }
         	});
         }
@@ -268,8 +239,8 @@ public class RelationsPlugin implements BrowserPlugin, AreaSelectionListener, Ch
         	chckbxOutgoing = new JCheckBox("Outgoing");
         	chckbxOutgoing.addActionListener(new ActionListener() {
         	    public void actionPerformed(ActionEvent e) {
-                    if (selectedArea != null && pa != null)
-                        updateConnectionList(selectedArea, pa);
+                    if (selectedArea != null && currentPA != null)
+                        updateConnectionList(selectedArea, currentPA);
         	    }
         	});
         }

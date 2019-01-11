@@ -50,6 +50,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
     private PatternBasedLogicalProvider provider;
     private PatternsPlugin pp;
     private List<ChunkSelectionListener> chunkSelectionListeners;
+    private ChunksSource currentSource;
     private List<Area> currentAreas;
     private List<Area> filteredAreas;
     private Tag tagAll = new DefaultTag("FitLayout", "ALL"); //the tag used for selecting all
@@ -108,7 +109,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
         if (m != null && m.getUsedConf() != null)
         {
             ChunksSource source = getCurrentSource(m);
-            setAreas(source.getAreas());
+            setAreas(source.getAreas(), source);
         }
         else
             clearAreas();
@@ -125,8 +126,9 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
         return src;
     }
     
-    private void setAreas(List<Area> areas)
+    private void setAreas(List<Area> areas, ChunksSource source)
     {
+        currentSource = source;
         currentAreas = new ArrayList<>(areas);
         fillTagCombo(areas);
         showFilteredAreas();
@@ -268,7 +270,7 @@ public class SourceAreasPlugin implements BrowserPlugin, GUIUpdateListener, Canv
                         showArea(a);
                         browser.updateDisplay();
                         for (ChunkSelectionListener listener : chunkSelectionListeners)
-                            listener.chunkSelected(a);
+                            listener.chunkSelected(a, currentSource);
                     }
                 }
             });
