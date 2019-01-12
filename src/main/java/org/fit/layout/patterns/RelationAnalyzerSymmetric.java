@@ -137,7 +137,6 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
                     if (a1 != a2 && !a1.getBounds().intersects(a2.getBounds()))
                     {
                         checkBelowUnder(a1, e1.getValue(), a2, e2.getValue(), th);
-                        checkAbove(a1, e1.getValue(), a2, e2.getValue(), th);
                     }
                 }
             }
@@ -157,28 +156,13 @@ public class RelationAnalyzerSymmetric extends RelationAnalyzer
             {
                 final float w = 1.0f - dist / th;
                 if (w > RelationAnalyzer.MIN_RELATION_WEIGHT)
+                {
                     addAreaConnection(new AreaConnection(a1, a2, Relation.BELOW, w));
+                    addAreaConnection(new AreaConnection(a2, a1, Relation.ABOVE, w));
+                }
                 //add 'under' if it is close enough
                 if (dist < 0.8f*em)
                     addAreaConnection(new AreaConnection(a1, a2, Relation.UNDER, 1.0f));
-            }
-        }
-    }
-
-    private void checkAbove(Area a2, Rectangular gp2, Area a1, Rectangular gp1, int th)
-    {
-        //here a1 is the bottom area, a2 is the top area
-        //we say that a2 is above a1
-        final Rectangular inter = gp1.intersection(new Rectangular(gp2.getX1(), gp1.getY1(), gp2.getX2(), gp1.getY2()));
-        if (inter.getWidth() > Math.min(gp1.getWidth(), gp2.getWidth()) / 2) //at least 1/2 of the smaller area overlaps
-        {
-            final float dist = a1.getBounds().getY1() - a2.getBounds().getY2();
-            final float em = Math.max(a2.getFontSize(), a1.getFontSize());
-            if (dist >= -0.5f*em)
-            {
-                final float w = 1.0f - dist / th;
-                if (w > RelationAnalyzer.MIN_RELATION_WEIGHT)
-                    addAreaConnection(new AreaConnection(a1, a2, Relation.ABOVE, w));
             }
         }
     }
