@@ -32,9 +32,9 @@ public class HintInLine extends DefaultHint
     private Disambiguator dis;
 
     
-    public HintInLine(Tag tag, Disambiguator dis)
+    public HintInLine(Tag tag, Disambiguator dis, float support)
     {
-        super("InLine");
+        super("InLine", support);
         this.tag = tag;
         this.dis = dis;
     }

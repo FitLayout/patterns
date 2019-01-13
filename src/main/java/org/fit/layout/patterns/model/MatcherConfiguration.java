@@ -24,6 +24,7 @@ public class MatcherConfiguration
     private ConnectionPattern pattern; //the main connection pattern to search
     private ConnectionPattern constraints; //additional constraints that should be followed (or null if none)
     private Map<Tag, List<PresentationHint>> hints;
+    private float hintScore;
     private Set<Tag> tags;
     private MatchResultScore result;
     
@@ -33,6 +34,7 @@ public class MatcherConfiguration
         this.pattern = pattern;
         this.result = result;
         this.tags = pattern.getTags();
+        this.hintScore = 1.0f;
     }
 
     public MatcherConfiguration(MatcherConfiguration src)
@@ -58,6 +60,16 @@ public class MatcherConfiguration
     public void setHints(Map<Tag, List<PresentationHint>> hints)
     {
         this.hints = hints;
+    }
+
+    public float getHintScore()
+    {
+        return hintScore;
+    }
+
+    public void setHintScore(float hintScore)
+    {
+        this.hintScore = hintScore;
     }
 
     public MatchResultScore getResult()

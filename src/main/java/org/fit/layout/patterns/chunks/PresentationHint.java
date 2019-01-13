@@ -21,6 +21,12 @@ public interface PresentationHint
 {
     
     /**
+     * The probability of the hint based on the analyzed page.
+     * @return the hint support 0.0 .. 1.0
+     */
+    public float getSupport();
+    
+    /**
      * Extracts boxes from the given area and/or modifies the already existing list of boxes (preprocessing).
      * If some additional areas were processed, they should be added to the 'processed' set.
      * @param a

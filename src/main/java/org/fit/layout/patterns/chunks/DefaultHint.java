@@ -18,10 +18,22 @@ import org.fit.layout.model.Area;
 public class DefaultHint implements PresentationHint
 {
     private String name;
+    private float support;
     
-    public DefaultHint(String name)
+    public DefaultHint(String name, float support)
     {
         this.name = name;
+        this.support = support;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public float getSupport()
+    {
+        return support;
     }
 
     @Override

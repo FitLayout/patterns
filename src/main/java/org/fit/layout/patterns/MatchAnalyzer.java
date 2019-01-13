@@ -66,20 +66,20 @@ public class MatchAnalyzer
         if (wholeBox > WHOLE_BOX_THRESHOLD && wholeBox < 1.0f)
         {
             //setWholeBox.add(new HintWholeBox(tag));
-            setWholeBox.add(new HintMultiBox(tag, dis));
+            setWholeBox.add(new HintMultiBox(tag, dis, wholeBox));
         }
         
         float inLine = inLineSupport(tag);
         //System.out.println("In line support for " + tag + " : " + inLine);
         if (inLine > IN_LINE_THRESHOLD)
         {
-            setInLine.add(new HintInLine(tag, dis));
+            setInLine.add(new HintInLine(tag, dis, inLine));
             
             List<String> seps = frequentSeparators(tag);
             //System.out.println("Frequent separators for " + tag + ": " + seps);
             if (!seps.isEmpty())
             {
-                setInLine.add(new HintSeparator(tag, seps));
+                setInLine.add(new HintSeparator(tag, seps, 0.95f));
             }
         }
         

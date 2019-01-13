@@ -24,9 +24,9 @@ public class HintStyle extends DefaultHint
     private Disambiguator dis;
     
 
-    public HintStyle(Tag tag, Disambiguator dis)
+    public HintStyle(Tag tag, Disambiguator dis, float support)
     {
-        super("Style");
+        super("Style", support);
         this.tag = tag;
         this.dis = dis;
     }

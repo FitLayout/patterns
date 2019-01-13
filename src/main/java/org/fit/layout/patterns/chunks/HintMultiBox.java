@@ -31,9 +31,9 @@ public class HintMultiBox extends DefaultHint
     private Disambiguator dis;
 
     
-    public HintMultiBox(Tag tag, Disambiguator dis)
+    public HintMultiBox(Tag tag, Disambiguator dis, float support)
     {
-        super("MultiBox");
+        super("MultiBox", support);
         this.tag = tag;
         this.dis = dis;
     }

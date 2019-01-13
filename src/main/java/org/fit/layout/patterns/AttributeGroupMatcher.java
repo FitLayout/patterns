@@ -590,7 +590,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         //Add style hints
         for (Tag tag : getTagsWithDependencies())
         {
-            ret.addHint(tag, new HintStyle(tag, dis));
+            ret.addHint(tag, new HintStyle(tag, dis, 1.0f));
         }
         return ret;
     }
@@ -656,6 +656,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         
         List<Tag> tags = new ArrayList<>(getUsedTags()); //use the list to preserve order
         List<List<List<PresentationHint>>> hintGroups = new ArrayList<>(tags.size()); //hint groups for every tag
+        List<List<Float>> groupScores = new ArrayList<>(tags.size()); //total hint score for every tag
         //infer the hint groups
         MatchAnalyzer ma = new MatchAnalyzer(match, src);
         for (Tag tag : tags)
@@ -663,7 +664,9 @@ public class AttributeGroupMatcher extends BaseMatcher
             List<List<PresentationHint>> groups = ma.findPossibleHints(tag, dis);
             groups.add(0, Collections.emptyList()); //add the null variant
             hintGroups.add(groups);
-            //log.debug("Hints for {} : {}", tag, groups);
+            groupScores.add(computeGroupScores(groups));
+            log.debug("Hints for {} : {}", tag, groups);
+            log.debug("      scores : {}", computeGroupScores(groups));
         }
         //combine the hint groups
         int[] indices = new int[tags.size()];
@@ -698,6 +701,19 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
         }
         
+        return ret;
+    }
+    
+    private List<Float> computeGroupScores(List<List<PresentationHint>> groups)
+    {
+        List<Float> ret = new ArrayList<>(groups.size());
+        for (List<PresentationHint> group : groups)
+        {
+            float s = 1.0f;
+            for (PresentationHint hint : group)
+                s = s * (hint.getSupport() + 0.5f);
+            ret.add(s);
+        }
         return ret;
     }
     

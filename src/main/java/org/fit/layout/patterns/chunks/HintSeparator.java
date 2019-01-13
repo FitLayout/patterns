@@ -28,9 +28,9 @@ public class HintSeparator extends DefaultHint
     private Pattern pattern;
 
     
-    public HintSeparator(Tag tag, List<String> separators)
+    public HintSeparator(Tag tag, List<String> separators, float support)
     {
-        super("Separator");
+        super("Separator", support);
         this.tag = tag;
         this.separators = separators;
         
