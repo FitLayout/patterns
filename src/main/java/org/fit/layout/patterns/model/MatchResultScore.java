@@ -114,6 +114,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     private float connectionWeightSigma;
     private float minMetric;
     private float styleConsistency;
+    private float hintScore;
     
     public MatchResultScore()
     {
@@ -210,6 +211,16 @@ public class MatchResultScore implements Comparable<MatchResultScore>
         this.styleConsistency = styleConsistency;
     }
 
+    public float getHintScore()
+    {
+        return hintScore;
+    }
+
+    public void setHintScore(float hintScore)
+    {
+        this.hintScore = hintScore;
+    }
+
     public float getCoveredAreas()
     {
         if (getStats() != null)
@@ -228,10 +239,11 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     
     public float getOverallScore()
     {
-        return (1 * (1.0f - getMinMetric())
+        return ((1 * (1.0f - getMinMetric())
                 + 0.5f * getStyleConsistency()
                 + 1 * getCoveredAreas()
-                + 0.5f * getAverageConnectionWeight()) / 3.0f;
+                + 0.5f * getAverageConnectionWeight()) / 3.0f)
+                * (hintScore + 0.5f);
     }
     
     public void updateStats()
@@ -262,6 +274,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
             + ", s=" + getConnectionWeightSigma()
             + ", sc=" + getStyleConsistency()
             + ", mm=" + getMinMetric()
+            + ", hs=" + getHintScore()
             //+ ", min=" + getMinConnectionWeight()
             //+ ", max=" + getMaxConnectionWeight()
             ;

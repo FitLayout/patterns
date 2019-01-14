@@ -559,7 +559,9 @@ public class AttributeGroupMatcher extends BaseMatcher
             conf.setConstraints(constraints);
             match = findMatches(conf, source.getPA(), dis, tagAreas, depMatches);
         }
-        match.evaluateScore().setStats(stats);
+        MatchResultScore score = match.evaluateScore();
+        score.setStats(stats);
+        score.setHintScore(conf.getHintScore());
         conf.setResult(match.getScore());
         return match;
     }
@@ -679,12 +681,15 @@ public class AttributeGroupMatcher extends BaseMatcher
             {
                 MatcherConfiguration conf = new MatcherConfiguration(src);
                 Map<Tag, List<PresentationHint>> hints = new HashMap<>();
+                float hintScoreSum = 0.0f;
                 for (int i = 0; i < indices.length; i++)
                 {
                     if (indices[i] < hintGroups.get(i).size()) //skip empty sets
                         hints.put(tags.get(i), hintGroups.get(i).get(indices[i]));
+                    hintScoreSum += groupScores.get(i).get(indices[i]);
                 }
                 conf.setHints(hints);
+                conf.setHintScore(hintScoreSum / indices.length); //use average hint score
                 ret.add(conf);
             }
             first = false;
@@ -707,11 +712,35 @@ public class AttributeGroupMatcher extends BaseMatcher
     private List<Float> computeGroupScores(List<List<PresentationHint>> groups)
     {
         List<Float> ret = new ArrayList<>(groups.size());
+        //scan non-empty groups
+        float max = 0.0f;
         for (List<PresentationHint> group : groups)
         {
-            float s = 1.0f;
-            for (PresentationHint hint : group)
-                s = s * (hint.getSupport() + 0.5f);
+            if (!group.isEmpty())
+            {
+                float s = 1.0f;
+                for (PresentationHint hint : group)
+                    s = s * hint.getSupport();
+                if (s > max)
+                    max = s;
+            }
+        }
+        //save scores, use 1-max for empty groups
+        for (List<PresentationHint> group : groups)
+        {
+            float s;
+            if (!group.isEmpty())
+            {
+                s = 1.0f;
+                for (PresentationHint hint : group)
+                    s = s * hint.getSupport();
+                if (s > max)
+                    max = s;
+            }
+            else
+            {
+                s = 1.0f - max;
+            }
             ret.add(s);
         }
         return ret;
