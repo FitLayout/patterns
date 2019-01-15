@@ -74,6 +74,19 @@ public class MatchResultScore implements Comparable<MatchResultScore>
                     return 0;
             }
         });
+        cclist.add(new Comparator<MatchResultScore>() //hint score
+        {
+            @Override
+            public int compare(MatchResultScore o1, MatchResultScore o2)
+            {
+                if (o1.getHintScore() > o2.getHintScore())
+                    return 1;
+                else if (o1.getHintScore() < o2.getHintScore())
+                    return -1;
+                else
+                    return 0;
+            }
+        });
         /*cclist.add(new Comparator<MatchResultScore>() //number of matched areas
         {
             @Override
@@ -242,8 +255,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
         return ((1 * (1.0f - getMinMetric())
                 + 0.5f * getStyleConsistency()
                 + 1 * getCoveredAreas()
-                + 0.5f * getAverageConnectionWeight()) / 3.0f)
-                * (hintScore + 0.5f);
+                + 0.5f * getAverageConnectionWeight()) / 3.0f);
     }
     
     public void updateStats()
