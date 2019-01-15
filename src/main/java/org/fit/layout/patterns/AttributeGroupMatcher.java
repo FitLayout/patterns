@@ -713,7 +713,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     {
         List<Float> ret = new ArrayList<>(groups.size());
         //scan non-empty groups
-        float max = 0.0f;
+        float max = 0.5f; //default score is 0.5 (e.g. when there are no hints)
         for (List<PresentationHint> group : groups)
         {
             if (!group.isEmpty())

@@ -34,7 +34,7 @@ public class MatcherConfiguration
         this.pattern = pattern;
         this.result = result;
         this.tags = pattern.getTags();
-        this.hintScore = 1.0f;
+        this.hintScore = 0.5f; //default score is 0.5 (e.g. when there are no hints)
     }
 
     public MatcherConfiguration(MatcherConfiguration src)
