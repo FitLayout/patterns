@@ -35,6 +35,7 @@ public class HintInLine extends DefaultHint
     public HintInLine(Tag tag, Disambiguator dis, float support)
     {
         super("InLine", support);
+        setInline(true);
         this.tag = tag;
         this.dis = dis;
     }

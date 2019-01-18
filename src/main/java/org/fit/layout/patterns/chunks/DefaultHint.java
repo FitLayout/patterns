@@ -19,16 +19,42 @@ public class DefaultHint implements PresentationHint
 {
     private String name;
     private float support;
+    private boolean inline;
+    private boolean block;
     
     public DefaultHint(String name, float support)
     {
         this.name = name;
         this.support = support;
+        this.inline = false;
+        this.block = false;
     }
 
     public String getName()
     {
         return name;
+    }
+
+    @Override
+    public boolean impliesInline()
+    {
+        return inline;
+    }
+
+    protected void setInline(boolean inline)
+    {
+        this.inline = inline;
+    }
+
+    @Override
+    public boolean impliesBlock()
+    {
+        return block;
+    }
+
+    protected void setBlock(boolean block)
+    {
+        this.block = block;
     }
 
     public float getSupport()

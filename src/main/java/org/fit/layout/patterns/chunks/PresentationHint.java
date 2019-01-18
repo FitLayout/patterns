@@ -21,6 +21,18 @@ public interface PresentationHint
 {
     
     /**
+     * Does the hint imply that the area has block layout?
+     * @return
+     */
+    public boolean impliesBlock();
+    
+    /**
+     * Does the hint imply that the area has inline layout?
+     * @return
+     */
+    public boolean impliesInline();
+    
+    /**
      * The probability of the hint based on the analyzed page.
      * @return the hint support 0.0 .. 1.0
      */

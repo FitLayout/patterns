@@ -25,6 +25,7 @@ public class HintWholeBox extends DefaultHint
     public HintWholeBox(Tag tag, float support)
     {
         super("WholeBox", support);
+        setBlock(true);
     }
 
     @Override

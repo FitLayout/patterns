@@ -559,6 +559,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             conf.setConstraints(constraints);
             match = findMatches(conf, source.getPA(), dis, tagAreas, depMatches);
         }
+        match.setRelationProbabilitySource(new HintedRelationProbabilitySource(conf));
         MatchResultScore score = match.evaluateScore();
         score.setStats(stats);
         score.setHintScore(conf.getHintScore());
