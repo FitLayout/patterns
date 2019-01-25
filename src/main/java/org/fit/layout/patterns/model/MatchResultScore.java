@@ -258,6 +258,16 @@ public class MatchResultScore implements Comparable<MatchResultScore>
                 + 0.5f * getAverageConnectionWeight()
                 + 0.25f * getHintScore()) 
                 / 3.25f;
+        
+        //w1
+        /*return 1.076f  * getCoveredMatches() +
+                0.1094f * getCoveredAreas() +
+                0.3978f * getAverageConnectionWeight() +
+                1.1297f * getStyleConsistency() +
+                0.0068f * (1.0f - getMinMetric()) +
+                0.2013f * getHintScore() +
+               -1.7828f;*/
+        
     }
     
     public void updateStats()
