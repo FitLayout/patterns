@@ -21,6 +21,8 @@ import org.fit.layout.model.AreaTopology;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.gui.PatternsPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A chunk source that follows some presentation patterns in order to improve the chunk extraction.
@@ -43,6 +45,8 @@ import org.fit.layout.patterns.gui.PatternsPlugin;
  */
 public class PresentationBasedChunksSource extends ChunksSource
 {
+    private static Logger log = LoggerFactory.getLogger(PresentationBasedChunksSource.class);
+    
     private float minTagSupport;
     private ChunksCache cache;
     private List<Area> areas;
@@ -203,18 +207,25 @@ public class PresentationBasedChunksSource extends ChunksSource
         int last = 0;
         for (TagOccurrence occ : occurrences)
         {
-            int pos = occ.getPosition();
-            if (pos > last) //some substring between, create a chunk with no tag
+            if (occ.getLength() > 0)
             {
-                String substr = boxText.getText().substring(last, pos);
-                TagOccurrence between = new TagOccurrence(substr, last, 1);
-                Area sepArea = createSubstringArea(a, t, false, boxText, between);
-                all.add(sepArea);
+                int pos = occ.getPosition();
+                if (pos > last) //some substring between, create a chunk with no tag
+                {
+                    String substr = boxText.getText().substring(last, pos);
+                    TagOccurrence between = new TagOccurrence(substr, last, 1);
+                    Area sepArea = createSubstringArea(a, t, false, boxText, between);
+                    all.add(sepArea);
+                }
+                Area newArea = createSubstringArea(a, t, true, boxText, occ);
+                chunks.add(newArea);
+                all.add(newArea);
+                last = pos + occ.getLength();
             }
-            Area newArea = createSubstringArea(a, t, true, boxText, occ);
-            chunks.add(newArea);
-            all.add(newArea);
-            last = pos + occ.getLength();
+            else
+            {
+                log.error("Zero length occurence: {}, tag {}, area {}", occ, t, a);
+            }
         }
         if (boxText.length() > last) //there is something remaining after the last occurrence
         {
