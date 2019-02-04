@@ -250,6 +250,14 @@ public class MatchResultScore implements Comparable<MatchResultScore>
             return 0.0f;
     }
     
+    public float getNormalizedMM()
+    {
+        if (getStats() != null && getStats().getMaxMM() != 0.0f)
+            return 1.0f - (getMinMetric() / getStats().getMaxMM());
+        else
+            return 0.0f;
+    }
+    
     public float getOverallScore()
     {
         return (1 * (1.0f - getMinMetric())
@@ -258,6 +266,14 @@ public class MatchResultScore implements Comparable<MatchResultScore>
                 + 0.5f * getAverageConnectionWeight()
                 + 0.25f * getHintScore()) 
                 / 3.25f;
+        
+        /*return (0.0f  * getCoveredMatches() +
+                0.36f * getCoveredAreas() +
+                0.44f * getAverageConnectionWeight() +
+                0.28f * getConnectionWeightSigma() +
+                0.74f * getStyleConsistency() +
+                0.14f * getHintScore())
+                / 1.96f;*/
         
         //w1
         /*return 1.076f  * getCoveredMatches() +
@@ -274,6 +290,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     {
         stats.setMaxMatches(Math.max(stats.getMaxMatches(), getMatches()));
         stats.setMaxAreas(Math.max(stats.getMaxAreas(), getMatchedAreas()));
+        stats.setMaxMM(Math.max(stats.getMaxMM(), getMinMetric()));
     }
     
     @Override
@@ -297,7 +314,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
             + ", w=" + getAverageConnectionWeight() 
             + ", s=" + getConnectionWeightSigma()
             + ", sc=" + getStyleConsistency()
-            + ", mm=" + getMinMetric()
+            + ", mm=" + getNormalizedMM()
             + ", hs=" + getHintScore()
             //+ ", min=" + getMinConnectionWeight()
             //+ ", max=" + getMaxConnectionWeight()

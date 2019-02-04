@@ -14,6 +14,7 @@ public class MatchStatistics
 {
     private int maxMatches = 0;
     private int maxAreas = 0;
+    private float maxMM = 0.0f;
     
     public int getMaxMatches()
     {
@@ -33,6 +34,16 @@ public class MatchStatistics
     public void setMaxAreas(int maxAreas)
     {
         this.maxAreas = maxAreas;
+    }
+
+    public float getMaxMM()
+    {
+        return maxMM;
+    }
+
+    public void setMaxMM(float maxMM)
+    {
+        this.maxMM = maxMM;
     }
     
 }
