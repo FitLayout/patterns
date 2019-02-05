@@ -260,20 +260,20 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     
     public float getOverallScore()
     {
-        return (1 * (1.0f - getMinMetric())
+        /*return (1 * getNormalizedMM()
                 + 0.5f * getStyleConsistency()
                 + 1 * getCoveredAreas()
                 + 0.5f * getAverageConnectionWeight()
                 + 0.25f * getHintScore()) 
-                / 3.25f;
+                / 3.25f;*/
         
-        /*return (0.0f  * getCoveredMatches() +
+        return (0.0f  * getCoveredMatches() +
                 0.36f * getCoveredAreas() +
                 0.44f * getAverageConnectionWeight() +
                 0.28f * getConnectionWeightSigma() +
                 0.74f * getStyleConsistency() +
                 0.14f * getHintScore())
-                / 1.96f;*/
+                / 1.96f;
         
         //w1
         /*return 1.076f  * getCoveredMatches() +
