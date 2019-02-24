@@ -260,6 +260,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     
     public float getOverallScore()
     {
+        //original weights
         /*return (1 * getNormalizedMM()
                 + 0.5f * getStyleConsistency()
                 + 1 * getCoveredAreas()
@@ -267,6 +268,7 @@ public class MatchResultScore implements Comparable<MatchResultScore>
                 + 0.25f * getHintScore()) 
                 / 3.25f;*/
         
+        //discovered from CEUR dataset
         return (0.0f  * getCoveredMatches() +
                 0.36f * getCoveredAreas() +
                 0.44f * getAverageConnectionWeight() +
