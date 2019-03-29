@@ -7,6 +7,7 @@ package org.fit.layout.patterns.chunks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
@@ -49,8 +50,8 @@ public class HintStyle extends DefaultHint
         {
             if (a instanceof TextChunkArea)
             {
-                Tag dtag = dis.getAreaTag(((TextChunkArea) a).getSourceArea());
-                if (a.hasTag(tag) && (dtag == null || !dtag.equals(tag))) //TODO tag support?
+                final Set<Tag> dtags = dis.getAreaTags(((TextChunkArea) a).getSourceArea());
+                if (a.hasTag(tag) &&  !dtags.contains(tag)) //TODO tag support?
                 {
                     a.removeTag(tag);
                     a.setName("!" + a.getName());

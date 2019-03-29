@@ -1,11 +1,10 @@
 /**
- * Disambiguator.java
+ * StyleResolver.java
  *
  * Created on 13. 3. 2016, 11:48:08 by burgetr
  */
 package org.fit.layout.patterns;
 
-import java.util.Iterator;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
@@ -17,7 +16,7 @@ import org.fit.layout.model.Tag;
  * 
  * @author burgetr
  */
-public class StyleResolver
+public class StyleResolver implements TagResolver
 {
     private StyleAnalyzer styles;
     private float minSupport;
@@ -43,38 +42,17 @@ public class StyleResolver
         return styles;
     }
 
-    public Tag getAreaTag(Area a)
+    @Override
+    public Set<Tag> getAreaTags(Area a)
     {
         //tags originally assigned
-        Set<Tag> orig = a.getSupportedTags(minSupport);
+        final Set<Tag> orig = a.getSupportedTags(minSupport);
         //tags assigned by style
-        Set<Tag> byStyle = styles.inferTags(a);
+        final Set<Tag> byStyle = styles.inferTags(a);
         if (!allowNewTags)
             byStyle.retainAll(orig); //do not assign new tags by style now, only consider those already assigned
         //the remaining tags are the result
-        Set<Tag> ret = byStyle;
-        //validate the result: we need only one tag
-        Iterator<Tag> it = ret.iterator();
-        if (ret.size() == 0)
-            return null; //no tags decided
-        else if (ret.size() == 1)
-            return it.next(); //a single tag, return it
-        else
-        {
-            float max = 0; //otherwise, choose the most supported tag
-            Tag result = null;
-            while (it.hasNext())
-            {
-                Tag t = it.next();
-                float sup = a.getTagSupport(t);
-                if (sup > max)
-                {
-                    result = t;
-                    max = sup;
-                }
-            }
-            return result;
-        }
+        return byStyle;
     }
 
     @Override

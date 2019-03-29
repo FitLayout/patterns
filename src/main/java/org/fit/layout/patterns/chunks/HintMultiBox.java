@@ -42,8 +42,8 @@ public class HintMultiBox extends DefaultHint
     @Override
     public SourceBoxList extractBoxes(Area a, SourceBoxList current, Set<Area> processed)
     {
-        Tag dtag = dis.getAreaTag(a);
-        if (tag.equals(dtag)) //the disambiguator must assign the destination tag to this area
+        final Set<Tag> dtags = dis.getAreaTags(a);
+        if (dtags.contains(tag)) //the resolver must assign the destination tag to this area
         {
             if (a.getParent() != null) //the area must have a parent in order to work with the topology
             {
@@ -116,8 +116,8 @@ public class HintMultiBox extends DefaultHint
                 int step = nextr.getY1() - lastr.getY2();
                 int stepdif = Math.abs(laststep - step);
                 
-                Tag dtag = dis.getAreaTag(next);
-                if (tag.equals(dtag) //inferred tag corresponds to the target tag
+                final Set<Tag> dtags = dis.getAreaTags(next);
+                if (dtags.contains(tag) //inferred tags correspond to the target tag
                         && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD))
                 {
                     ret.add(next);

@@ -273,10 +273,15 @@ public abstract class RelationAnalyzer
         TagConnectionList ret = new TagConnectionList();
         for (AreaConnection ac : getAreaConnections())
         {
-            Tag src = dis.getAreaTag(ac.getA1());
-            Tag dest = dis.getAreaTag(ac.getA2());
-            if (src != null && dest != null)
-                ret.add(new TagConnection(src, dest, ac.getRelation(), ac.getWeight()));
+            final Set<Tag> srcTags = dis.getAreaTags(ac.getA1());
+            final Set<Tag> destTags = dis.getAreaTags(ac.getA2());
+            for (Tag src : srcTags)
+            {
+                for (Tag dest : destTags)
+                {
+                    ret.add(new TagConnection(src, dest, ac.getRelation(), ac.getWeight()));
+                }
+            }
         }
         return ret;
     }

@@ -953,14 +953,14 @@ public class AttributeGroupMatcher extends BaseMatcher
         List<AreaConnection> ret = new ArrayList<>(all.size());
         for (AreaConnection cand : all)
         {
-            if (destTag.equals(dis.getAreaTag(cand.getA1())))
+            if (dis.getAreaTags(cand.getA1()).contains(destTag))
             {
                 //find the source nodes that are closer
                 Collection<AreaConnection> better = pa.getConnections(cand.getA1(), r, null, cand.getWeight());
                 boolean foundBetter = false;
                 for (AreaConnection betterCand : better)
                 {
-                    if (srcTag.equals(dis.getAreaTag(betterCand.getA2())))
+                    if (dis.getAreaTags(betterCand.getA2()).contains(srcTag))
                     {
                         foundBetter = true;
                         break;
@@ -1152,16 +1152,18 @@ public class AttributeGroupMatcher extends BaseMatcher
     private Map<Tag, Set<Area>> createAttrTagMap(List<Area> areas, StyleResolver dis)
     {
         final List<Attribute> allAttrs = getAllAttrs();
-        Map<Tag, Set<Area>> areaMap = new HashMap<>(allAttrs.size());
+        final Map<Tag, Set<Area>> areaMap = new HashMap<>(allAttrs.size());
+        //create an empty set for every tag
         for (Attribute attr : allAttrs)
             areaMap.put(attr.getTag(), new HashSet<Area>());
         
+        //assigns areas to sets
         for (Area a : areas)
         {
-            Tag areaTag = dis.getAreaTag(a);
-            if (areaTag != null)
+            final Set<Tag> areaTags = dis.getAreaTags(a);
+            for (Tag areaTag : areaTags)
             {
-                Set<Area> tareas = areaMap.get(areaTag);
+                final Set<Area> tareas = areaMap.get(areaTag);
                 if (tareas != null)
                     tareas.add(a);
             }

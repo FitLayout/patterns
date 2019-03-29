@@ -43,8 +43,8 @@ public class HintInLine extends DefaultHint
     @Override
     public SourceBoxList extractBoxes(Area a, SourceBoxList current, Set<Area> processed)
     {
-        Tag dtag = dis.getAreaTag(a);
-        if (tag.equals(dtag)) //the disambiguator must assign the destination tag to this area
+        final Set<Tag> dtags = dis.getAreaTags(a);
+        if (dtags.contains(tag)) //the resolver must assign the destination tag to this area
         {
             if (a.getParent() != null) //the area must have a parent in order to work with the topology
             {
@@ -105,8 +105,8 @@ public class HintInLine extends DefaultHint
                 int step = nextr.getY1() - lastr.getY2();
                 int stepdif = Math.abs(laststep - step);
                 
-                Tag dtag = dis.getAreaTag(next);
-                if ((next.hasTag(tag) || tag.equals(dtag)) //assigned or inferred tag corresponds to the target tag
+                final Set<Tag> dtags = dis.getAreaTags(next);
+                if ((next.hasTag(tag) || dtags.contains(tag)) //assigned or inferred tag corresponds to the target tag
                         && (laststep == -1 || stepdif <= STEPDIF_THRESHOLD)) //TODO should the assigned tag be used?
                 {
                     ret.add(next);
