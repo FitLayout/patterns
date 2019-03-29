@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.Disambiguator;
+import org.fit.layout.patterns.StyleResolver;
 import org.fit.layout.patterns.StyleAnalyzerFixed;
 
 /**
@@ -21,10 +21,10 @@ import org.fit.layout.patterns.StyleAnalyzerFixed;
 public class HintStyle extends DefaultHint
 {
     private Tag tag;
-    private Disambiguator dis;
+    private StyleResolver dis;
     
 
-    public HintStyle(Tag tag, Disambiguator dis, float support)
+    public HintStyle(Tag tag, StyleResolver dis, float support)
     {
         super("Style", support);
         this.tag = tag;
@@ -36,7 +36,7 @@ public class HintStyle extends DefaultHint
         return tag;
     }
 
-    public Disambiguator getDisambiguator()
+    public StyleResolver getDisambiguator()
     {
         return dis;
     }

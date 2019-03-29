@@ -268,7 +268,7 @@ public abstract class RelationAnalyzer
         return tagConnections;
     }
     
-    public TagConnectionList getTagConnections(Disambiguator dis)
+    public TagConnectionList getTagConnections(StyleResolver dis)
     {
         TagConnectionList ret = new TagConnectionList();
         for (AreaConnection ac : getAreaConnections())

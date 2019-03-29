@@ -54,7 +54,7 @@ public class MatchAnalyzer
      * @return A list of listo of hints. Each of the lists represents a group of hints that may be used together in
      * the given order. During the evaluation, the groups are tested one by one.
      */
-    public List<List<PresentationHint>> findPossibleHints(Tag tag, Disambiguator dis)
+    public List<List<PresentationHint>> findPossibleHints(Tag tag, StyleResolver dis)
     {
         List<List<PresentationHint>> ret = new ArrayList<>();
         List<PresentationHint> setWholeBox = new ArrayList<>(1);

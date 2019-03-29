@@ -223,7 +223,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    public Map<Tag, Collection<Match>> getDependencyMatches(ChunksSource source, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    public Map<Tag, Collection<Match>> getDependencyMatches(ChunksSource source, StyleResolver dis, Map<Tag, Set<Area>> tagAreas)
     {
         Map<Tag, Collection<Match>> ret = new HashMap<>();
         if (dependencies != null)
@@ -377,7 +377,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         {
             log.info("Using conf {}", usedConf);
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
+            StyleResolver dis = new StyleResolver(sa, MIN_TAG_SUPPORT_MATCH);
             ChunksSource source = createSpecificChunksSource(root, usedConf, dis, null);
             Map<Tag, Set<Area>> tagAreas = createAttrTagMap(source.getAreas(), dis);
             
@@ -386,7 +386,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
     }
     
-    protected Collection<Match> match(ChunksSource source, Disambiguator dis, Map<Tag, Set<Area>> tagAreas)
+    protected Collection<Match> match(ChunksSource source, StyleResolver dis, Map<Tag, Set<Area>> tagAreas)
     {
         if (usedConf == null)
         {
@@ -409,7 +409,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         if (usedSource == null)
         {
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteUsedStyleMap());
-            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_MATCH);
+            StyleResolver dis = new StyleResolver(sa, MIN_TAG_SUPPORT_MATCH);
             usedSource = createSpecificChunksSource(root, usedConf, dis, null);
         }
         return usedSource;
@@ -444,7 +444,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             }
             
             StyleAnalyzer sa = new StyleAnalyzerFixed(getCompleteStyleMap(styleMap));
-            Disambiguator dis = new Disambiguator(sa, null, MIN_TAG_SUPPORT_TRAIN);
+            StyleResolver dis = new StyleResolver(sa, MIN_TAG_SUPPORT_TRAIN);
             ChunksSource styledSource = createSpecificChunksSource(root, null, dis, cache);
             PatternGenerator patternGenerator = new PatternGenerator(this, styledSource.getPA());
             
@@ -545,7 +545,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         return best;
     }
 
-    private MatchResult evaluateConfiguration(MatcherConfiguration conf, ChunksSource source, Disambiguator dis, MatchStatistics stats)
+    private MatchResult evaluateConfiguration(MatcherConfiguration conf, ChunksSource source, StyleResolver dis, MatchStatistics stats)
     {
         Map<Tag, Set<Area>> tagAreas = createAttrTagMap(source.getAreas(), dis);
         Map<Tag, Collection<Match>> depMatches = getDependencyMatches(source, dis, tagAreas);
@@ -587,7 +587,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param cache the extracted chunks cache or {@code null} when no cache should be used 
      * @return the resulting chunks source
      */
-    private ChunksSource createStyledChunksSource(Area root, Disambiguator dis, ChunksCache cache)
+    private ChunksSource createStyledChunksSource(Area root, StyleResolver dis, ChunksCache cache)
     {
         ChunksSource ret = new PresentationBasedChunksSource(root, MIN_TAG_SUPPORT_MATCH, cache);
         //Add style hints
@@ -608,7 +608,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis dis the disambiguator used for filtering the chunks based on their style
      * @return the resulting chunks source
      */
-    private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, Disambiguator dis, ChunksCache cache)
+    private ChunksSource createSpecificChunksSource(Area root, MatcherConfiguration conf, StyleResolver dis, ChunksCache cache)
     {
         ChunksSource ret = createStyledChunksSource(root, dis, cache);
         //unify the hints with the dependency hints
@@ -653,7 +653,7 @@ public class AttributeGroupMatcher extends BaseMatcher
         return ret;
     }
     
-    private List<MatcherConfiguration> createConfigurationsWithHints(MatcherConfiguration src, MatchResult match, Disambiguator dis)
+    private List<MatcherConfiguration> createConfigurationsWithHints(MatcherConfiguration src, MatchResult match, StyleResolver dis)
     {
         List<MatcherConfiguration> ret = new ArrayList<>();
         
@@ -755,7 +755,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis The disambiguator for mapping areas to tags.
      * @return The number of visual areas that match the given configuration.
      */
-    private MatchResult findMatches(MatcherConfiguration conf, RelationAnalyzer pa, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
+    private MatchResult findMatches(MatcherConfiguration conf, RelationAnalyzer pa, StyleResolver dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         Set<Area> matchedAreas = new HashSet<Area>();
         List<TagConnection> pairs = new ArrayList<>(conf.getPattern()); //pairs to go
@@ -793,7 +793,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     }
     
     private boolean recursiveFindMatchesFor(RelationAnalyzer pa, Area a, TagConnection curPair, List<TagConnection> pairs, Match curMatch, ConnectionPattern constraints,
-            Collection<Match> matches, Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
+            Collection<Match> matches, Set<Area> matchedAreas, StyleResolver dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         final boolean a1Many = isTagMany(curPair.getA1());
         final boolean a2Many = isTagMany(curPair.getA2());
@@ -869,7 +869,7 @@ public class AttributeGroupMatcher extends BaseMatcher
 
     private boolean tryNewMatch(RelationAnalyzer pa, Match nextMatch,
             List<TagConnection> pairs, ConnectionPattern constraints, Collection<Match> matches,
-            Set<Area> matchedAreas, Disambiguator dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
+            Set<Area> matchedAreas, StyleResolver dis, Map<Tag, Set<Area>> tagAreas, Map<Tag, Collection<Match>> depMatches)
     {
         //test if the match is complete
         boolean matched = false;
@@ -927,7 +927,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * @param dis the disambiguator used for assigning the tags to areas
      * @return the list of best area connections that correspond to the above criteria
      */
-    private List<AreaConnection> getAreasInBestRelation(RelationAnalyzer pa, Area a, Relation r, Tag srcTag, Tag destTag, boolean allowMany, Disambiguator dis)
+    private List<AreaConnection> getAreasInBestRelation(RelationAnalyzer pa, Area a, Relation r, Tag srcTag, Tag destTag, boolean allowMany, StyleResolver dis)
     {
         Collection<AreaConnection> all = pa.getConnections(null, r, a, -1.0f);
         //if only a single match is allowed, sort the matches in order to start with the best candidates
@@ -1149,7 +1149,7 @@ public class AttributeGroupMatcher extends BaseMatcher
      * Creates a mapping from the tags specified by the individual attributes to sets of related areas.
      * @return a mapping from tags to sets of areas
      */
-    private Map<Tag, Set<Area>> createAttrTagMap(List<Area> areas, Disambiguator dis)
+    private Map<Tag, Set<Area>> createAttrTagMap(List<Area> areas, StyleResolver dis)
     {
         final List<Attribute> allAttrs = getAllAttrs();
         Map<Tag, Set<Area>> areaMap = new HashMap<>(allAttrs.size());

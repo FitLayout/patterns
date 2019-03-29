@@ -5,37 +5,35 @@
  */
 package org.fit.layout.patterns;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
-import org.fit.layout.patterns.ConsistentAreaAnalyzer.ChainList;
+
 
 /**
- * A configurable disambiguator that is able to choose a single tag for the given area.
+ * This resolver assigns tags to areas based on their style.
+ * 
  * @author burgetr
  */
-public class Disambiguator
+public class StyleResolver
 {
     private StyleAnalyzer styles;
-    private ChainList chains;
     private float minSupport;
     private boolean allowNewTags; //allow assigning the tags not assigned by text tagging
     
-    public Disambiguator(StyleAnalyzer styles, ChainList chains, float minSupport)
+    
+    public StyleResolver(StyleAnalyzer styles, float minSupport)
     {
         this.styles = styles;
-        this.chains = chains;
         this.minSupport = minSupport;
         this.allowNewTags = false;
     }
 
-    public Disambiguator(StyleAnalyzer styles, ChainList chains, float minSupport, boolean allowNewTags)
+    public StyleResolver(StyleAnalyzer styles, float minSupport, boolean allowNewTags)
     {
         this.styles = styles;
-        this.chains = chains;
         this.minSupport = minSupport;
         this.allowNewTags = allowNewTags;
     }
@@ -47,21 +45,12 @@ public class Disambiguator
 
     public Tag getAreaTag(Area a)
     {
-        //if (a.getId() == 119)
-        //    System.out.println("jo!");
         //tags originally assigned
         Set<Tag> orig = a.getSupportedTags(minSupport);
         //tags assigned by style
         Set<Tag> byStyle = styles.inferTags(a);
         if (!allowNewTags)
             byStyle.retainAll(orig); //do not assign new tags by style now, only consider those already assigned
-        //any chains: if necessary, try to disambiguate the information obtained by style
-        if (byStyle.size() > 1 && chains != null)
-        {
-            Set<Tag> byChains = new HashSet<Tag>(chains.findChainTagsForArea(a));
-            if (!byChains.isEmpty())
-                byStyle.retainAll(byChains);
-        }
         //the remaining tags are the result
         Set<Tag> ret = byStyle;
         //validate the result: we need only one tag
@@ -103,7 +92,7 @@ public class Disambiguator
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        Disambiguator other = (Disambiguator) obj;
+        StyleResolver other = (StyleResolver) obj;
         if (styles == null)
         {
             if (other.styles != null) return false;

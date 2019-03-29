@@ -16,7 +16,7 @@ import org.fit.layout.model.ContentLine;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
-import org.fit.layout.patterns.Disambiguator;
+import org.fit.layout.patterns.StyleResolver;
 
 /**
  * This hint causes considering multiple subsequent lines to be treated as a single chunk source area.
@@ -29,10 +29,10 @@ public class HintInLine extends DefaultHint
     private static final int STEPDIF_THRESHOLD = 2; //pixels tolerance in the step difference between lines
     
     private Tag tag;
-    private Disambiguator dis;
+    private StyleResolver dis;
 
     
-    public HintInLine(Tag tag, Disambiguator dis, float support)
+    public HintInLine(Tag tag, StyleResolver dis, float support)
     {
         super("InLine", support);
         setInline(true);

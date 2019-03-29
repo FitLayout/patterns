@@ -17,7 +17,7 @@ import org.fit.layout.model.ContentLine;
 import org.fit.layout.model.Rectangular;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.AreaUtils;
-import org.fit.layout.patterns.Disambiguator;
+import org.fit.layout.patterns.StyleResolver;
 
 /**
  * This hint has the same meaning as {@link HintWholeBox} but it also considers multiple subsequent boxes. 
@@ -28,10 +28,10 @@ public class HintMultiBox extends DefaultHint
     private static final int STEPDIF_THRESHOLD = 2; //pixels tolerance in the step difference between lines
 
     private Tag tag;
-    private Disambiguator dis;
+    private StyleResolver dis;
 
     
-    public HintMultiBox(Tag tag, Disambiguator dis, float support)
+    public HintMultiBox(Tag tag, StyleResolver dis, float support)
     {
         super("MultiBox", support);
         setBlock(true);
