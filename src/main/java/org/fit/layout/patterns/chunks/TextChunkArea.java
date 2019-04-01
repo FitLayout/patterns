@@ -20,7 +20,6 @@ import org.fit.layout.model.Rectangular;
 public class TextChunkArea extends DefaultArea
 {
     private String text;
-    private int sourcePosition;
     private Area sourceArea;
     private Box sourceBox;
     private AreaTopology layerTopology;
@@ -52,16 +51,6 @@ public class TextChunkArea extends DefaultArea
     public String getText(String separator)
     {
         return text;
-    }
-
-    public int getSourcePosition()
-    {
-        return sourcePosition;
-    }
-
-    public void setSourcePosition(int sourcePosition)
-    {
-        this.sourcePosition = sourcePosition;
     }
 
     public Area getSourceArea()
@@ -107,29 +96,4 @@ public class TextChunkArea extends DefaultArea
         setFontStyle(src.getFontStyle());
         setBackgroundSeparated(src.isBackgroundSeparated());
     }
-
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
-        int result = ((sourceArea == null) ? 0 : sourceArea.hashCode());
-        result = prime * result + sourcePosition;
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj) return true;
-        if (getClass() != obj.getClass()) return false;
-        TextChunkArea other = (TextChunkArea) obj;
-        if (sourceArea == null)
-        {
-            if (other.sourceArea != null) return false;
-        }
-        else if (!sourceArea.equals(other.sourceArea)) return false;
-        if (sourcePosition != other.sourcePosition) return false;
-        return true;
-    }
-
 }

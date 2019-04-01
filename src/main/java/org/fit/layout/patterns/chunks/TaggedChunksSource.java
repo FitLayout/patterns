@@ -129,7 +129,6 @@ public class TaggedChunksSource extends ChunksSource
         Rectangular r = box.getSubstringBounds(pos, pos + occ.length());
         TextChunkArea newArea = new TextChunkArea(r, a, box);
         newArea.setText(occ);
-        newArea.setSourcePosition(pos);
         if (tag != null)
         {
             newArea.setName("<chunk:" + tag.getValue() + "> " + occ);

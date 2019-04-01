@@ -252,7 +252,6 @@ public class PresentationBasedChunksSource extends ChunksSource
         //create the chunk area
         TextChunkArea newArea = new TextChunkArea(r, a, boxText.getBoxForPosition(occ.getPosition()));
         newArea.setText(occ.getText());
-        newArea.setSourcePosition(occ.getPosition());
         if (present)
         {
             newArea.setName("<chunk:" + tag.getValue() + "> " + occ);
