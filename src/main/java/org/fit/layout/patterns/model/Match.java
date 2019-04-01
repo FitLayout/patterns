@@ -7,7 +7,6 @@ package org.fit.layout.patterns.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -229,23 +228,42 @@ public class Match extends HashMap<Tag, List<Area>>
     }
     
     /**
-     * Checks whether the set of matched areas is disjoint with another collection.
+     * Checks whether the set of matched areas is topographically disjoint with another collection.
      * @param areas The collection to compare with.
-     * @return {@code true} when this match does not contain any area from the given collection
+     * @return {@code true} when this match does not overlap any area from the given collection
      */
     public boolean isDisjointWith(Collection<Area> areas)
     {
-        return Collections.disjoint(areas, getAllAreas());
+        return !areasOverlap(areas, getAllAreas());
     }
     
     /**
-     * Checks whether the set of matched areas is disjoint with another match result.
+     * Checks whether the set of matched areas is topographically disjoint with another match result.
      * @param areaConnection The match result to compare with.
-     * @return {@code true} when this match does not contain any area from the other match result and vice versa
+     * @return {@code true} when this match does not overlap any area from the other match result and vice versa
      */
     public boolean isDisjointWith(Match other)
     {
-        return Collections.disjoint(other.getAllAreas(), getAllAreas());
+        return !areasOverlap(other.getAllAreas(), getAllAreas());
+    }
+    
+    /**
+     * Tests two collections of areas for overlaps.
+     * @param areas1 the first area collection
+     * @param areas2 the second area collection
+     * @return {@code true} when some area from areas1 overlaps any area from areas2
+     */
+    private boolean areasOverlap(Collection<Area> areas1, Collection<Area> areas2)
+    {
+        for (Area a1 : areas1)
+        {
+            for (Area a2 : areas2)
+            {
+                if (a1.getBounds().intersects(a2.getBounds()))
+                    return true;
+            }
+        }
+        return false;
     }
  
     @Override
