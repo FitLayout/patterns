@@ -202,6 +202,22 @@ public class AreaUtils
         }
     }
     
+    /**
+     * Checks if a given area overlaps with any other area contained in a given collection
+     * @param a the area 
+     * @param col the collection of other areas for checking overlaps
+     * @return true if the area a overlaps with any area from col
+     */
+    public static boolean intersectsWithAny(Area a, Collection<Area> col)
+    {
+        for (Area b : col)
+        {
+            if (a.getBounds().intersects(b.getBounds()))
+                return true;
+        }
+        return false;
+    }
+    
     public static float statRound(float value)
     {
         final float f = 100000f;
