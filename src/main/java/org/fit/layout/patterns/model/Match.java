@@ -204,6 +204,11 @@ public class Match extends HashMap<Tag, List<Area>>
         return (findArea(a) != null);
     }
     
+    public boolean overlapsArea(Area a)
+    {
+        return areasOverlap(a, getAllAreas());
+    }
+    
     /**
      * Adds all the matched areas to a specified destination collection.
      * @param dest the destination collection
@@ -266,6 +271,16 @@ public class Match extends HashMap<Tag, List<Area>>
         return false;
     }
  
+    private boolean areasOverlap(Area a1, Collection<Area> areas2)
+    {
+        for (Area a2 : areas2)
+        {
+            if (a1.getBounds().intersects(a2.getBounds()))
+                return true;
+        }
+        return false;
+    }
+    
     @Override
     public int hashCode()
     {

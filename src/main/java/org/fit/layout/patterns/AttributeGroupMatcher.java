@@ -784,9 +784,12 @@ public class AttributeGroupMatcher extends BaseMatcher
             //System.out.println("src set: " + srcSet.size());
             for (Area a : srcSet)
             {
-                Match match = new Match(); 
-                match.putSingle(curPair.getA2(), a);
-                recursiveFindMatchesFor(pa, a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                if (!isAlreadyUsed(a, matchedAreas))
+                {
+                    Match match = new Match(); 
+                    match.putSingle(curPair.getA2(), a);
+                    recursiveFindMatchesFor(pa, a, curPair, pairs, match, conf.getConstraints(), matches, matchedAreas, dis, tagAreas, depMatches);
+                }
             }
         }
         return new MatchResult(matches, matchedAreas, pa);
@@ -818,7 +821,7 @@ public class AttributeGroupMatcher extends BaseMatcher
                         if (ref.contains(con.getA1()))
                         {
                             Area b = con.getA1();
-                            boolean mayUse = a1Many || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
+                            boolean mayUse = a1Many || !isAlreadyUsed(b, matchedAreas); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
                             if (mayUse && !curMatch.containsArea(b))
                             {
                                 //create the new candidate match
@@ -843,8 +846,8 @@ public class AttributeGroupMatcher extends BaseMatcher
             for (AreaConnection con : inrel)
             {
                 Area b = con.getA1();
-                boolean mayUse = a2Many || !matchedAreas.contains(b); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
-                if (mayUse && destSet.contains(b) && !curMatch.containsArea(b))
+                boolean mayUse = a2Many || !isAlreadyUsed(b, matchedAreas); //check repeated match of a single area depending on cardinality (is B already assigned to another A)
+                if (mayUse && destSet.contains(b) && !curMatch.overlapsArea(b))
                 {
                     addedMatches.add(b);
                     addedConnections.add(con);
@@ -909,6 +912,12 @@ public class AttributeGroupMatcher extends BaseMatcher
         }
         
         return matched;
+    }
+    
+    private boolean isAlreadyUsed(Area a, Collection<Area> matchedAreas)
+    {
+        //return matchedAreas.contains(a);
+        return AreaUtils.intersectsWithAny(a, matchedAreas);
     }
     
     /**
