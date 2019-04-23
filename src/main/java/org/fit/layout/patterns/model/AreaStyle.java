@@ -107,6 +107,46 @@ public class AreaStyle
         return height;
     }
 
+    public void setFontSize(float fontSize)
+    {
+        this.fontSize = fontSize;
+    }
+
+    public void setStyle(float style)
+    {
+        this.style = style;
+    }
+
+    public void setWeight(float weight)
+    {
+        this.weight = weight;
+    }
+
+    public void setColor(Color color)
+    {
+        this.color = color;
+    }
+
+    public void setBgColor(Color bgColor)
+    {
+        this.bgColor = bgColor;
+    }
+
+    public void setBackgroundSeparated(boolean backgroundSeparated)
+    {
+        this.backgroundSeparated = backgroundSeparated;
+    }
+
+    public void setWidth(float width)
+    {
+        this.width = width;
+    }
+
+    public void setHeight(float height)
+    {
+        this.height = height;
+    }
+
     @Override
     public int hashCode()
     {
