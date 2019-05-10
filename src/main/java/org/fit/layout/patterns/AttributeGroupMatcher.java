@@ -917,7 +917,7 @@ public class AttributeGroupMatcher extends BaseMatcher
     private boolean isAlreadyUsed(Area a, Collection<Area> matchedAreas)
     {
         //return matchedAreas.contains(a);
-        return AreaUtils.intersectsWithAny(a, matchedAreas);
+        return AreaUtils.areasOverlap(a, matchedAreas, Match.MIN_OVERLAP_PERCENTAGE);
     }
     
     /**

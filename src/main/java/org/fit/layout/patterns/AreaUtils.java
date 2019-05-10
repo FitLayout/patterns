@@ -218,6 +218,65 @@ public class AreaUtils
         return false;
     }
     
+    /**
+     * Tests two collections of areas for overlaps.
+     * @param areas1 the first area collection
+     * @param areas2 the second area collection
+     * @param minPercentage the minimal percentage of the areas to be shared to say that the areas overlap
+     * @return {@code true} when some area from areas1 overlaps any area from areas2
+     */
+    public static boolean areasOverlap(Collection<Area> areas1, Collection<Area> areas2, double minPercentage)
+    {
+        for (Area a1 : areas1)
+        {
+            for (Area a2 : areas2)
+            {
+                if (areasOverlap(a1, a2, minPercentage))
+                    return true;
+            }
+        }
+        return false;
+    }
+ 
+    /**
+     * Tests a collection of areas for overlaps with another area
+     * @param a1 the area
+     * @param areas2 the area collection
+     * @param minPercentage the minimal percentage of the areas to be shared to say that the areas overlap
+     * @return {@code true} when some area from areas2 overlaps a1
+     */
+    public static boolean areasOverlap(Area a1, Collection<Area> areas2, double minPercentage)
+    {
+        for (Area a2 : areas2)
+        {
+            if (areasOverlap(a1, a2, minPercentage))
+                return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Tests whether an area overlaps with another area
+     * @param a1 the first area
+     * @param a2 the second area
+     * @param minPercentage the minimal percentage of the areas to be shared to say that the areas overlap
+     * @return {@code true} when a2 overlaps a1
+     */
+    public static boolean areasOverlap(Area a1, Area a2, double minPercentage)
+    {
+        final Rectangular intr = a1.getBounds().intersection(a2.getBounds());
+        if (!intr.isEmpty())
+        {
+            final int shared = intr.getArea();
+            final double sp1 = (double) shared / a1.getBounds().getArea();
+            final double sp2 = (double) shared / a2.getBounds().getArea();
+            return (sp1 >= minPercentage || sp2 >= minPercentage);
+        }
+        else
+            return false;
+    }
+
+    
     public static float statRound(float value)
     {
         final float f = 100000f;

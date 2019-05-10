@@ -29,6 +29,9 @@ public class Match extends HashMap<Tag, List<Area>>
 {
     private static final long serialVersionUID = 1L;
     
+    /** Minimal percentage of the smaller area that must be shared by two areas to consider them as overlapping. */
+    public static final double MIN_OVERLAP_PERCENTAGE = 0.2;
+    
     private List<ConnectionMatch> areaConnections1;
     private List<ConnectionMatch> areaConnectionsM1;
     private Set<Match> subMatches;
@@ -206,7 +209,7 @@ public class Match extends HashMap<Tag, List<Area>>
     
     public boolean overlapsArea(Area a)
     {
-        return areasOverlap(a, getAllAreas());
+        return AreaUtils.areasOverlap(a, getAllAreas(), MIN_OVERLAP_PERCENTAGE);
     }
     
     /**
@@ -239,7 +242,7 @@ public class Match extends HashMap<Tag, List<Area>>
      */
     public boolean isDisjointWith(Collection<Area> areas)
     {
-        return !areasOverlap(areas, getAllAreas());
+        return !AreaUtils.areasOverlap(areas, getAllAreas(), MIN_OVERLAP_PERCENTAGE);
     }
     
     /**
@@ -249,36 +252,7 @@ public class Match extends HashMap<Tag, List<Area>>
      */
     public boolean isDisjointWith(Match other)
     {
-        return !areasOverlap(other.getAllAreas(), getAllAreas());
-    }
-    
-    /**
-     * Tests two collections of areas for overlaps.
-     * @param areas1 the first area collection
-     * @param areas2 the second area collection
-     * @return {@code true} when some area from areas1 overlaps any area from areas2
-     */
-    private boolean areasOverlap(Collection<Area> areas1, Collection<Area> areas2)
-    {
-        for (Area a1 : areas1)
-        {
-            for (Area a2 : areas2)
-            {
-                if (a1.getBounds().intersects(a2.getBounds()))
-                    return true;
-            }
-        }
-        return false;
-    }
- 
-    private boolean areasOverlap(Area a1, Collection<Area> areas2)
-    {
-        for (Area a2 : areas2)
-        {
-            if (a1.getBounds().intersects(a2.getBounds()))
-                return true;
-        }
-        return false;
+        return !AreaUtils.areasOverlap(other.getAllAreas(), getAllAreas(), MIN_OVERLAP_PERCENTAGE);
     }
     
     @Override
