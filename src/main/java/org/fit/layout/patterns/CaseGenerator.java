@@ -5,7 +5,6 @@
  */
 package org.fit.layout.patterns;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -43,7 +42,9 @@ public class CaseGenerator
     public void dumpIndex(String dest) throws IOException
     {
         PrintWriter out = new PrintWriter(dest);
-        out.println("@prefix m: <http://fitlayout.github.io/ontology/patterns.owl#>");
+        out.println("@prefix segm: <http://fitlayout.github.io/ontology/segmentation.owl#> .");
+        out.println("@prefix p: <http://fitlayout.github.io/ontology/patterns.owl#> .");
+        out.println("@prefix r: <http://fitlayout.github.io/resources/> .");
         for ( Map<Relation, AreaConnection> relmap : areaIndex.values())
         {
             for (AreaConnection con : relmap.values())
@@ -60,7 +61,7 @@ public class CaseGenerator
     {
         for (Tag t : a.getTags().keySet())
         {
-            out.println(toUri(a) + " a:hasTag " + toUri(t) + " .");
+            out.println(toUri(a) + " segm:hasTag " + toUri(t) + " .");
         }
     }
     
@@ -91,17 +92,17 @@ public class CaseGenerator
     
     private String toUri(Area a)
     {
-        return "m:a" + a.getId();
+        return "r:a" + a.getId();
     }
     
     private String toUri(Relation r)
     {
-        return "m:" + r.getName();
+        return "p:" + r.getName();
     }
     
     private String toUri(Tag t)
     {
-        return "t:" + t.getValue();
+        return "r:tag-" + t.getValue();
     }
     
 }
