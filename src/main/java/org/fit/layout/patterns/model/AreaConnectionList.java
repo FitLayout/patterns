@@ -22,6 +22,11 @@ public class AreaConnectionList extends ConnectionList<Area, AreaConnection>
         super();
     }
     
+    public AreaConnectionList(int size)
+    {
+        super(size);
+    }
+    
     public AreaConnectionList(List<AreaConnection> src)
     {
         super(src);

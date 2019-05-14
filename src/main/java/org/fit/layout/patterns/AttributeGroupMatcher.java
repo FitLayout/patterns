@@ -5,6 +5,7 @@
  */
 package org.fit.layout.patterns;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -341,6 +342,15 @@ public class AttributeGroupMatcher extends BaseMatcher
         scanAttributes();
         //create initial pattern analyzer
         RelationAnalyzer pa = source.getPA();
+        
+        try
+        {
+            CaseGenerator gen = new CaseGenerator(null, pa);
+            gen.dumpIndex("/tmp/data.ttl");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
         //create style generator
         StyleGenerator styleGenerator = new StyleGenerator(attrs, source.getAreas(), pa, getUseStyleWildcards());
         
