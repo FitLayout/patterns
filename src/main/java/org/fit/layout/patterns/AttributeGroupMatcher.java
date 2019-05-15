@@ -5,7 +5,9 @@
  */
 package org.fit.layout.patterns;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +29,7 @@ import org.fit.layout.patterns.chunks.PresentationHint;
 import org.fit.layout.patterns.graph.Group;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.AreaStyle;
+import org.fit.layout.patterns.model.Case;
 import org.fit.layout.patterns.model.ConnectionPattern;
 import org.fit.layout.patterns.model.Match;
 import org.fit.layout.patterns.model.MatchResult;
@@ -349,8 +352,17 @@ public class AttributeGroupMatcher extends BaseMatcher
         for (TagPattern pattern : patterns)
         {
             log.debug("P: {}", pattern);
-            CaseGenerator gen = new CaseGenerator(null, pa);
-            gen.generateCases();
+            CaseGenerator gen = new CaseGenerator(pattern, pa);
+            Set<Case> cases = gen.generateCases();
+            try
+            {
+                PrintWriter out = new PrintWriter("/tmp/cases.txt");
+                for (Case c : cases)
+                    out.println(c.toString());
+                out.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
         
         //create style generator

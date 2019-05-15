@@ -7,9 +7,12 @@ package org.fit.layout.patterns;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,6 +20,7 @@ import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.Case;
+import org.fit.layout.patterns.model.TagPair;
 import org.fit.layout.patterns.model.TagPattern;
 
 /**
@@ -45,10 +49,34 @@ public class CaseGenerator
      */
     public Set<Case> generateCases()
     {
-        Set<Case> ret = new HashSet<>();
-        //TODO
-        return ret;
+        Set<Case> cases = new HashSet<>();
+        
+        Set<Tag> processedTags = new HashSet<>();
+        List<TagPair> plist = new ArrayList<>(pattern);
+        //find connections for the first pair
+        TagPair pair = plist.get(0);
+        for (AreaConnection con : pa.getAreaConnections())
+        {
+            if (con.getA1().hasTag(pair.getO1()) && con.getA2().hasTag(pair.getO2()))
+            {
+                Case c = new Case(pattern.size());
+                c.addConnection(pair, con);
+                cases.add(c);
+            }
+        }
+        plist.remove(0);
+        processedTags.add(pair.getO1());
+        processedTags.add(pair.getO2());
+        //complete the remaining pairs
+        while (!plist.isEmpty())
+        {
+            pair = plist.get(0);
+            //TODO
+        }
+        
+        return cases;
     }
+    
     
     
     //===================================================================================
