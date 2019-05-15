@@ -75,10 +75,21 @@ public class PatternGenerator
     }
     
     /**
+     * Discovers all usable tag patterns for the matcher.
+     * @return a ser of tag patterns
+     */
+    public Set<TagPattern> generateTagPatterns()
+    {
+        TagConnectionList all = pa.getTagConnections();
+        Set<TagPattern> patterns = findConnectedTagPatterns(all, matcher.getUsedTags(), matcher.getTagsWithDependencies());
+        return patterns;
+    }
+    
+    /**
      * Discovers all usable tag patterns from the list of connections.
      * @param attlist the list of attributes to consider
      * @param allConnections the connections to consider
-     * @return a list of tag patterns
+     * @return a set of tag patterns
      */
     private Set<TagPattern> findConnectedTagPatterns(TagConnectionList allConnections, Set<Tag> localTags, Set<Tag> allowedTags)
     {

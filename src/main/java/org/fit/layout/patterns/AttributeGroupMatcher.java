@@ -35,6 +35,7 @@ import org.fit.layout.patterns.model.MatchStatistics;
 import org.fit.layout.patterns.model.MatcherConfiguration;
 import org.fit.layout.patterns.model.TagConnection;
 import org.fit.layout.patterns.model.TagPair;
+import org.fit.layout.patterns.model.TagPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -342,13 +343,14 @@ public class AttributeGroupMatcher extends BaseMatcher
         scanAttributes();
         //create initial pattern analyzer
         RelationAnalyzer pa = source.getPA();
-        
-        try
+
+        PatternGenerator pgen = new PatternGenerator(this, pa);
+        Set<TagPattern> patterns = pgen.generateTagPatterns();
+        for (TagPattern pattern : patterns)
         {
+            log.debug("P: {}", pattern);
             CaseGenerator gen = new CaseGenerator(null, pa);
-            gen.dumpIndex("/tmp/data.ttl");
-        } catch (IOException e) {
-            e.printStackTrace();
+            gen.generateCases();
         }
         
         //create style generator

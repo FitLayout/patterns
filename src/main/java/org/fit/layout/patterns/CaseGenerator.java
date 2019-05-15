@@ -7,13 +7,17 @@ package org.fit.layout.patterns;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.fit.layout.model.Area;
 import org.fit.layout.model.Tag;
 import org.fit.layout.patterns.model.AreaConnection;
+import org.fit.layout.patterns.model.Case;
+import org.fit.layout.patterns.model.TagPattern;
 
 /**
  * 
@@ -21,23 +25,59 @@ import org.fit.layout.patterns.model.AreaConnection;
  */
 public class CaseGenerator
 {
-    private List<Tag> tags;
+    private TagPattern pattern;
     private RelationAnalyzer pa;
     
     /** An index that assigns the best area connection to every source area and relation */
     private Map<Area, Map<Relation, AreaConnection>> areaIndex;
     
     
-    public CaseGenerator(List<Tag> tags, RelationAnalyzer pa)
+    public CaseGenerator(TagPattern pattern, RelationAnalyzer pa)
     {
-        this.tags = tags;
+        this.pattern = pattern;
         this.pa = pa;
         buildAreaIndex();
     }
     
-    public void generateCases()
+    /**
+     * Finds all the cases that correspond to the given tag pattern.
+     * @return a set of particular cases
+     */
+    public Set<Case> generateCases()
     {
+        Set<Case> ret = new HashSet<>();
+        //TODO
+        return ret;
     }
+    
+    
+    //===================================================================================
+    
+    private void buildAreaIndex()
+    {
+        areaIndex = new HashMap<>();
+        for (AreaConnection con : pa.getAreaConnections())
+        {
+            Map<Relation, AreaConnection> rels = areaIndex.get(con.getA2());
+            if (rels != null)
+            {
+                AreaConnection current = rels.get(con.getRelation());
+                if (current == null || con.getWeight() > current.getWeight())
+                {
+                    rels.put(con.getRelation(), con);
+                }
+            }
+            else
+            {
+                rels = new HashMap<>();
+                rels.put(con.getRelation(), con);
+                areaIndex.put(con.getA2(), rels);
+            }
+        }
+    }
+    
+    //===================================================================================
+    // RDF output
     
     public void dumpIndex(String dest) throws IOException
     {
@@ -62,31 +102,6 @@ public class CaseGenerator
         for (Tag t : a.getTags().keySet())
         {
             out.println(toUri(a) + " segm:hasTag " + toUri(t) + " .");
-        }
-    }
-    
-    //===================================================================================
-    
-    private void buildAreaIndex()
-    {
-        areaIndex = new HashMap<>();
-        for (AreaConnection con : pa.getAreaConnections())
-        {
-            Map<Relation, AreaConnection> rels = areaIndex.get(con.getA2());
-            if (rels != null)
-            {
-                AreaConnection current = rels.get(con.getRelation());
-                if (current == null || con.getWeight() > current.getWeight())
-                {
-                    rels.put(con.getRelation(), con);
-                }
-            }
-            else
-            {
-                rels = new HashMap<>();
-                rels.put(con.getRelation(), con);
-                areaIndex.put(con.getA2(), rels);
-            }
         }
     }
     
