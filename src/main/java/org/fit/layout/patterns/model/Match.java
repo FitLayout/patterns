@@ -286,7 +286,7 @@ public class Match extends HashMap<Tag, List<Area>>
      * An area connection matched to the given tag connection.
      * @author burgetr
      */
-    public class ConnectionMatch
+    public static class ConnectionMatch
     {
         private TagConnection tagConnection;
         private AreaConnection areaConnection;
