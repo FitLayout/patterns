@@ -8,6 +8,11 @@ package org.fit.layout.patterns.model;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+
+import org.fit.layout.classify.StyleCounter;
+import org.fit.layout.model.Tag;
+import org.fit.layout.patterns.eval.ConnectionStats;
 
 /**
  * Represents different statistics about a match result
@@ -129,6 +134,10 @@ public class MatchResultScore implements Comparable<MatchResultScore>
     private float styleConsistency;
     private float hintScore;
     
+    private Map<TagConnection, ConnectionStats> conStats;
+    private Map<Tag, StyleCounter<AreaStyle>> styleStats;
+    
+    
     public MatchResultScore()
     {
     }
@@ -234,6 +243,26 @@ public class MatchResultScore implements Comparable<MatchResultScore>
         this.hintScore = hintScore;
     }
 
+    public Map<TagConnection, ConnectionStats> getConStats()
+    {
+        return conStats;
+    }
+
+    public void setConStats(Map<TagConnection, ConnectionStats> conStats)
+    {
+        this.conStats = conStats;
+    }
+
+    public Map<Tag, StyleCounter<AreaStyle>> getStyleStats()
+    {
+        return styleStats;
+    }
+
+    public void setStyleStats(Map<Tag, StyleCounter<AreaStyle>> styleStats)
+    {
+        this.styleStats = styleStats;
+    }
+
     public float getCoveredAreas()
     {
         if (getStats() != null)
@@ -323,4 +352,28 @@ public class MatchResultScore implements Comparable<MatchResultScore>
             ;
     }
     
+    public void dumpMinMetric()
+    {
+        for (TagConnection tcon : getConStats().keySet())
+        {
+            System.out.println(tcon  + " best:" + getConStats().get(tcon).getBestMetric() + "=" + getConStats().get(tcon).getBestMetricValue());
+            /*for (Set<AreaConnection> con : getConnStats().get(tcon))
+            {
+                Metric m = getConnStats().get(tcon).getBestMetric();
+                float val = m.compute(con);
+                System.out.println(val + " =  con: " + con);
+            }*/
+        }
+    }
+    
+    public void dumpStyleStats()
+    {
+        Map<Tag, StyleCounter<AreaStyle>> styles = getStyleStats();
+        for (Tag t : styles.keySet())
+        {
+            StyleCounter<AreaStyle> style = styles.get(t);
+            System.out.println(t + " style: " + style.getPercentage(style.getMostFrequent()));
+        }
+    }
+
 }
