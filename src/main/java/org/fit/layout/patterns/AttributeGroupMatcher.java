@@ -139,7 +139,7 @@ public class AttributeGroupMatcher extends BaseMatcher
             usedConf = best.get(index);
             usedSource = null; //configuration changed, create a new source next time
             //usedConf.getResult().dumpMatchAverages();
-            //usedConf.getResult().dumpMinMetric();
+            usedConf.getResult().dumpMinMetric();
             //usedConf.getResult().dumpStyleStats();
         }
         else

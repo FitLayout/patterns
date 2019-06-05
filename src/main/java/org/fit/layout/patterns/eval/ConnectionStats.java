@@ -1,11 +1,9 @@
 package org.fit.layout.patterns.eval;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.fit.layout.patterns.AreaUtils;
 import org.fit.layout.patterns.model.AreaConnection;
 import org.fit.layout.patterns.model.Metric;
 import org.fit.layout.patterns.model.TagConnection;

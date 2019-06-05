@@ -198,7 +198,7 @@ public class MatchResult
         score.setMinMetric(getMinMetric());
         score.setStyleConsistency(getStyleConsistency());
         score.setConStats(getConnStats());
-        //score.setStyleStats(getStyleStats());
+        score.setStyleStats(getStyleStats());
         return score;
     }
     

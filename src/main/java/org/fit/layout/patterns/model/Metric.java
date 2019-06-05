@@ -243,7 +243,7 @@ public interface Metric
     /**
      * Represents the minimal vertical distance between the baselines of the connected areas.
      */
-    public static final Metric heightBB = new BaseMetric("widthBB")
+    public static final Metric heightBB = new BaseMetric("heightBB")
     {
         @Override
         public float compute(Set<AreaConnection> cons)
